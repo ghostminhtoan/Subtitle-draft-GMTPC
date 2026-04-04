@@ -3,33 +3,28 @@ chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 echo ============================================
-echo   Git Push & Build - Subtitle draft GMTPC
+echo   Git Push - Subtitle draft GMTPC
 echo ============================================
 echo.
 
 REM --- Cấu hình Git remote ---
 set "REMOTE_URL=https://github.com/ghostminhtoan/Subtitle-draft-GMTPC.git"
 
-REM --- Kiểm tra xem đã có remote chưa ---
-git remote -v | findstr /C:"%REMOTE_URL%" >nul
-if %ERRORLEVEL% NEQ 0 (
-    echo [INFO] Them remote origin...
-    git remote remove origin 2>nul
-    git remote add origin %REMOTE_URL%
-) else (
-    echo [OK] Remote origin da duoc cau hinh.
-)
+echo [1/5] Dang cau hinh remote origin...
+git remote remove origin 2>nul
+git remote add origin %REMOTE_URL%
+echo [OK] Remote origin da duoc cau hinh.
 
 echo.
-echo [1/4] Dang git status...
+echo [2/5] Dang git status...
 git status --short
 
 echo.
-echo [2/4] Dang git add...
+echo [3/5] Dang git add...
 git add -A
 
 echo.
-echo [3/4] Dang git commit...
+echo [4/5] Dang git commit...
 for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
 set "YY=%dt:~2,2%"
 set "MM=%dt:~4,2%"
@@ -46,8 +41,8 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo.
-echo [4/4] Dang git push...
-git push origin master
+echo [5/5] Dang git push...
+git push -u origin master
 if %ERRORLEVEL% NEQ 0 (
     echo.
     echo [LOI] Push that bai! Co the ban can xac thuc tai khoan GitHub.
