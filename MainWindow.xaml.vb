@@ -123,7 +123,7 @@ Class MainWindow
         If _isUpdating Then Return
         Try
             _isUpdating = True
-            Dim content = TxtOriginal.Text
+            Dim content = SubtitleParser.SanitizeContent(TxtOriginal.Text)
             If String.IsNullOrWhiteSpace(content) Then
                 _originalLines.Clear()
                 _timeCodeLines.Clear()
@@ -272,7 +272,7 @@ Class MainWindow
         If _isDialogueUpdating Then Return
         Try
             _isDialogueUpdating = True
-            Dim content = TxtDialogueInput.Text
+            Dim content = SubtitleParser.SanitizeContent(TxtDialogueInput.Text)
             If String.IsNullOrWhiteSpace(content) Then
                 _dialogueLines.Clear()
                 _dialogueFormat = SubtitleFormat.Unknown
@@ -457,7 +457,7 @@ Class MainWindow
         If _isTranslateUpdating Then Return
         Try
             _isTranslateUpdating = True
-            Dim content = TxtTranslateInput.Text
+            Dim content = SubtitleParser.SanitizeContent(TxtTranslateInput.Text)
             If String.IsNullOrWhiteSpace(content) Then
                 _translateLines.Clear()
                 _translateFormat = SubtitleFormat.Unknown
@@ -489,7 +489,8 @@ Class MainWindow
         If _isStylesUpdating Then Return
         Try
             _isStylesUpdating = True
-            UpdateStylesOutput()
+            Dim inputText = SubtitleParser.SanitizeContent(TxtStylesInput.Text)
+            UpdateStylesOutputWithText(inputText)
         Catch ex As Exception
             TxtStylesCount.Text = String.Format("(Lỗi: {0})", ex.Message)
         Finally
@@ -528,7 +529,10 @@ Class MainWindow
     ''' Cập nhật output styles với font size mới
     ''' </summary>
     Private Sub UpdateStylesOutput()
-        Dim inputText = TxtStylesInput.Text
+        UpdateStylesOutputWithText(TxtStylesInput.Text)
+    End Sub
+
+    Private Sub UpdateStylesOutputWithText(inputText As String)
         If String.IsNullOrWhiteSpace(inputText) Then
             TxtStylesOutput.Text = ""
             TxtStylesCount.Text = ""
@@ -646,7 +650,7 @@ Class MainWindow
         If _isMergeUpdating Then Return
         Try
             _isMergeUpdating = True
-            Dim content = TxtEngsub.Text
+            Dim content = SubtitleParser.SanitizeContent(TxtEngsub.Text)
             If String.IsNullOrWhiteSpace(content) Then
                 _engLines.Clear()
                 UpdateMergeDisplays()
@@ -671,7 +675,7 @@ Class MainWindow
         If _isMergeUpdating Then Return
         Try
             _isMergeUpdating = True
-            Dim content = TxtVietsub.Text
+            Dim content = SubtitleParser.SanitizeContent(TxtVietsub.Text)
             If String.IsNullOrWhiteSpace(content) Then
                 _vietLines.Clear()
                 UpdateMergeDisplays()

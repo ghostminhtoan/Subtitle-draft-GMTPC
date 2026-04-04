@@ -9,6 +9,36 @@ Namespace Services
     Public Class SubtitleParser
 
         ''' <summary>
+        ''' Làm sạch text: loại bỏ BOM, zero-width chars, ký tự điều khiển
+        ''' Cần thiết khi copy từ trình duyệt (Chrome/Edge) hoặc các nguồn khác
+        ''' </summary>
+        Public Shared Function SanitizeContent(content As String) As String
+            If String.IsNullOrEmpty(content) Then Return content
+
+            Dim sb = New StringBuilder(content.Length)
+            For Each ch In content
+                Dim code = AscW(ch)
+                ' Giữ lại các ký tự bình thường
+                If code = &H9 Then ' Tab
+                    sb.Append(ch)
+                ElseIf code = &HA Then ' Line feed
+                    sb.Append(ch)
+                ElseIf code = &HD Then ' Carriage return
+                    sb.Append(ch)
+                ElseIf code >= &H20 AndAlso code <= &HFFFF Then ' Ký tự in được
+                    ' Loại bỏ BOM và zero-width chars
+                    If code <> &HFEFF AndAlso code <> &H200B AndAlso code <> &H200C AndAlso code <> &H200D AndAlso code <> &H200E AndAlso code <> &H200F AndAlso code <> &H202A AndAlso code <> &H202B AndAlso code <> &H202C AndAlso code <> &H202D AndAlso code <> &H202E AndAlso code <> &HFEFF AndAlso code <> &HFFFC Then
+                        sb.Append(ch)
+                    End If
+                ElseIf code > &HFFFF Then ' Emoji, ký tự đặc biệt > U+FFFF
+                    sb.Append(ch)
+                End If
+                ' Các ký tự điều khiển khác (< &H20) bị bỏ qua
+            Next
+            Return sb.ToString()
+        End Function
+
+        ''' <summary>
         ''' Phát hiện định dạng phụ đề từ nội dung
         ''' </summary>
         Public Shared Function DetectFormat(content As String) As SubtitleFormat
