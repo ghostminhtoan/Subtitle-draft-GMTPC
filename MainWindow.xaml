@@ -1,0 +1,283 @@
+﻿<Window x:Class="MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Subtitle_draft_GMTPC"
+        mc:Ignorable="d"
+        Title="Subtitle draft GMTPC - Phụ đề .SRT / .ASS"
+        Height="900" Width="1400"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E1E"
+        Foreground="#E0E0E0"
+        MinWidth="1000" MinHeight="600">
+
+    <Window.Resources>
+        <!-- Style cho Button theo Windows 11 Dark -->
+        <Style x:Key="AccentButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#0078D4"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#0078D4"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1A86D9"/>
+                    <Setter Property="BorderBrush" Value="#1A86D9"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#006CBE"/>
+                    <Setter Property="BorderBrush" Value="#006CBE"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Style cho Button Donate (vàng) -->
+        <Style x:Key="DonateButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#D4A017"/>
+            <Setter Property="Foreground" Value="#000000"/>
+            <Setter Property="BorderBrush" Value="#D4A017"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E8B51A"/>
+                    <Setter Property="BorderBrush" Value="#E8B51A"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#C4900E"/>
+                    <Setter Property="BorderBrush" Value="#C4900E"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Style cho TextBox theo Windows 11 Dark -->
+        <Style x:Key="DarkTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="#2D2D2D"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="BorderBrush" Value="#404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="AcceptsTab" Value="True"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                          HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style cho Label -->
+        <Style x:Key="SectionLabelStyle" TargetType="Label">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <!-- Style cho Border của mỗi panel -->
+        <Style x:Key="PanelBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="BorderBrush" Value="#3E3E42"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Margin" Value="6"/>
+        </Style>
+
+        <!-- Style cho Toast notification -->
+        <Style x:Key="ToastBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="#323232"/>
+            <Setter Property="BorderBrush" Value="#0078D4"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#000000" Direction="270" ShadowDepth="4"
+                                      Opacity="0.5" BlurRadius="8"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- PANEL 1: Original Subtitle -->
+        <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <Label Content="📄 Original Subtitle" Style="{StaticResource SectionLabelStyle}"/>
+                    <TextBlock x:Name="TxtOriginalFormat" Text="" Foreground="#808080" FontSize="11"
+                               VerticalAlignment="Center" Margin="8,0,0,0"/>
+                </StackPanel>
+
+                <TextBox x:Name="TxtOriginal" Grid.Row="1"
+                         Style="{StaticResource DarkTextBoxStyle}"
+                         TextChanged="TxtOriginal_TextChanged"/>
+            </Grid>
+        </Border>
+
+        <!-- PANEL 2: Time Code -->
+        <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Content="⏱️ Time Code" Style="{StaticResource SectionLabelStyle}"/>
+
+                <TextBox x:Name="TxtTimeCode" Grid.Row="1"
+                         Style="{StaticResource DarkTextBoxStyle}"
+                         IsReadOnly="True"/>
+
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                    <Button x:Name="BtnTimePlus200" Content="+200ms"
+                            Style="{StaticResource AccentButtonStyle}"
+                            Margin="0,0,6,0" Click="BtnTimePlus200_Click"/>
+                    <Button x:Name="BtnTimeMinus200" Content="-200ms"
+                            Style="{StaticResource AccentButtonStyle}"
+                            Margin="0,0,6,0" Click="BtnTimeMinus200_Click"/>
+                    <Button x:Name="BtnCopyTimeCode" Content="📋 Copy"
+                            Style="{StaticResource AccentButtonStyle}"
+                            Click="BtnCopyTimeCode_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- PANEL 3: Connect Gap -->
+        <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Content="🔗 Connect Gap" Style="{StaticResource SectionLabelStyle}"/>
+
+                <TextBox x:Name="TxtConnectGap" Grid.Row="1"
+                         Style="{StaticResource DarkTextBoxStyle}"
+                         IsReadOnly="True"/>
+
+                <Button x:Name="BtnConnectGap" Grid.Row="2" Content="🔗 Connect Gap"
+                        Style="{StaticResource AccentButtonStyle}"
+                        HorizontalAlignment="Right" Margin="0,8,0,0"
+                        Click="BtnConnectGap_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- PANEL 4: Result -->
+        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Content="✅ Result" Style="{StaticResource SectionLabelStyle}"/>
+
+                <TextBox x:Name="TxtResult" Grid.Row="1"
+                         Style="{StaticResource DarkTextBoxStyle}"
+                         IsReadOnly="True"/>
+
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                    <Button x:Name="BtnTranslate" Content="🌐 Translate (Web)"
+                            Style="{StaticResource AccentButtonStyle}"
+                            Margin="0,0,6,0" Click="BtnTranslate_Click"/>
+                    <Button x:Name="BtnDonate" Content="💛 Donate"
+                            Style="{StaticResource DonateButtonStyle}"
+                            Click="BtnDonate_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Footer: Author info -->
+        <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                Background="#1A1A1A" BorderBrush="#3E3E42" BorderThickness="0,1,0,0"
+                Padding="12,8">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="Tác giả: " Foreground="#808080" FontSize="12"/>
+                <TextBlock Text="Ma Minh Toàn 1993" Foreground="#0078D4" FontSize="12" FontWeight="SemiBold"/>
+                <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                <TextBlock Text="Subtitle draft GMTPC" Foreground="#808080" FontSize="12"/>
+                <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                <TextBlock Text="Xử lý phụ đề .SRT / .ASS" Foreground="#808080" FontSize="12"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Toast Notification (ẩn mặc định) -->
+        <Border x:Name="ToastBorder" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                HorizontalAlignment="Center" VerticalAlignment="Top"
+                Visibility="Collapsed" Style="{StaticResource ToastBorderStyle}"
+                Margin="0,20,0,0" MinWidth="300" MaxWidth="500">
+            <TextBlock x:Name="ToastText" Text="" Foreground="#FFFFFF" FontSize="14"
+                       TextAlignment="Center" TextWrapping="Wrap"/>
+        </Border>
+    </Grid>
+</Window>
