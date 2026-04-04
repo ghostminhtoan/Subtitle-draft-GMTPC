@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(move *)",
-      "Bash(dotnet *)"
+      "Bash(dotnet *)",
+      "Bash(timeout *)"
     ]
   },
   "$version": 3
