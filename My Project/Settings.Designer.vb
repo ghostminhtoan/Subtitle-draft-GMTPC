@@ -57,18 +57,6 @@ Namespace My
         <Global.System.Configuration.UserScopedSettingAttribute(), _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
          Global.System.Configuration.DefaultSettingValueAttribute("")> _
-        Public Property TranslateCookies() As String
-            Get
-                Return CType(Me("TranslateCookies"), String)
-            End Get
-            Set(value As String)
-                Me("TranslateCookies") = value
-            End Set
-        End Property
-
-        <Global.System.Configuration.UserScopedSettingAttribute(), _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
-         Global.System.Configuration.DefaultSettingValueAttribute("")> _
         Public Property TranslatePrompt() As String
             Get
                 Return CType(Me("TranslatePrompt"), String)

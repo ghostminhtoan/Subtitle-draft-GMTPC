@@ -85,6 +85,11 @@ for %%f in ("bin\Release\*.exe") do (
 if defined EXE_PATH (
     echo [OK] Tim thay: !EXE_PATH!
     start "" "!EXE_PATH!"
+    
+    REM --- Mo thu muc chua file exe ---
+    for %%F in ("!EXE_PATH!") do (
+        explorer /select,"%%~fF"
+    )
 ) else (
     echo.
     echo [CANH BAO] Khong tim thay file exe trong bin\Debug hoac bin\Release.

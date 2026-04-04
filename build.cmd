@@ -37,7 +37,21 @@ echo ============================================
 echo   Build thanh cong!
 echo ============================================
 echo.
-echo [2/3] Dang tim file exe...
+echo [2/4] Dang git push...
+git add -A
+for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
+set "YY=!dt:~2,2!" & set "MM=!dt:~4,2!" & set "DD=!dt:~6,2!" & set "HH=!dt:~8,2!" & set "NN=!dt:~10,2!"
+set "commit_msg=Auto build !DD!/!MM!/!YY! !HH!:!NN!"
+git commit -m "!commit_msg!" >nul 2>&1
+git push -u origin master >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    echo [OK] Push thanh cong: !commit_msg!
+) else (
+    echo [WARN] Push that bai hoac khong co gi de push.
+)
+
+echo.
+echo [3/4] Dang tim file exe...
 
 REM --- Tim file exe trong thu muc bin/Debug ---
 set "EXE_PATH="
@@ -67,11 +81,14 @@ if not defined EXE_PATH (
 echo [OK] Tim thay: !EXE_PATH!
 
 echo.
-echo [3/3] Dang chay ung dung...
+echo [4/4] Dang chay ung dung va mo thu muc...
 start "" "!EXE_PATH!"
+for %%F in ("!EXE_PATH!") do (
+    explorer /select,"%%~fF"
+)
 
 echo.
 echo ============================================
-echo   Da chay ung dung thanh cong!
+echo   Hoan tat!
 echo ============================================
 timeout /t 2 >nul

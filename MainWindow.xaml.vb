@@ -34,9 +34,6 @@ Class MainWindow
 
     Private Sub LoadSettings()
         Try
-            If Not String.IsNullOrEmpty(My.Settings.TranslateCookies) Then
-                TxtCookies.Text = My.Settings.TranslateCookies
-            End If
             If Not String.IsNullOrEmpty(My.Settings.TranslatePrompt) Then
                 TxtPrompt.Text = My.Settings.TranslatePrompt
             End If
@@ -46,7 +43,6 @@ Class MainWindow
 
     Private Sub SaveSettings()
         Try
-            My.Settings.TranslateCookies = TxtCookies.Text.Trim()
             My.Settings.TranslatePrompt = TxtPrompt.Text.Trim()
             My.Settings.Save()
         Catch
@@ -88,7 +84,6 @@ Class MainWindow
     Private _translateLines As New List(Of SubtitleLine)()
     Private _translateFormat As SubtitleFormat = SubtitleFormat.Unknown
     Private _isTranslateUpdating As Boolean = False
-    Private _isTranslating As Boolean = False
 
 #End Region
 
@@ -349,10 +344,6 @@ Class MainWindow
         End Try
     End Sub
 
-    Private Sub TxtCookies_LostFocus(sender As Object, e As RoutedEventArgs) Handles TxtCookies.LostFocus
-        SaveSettings()
-    End Sub
-
     Private Sub TxtPrompt_LostFocus(sender As Object, e As RoutedEventArgs) Handles TxtPrompt.LostFocus
         SaveSettings()
     End Sub
@@ -361,24 +352,10 @@ Class MainWindow
 
 #Region "Translate Tab - Button Handlers"
 
-    Private Sub BtnPasteCookies_Click(sender As Object, e As RoutedEventArgs)
-        Try
-            Dim clipText = Clipboard.GetText()
-            If Not String.IsNullOrWhiteSpace(clipText) Then
-                TxtCookies.Text = clipText.Trim()
-                ShowToastTranslate("🍪 Đã dán cookies!")
-            Else
-                ShowToastTranslate("⚠️ Clipboard trống!")
-            End If
-        Catch ex As Exception
-            MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
-        End Try
-    End Sub
-
     Private Sub BtnOpenQwen_Click(sender As Object, e As RoutedEventArgs)
         Try
             System.Diagnostics.Process.Start("https://chat.qwen.ai/")
-            ShowToastTranslate("🌐 Đã mở chat.qwen.ai!")
+            TxtTranslateStatus.Text = "✅ Đã mở chat.qwen.ai trên trình duyệt!"
         Catch ex As Exception
             MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
         End Try
@@ -387,72 +364,17 @@ Class MainWindow
     Private Sub BtnCopyForPaste_Click(sender As Object, e As RoutedEventArgs)
         Dim inputText = TxtTranslateInput.Text
         If String.IsNullOrWhiteSpace(inputText) Then
-            ShowToastTranslate("⚠️ Vui lòng nhập phụ đề!")
+            TxtTranslateStatus.Text = "⚠️ Vui lòng nhập phụ đề vào Panel 1!"
             Return
         End If
         Dim prompt = TxtPrompt.Text.Trim()
         If String.IsNullOrWhiteSpace(prompt) Then
-            ShowToastTranslate("⚠️ Vui lòng nhập prompt!")
+            TxtTranslateStatus.Text = "⚠️ Vui lòng nhập prompt!"
             Return
         End If
-        Clipboard.SetText(prompt & vbCrLf & vbCrLf & inputText)
-        ShowToastTranslate("📋 Đã copy Prompt + Subtitle!")
-    End Sub
-
-    Private Async Sub BtnAiTranslate_Click(sender As Object, e As RoutedEventArgs)
-        If _isTranslating Then Return
         SaveSettings()
-        Dim inputText = TxtTranslateInput.Text
-        If String.IsNullOrWhiteSpace(inputText) Then
-            ShowToastTranslate("⚠️ Vui lòng nhập phụ đề!")
-            Return
-        End If
-        Dim cookies = TxtCookies.Text.Trim()
-        If String.IsNullOrWhiteSpace(cookies) Then
-            ShowToastTranslate("⚠️ Vui lòng nhập cookies!")
-            Return
-        End If
-        Dim prompt = TxtPrompt.Text.Trim()
-        If String.IsNullOrWhiteSpace(prompt) Then
-            ShowToastTranslate("⚠️ Vui lòng nhập prompt!")
-            Return
-        End If
-        _isTranslating = True
-        BtnAiTranslate.IsEnabled = False
-        BtnAiTranslate.Content = "⏳ Đang dịch..."
-        TxtTranslateStatus.Text = "Đang gửi yêu cầu..."
-        TxtTranslateOutput.Text = ""
-        Try
-            Dim result = Await QwenTranslateService.TranslateAsync(inputText, prompt, cookies)
-            TxtTranslateOutput.Text = result
-            TxtTranslateStatus.Text = String.Format("✅ Dịch xong! ({0} ký tự)", result.Length)
-            ShowToastTranslate("✅ Dịch thành công!")
-        Catch ex As Exception
-            TxtTranslateOutput.Text = String.Format("[Lỗi: {0}]", ex.Message)
-            TxtTranslateStatus.Text = "❌ Lỗi"
-            ShowToastTranslate("❌ Lỗi: " & ex.Message)
-        Finally
-            _isTranslating = False
-            BtnAiTranslate.IsEnabled = True
-            BtnAiTranslate.Content = "🤖 AI Translate"
-        End Try
-    End Sub
-
-    Private Sub BtnCopyTranslate_Click(sender As Object, e As RoutedEventArgs)
-        If String.IsNullOrWhiteSpace(TxtTranslateOutput.Text) Then Return
-        Try
-            Clipboard.SetText(TxtTranslateOutput.Text)
-            ShowToastTranslate("📋 Đã copy kết quả!")
-        Catch ex As Exception
-            MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
-        End Try
-    End Sub
-
-    Private Async Sub ShowToastTranslate(message As String)
-        ToastTextTranslate.Text = message
-        ToastBorderTranslate.Visibility = Visibility.Visible
-        Await Task.Delay(2000)
-        ToastBorderTranslate.Visibility = Visibility.Collapsed
+        Clipboard.SetText(prompt & vbCrLf & vbCrLf & inputText)
+        TxtTranslateStatus.Text = "📋 Đã copy Prompt + Subtitle vào clipboard!"
     End Sub
 
 #End Region
