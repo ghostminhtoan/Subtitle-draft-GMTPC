@@ -24,20 +24,25 @@ echo [3/5] Dang git add...
 git add -A
 
 echo.
-echo [4/5] Dang git commit...
-for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
-set "YY=%dt:~2,2%"
-set "MM=%dt:~4,2%"
-set "DD=%dt:~6,2%"
-set "HH=%dt:~8,2%"
-set "NN=%dt:~10,2%"
-set "commit_msg=Update %DD%/%MM%/%YY% %HH%:%NN%"
+echo [4/5] Nhap noi dung commit:
+set /p "commit_msg=Commit message: "
 
-git commit -m "%commit_msg%"
+if "!commit_msg!"=="" (
+    for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
+    set "YY=!dt:~2,2!"
+    set "MM=!dt:~4,2!"
+    set "DD=!dt:~6,2!"
+    set "HH=!dt:~8,2!"
+    set "NN=!dt:~10,2!"
+    set "commit_msg=Update !DD!/!MM!/!YY! !HH!:!NN!"
+    echo [INFO] Khong nhap, su dung mac dinh: !commit_msg!
+)
+
+git commit -m "!commit_msg!"
 if %ERRORLEVEL% NEQ 0 (
     echo [INFO] Khong co gi de commit.
 ) else (
-    echo [OK] Commit thanh cong: %commit_msg%
+    echo [OK] Commit thanh cong: !commit_msg!
 )
 
 echo.
