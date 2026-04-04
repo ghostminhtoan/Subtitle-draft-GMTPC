@@ -88,6 +88,7 @@ Class MainWindow
     Private _dialogueLines As New List(Of SubtitleLine)()
     Private _dialogueFormat As SubtitleFormat = SubtitleFormat.Unknown
     Private _isDialogueUpdating As Boolean = False
+    Private _dialogueManualTexts As New Dictionary(Of Integer, String)()
 
 #End Region
 
@@ -277,12 +278,14 @@ Class MainWindow
                 _dialogueFormat = SubtitleFormat.Unknown
                 TxtDialogueFormat.Text = ""
                 TxtDialogueOutput.Text = ""
+                TxtDialogueMerged.Text = ""
                 Return
             End If
             _dialogueFormat = SubtitleParser.DetectFormat(content)
             _dialogueLines = SubtitleParser.Parse(content)
             TxtDialogueFormat.Text = String.Format("({0} - {1} dòng)", _dialogueFormat.ToString().ToUpper(), _dialogueLines.Count)
             UpdateDialogueOutput()
+            UpdateDialogueMerged()
         Catch ex As Exception
             TxtDialogueFormat.Text = String.Format("(Lỗi: {0})", ex.Message)
         Finally
@@ -316,6 +319,105 @@ Class MainWindow
         Return line.OriginalText
     End Function
 
+    ''' <summary>
+    ''' Khi nhập text manual vào Panel 3 → cập nhật Panel 4
+    ''' </summary>
+    Private Sub TxtDialogueManual_TextChanged(sender As Object, e As TextChangedEventArgs)
+        If _isDialogueUpdating Then Return
+        Try
+            _isDialogueUpdating = True
+            ParseManualText()
+            UpdateDialogueMerged()
+        Catch ex As Exception
+            TxtDialogueMerged.Text = String.Format("(Lỗi: {0})", ex.Message)
+        Finally
+            _isDialogueUpdating = False
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Parse text từ Panel 3: mỗi dòng dạng "STT&lt;TAB&gt;Text" hoặc "STT Text"
+    ''' </summary>
+    Private Sub ParseManualText()
+        _dialogueManualTexts.Clear()
+        Dim content = TxtDialogueManual.Text
+        If String.IsNullOrWhiteSpace(content) Then Return
+
+        Dim lines = content.Split({Environment.NewLine, vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries)
+        For Each line In lines
+            Dim trimmed = line.Trim()
+            If String.IsNullOrWhiteSpace(trimmed) Then Continue For
+
+            ' Tách bằng tab hoặc space đầu tiên
+            Dim parts As String() = Nothing
+            If trimmed.Contains(vbTab) Then
+                parts = trimmed.Split({vbTab}, StringSplitOptions.None)
+            Else
+                Dim spaceIdx = trimmed.IndexOf(" "c)
+                If spaceIdx > 0 Then
+                    parts = {trimmed.Substring(0, spaceIdx), trimmed.Substring(spaceIdx + 1)}
+                Else
+                    Continue For
+                End If
+            End If
+
+            Dim stt As Integer = 0
+            If parts.Length >= 2 AndAlso Integer.TryParse(parts(0).Trim(), stt) Then
+                _dialogueManualTexts(stt) = parts(1).Trim()
+            End If
+        Next
+    End Sub
+
+    ''' <summary>
+    ''' Cập nhật Panel 4: Time Code từ Panel 1 + Text từ Panel 3
+    ''' Format SRT: STT + Time Code + Text từ Panel 3
+    ''' </summary>
+    Private Sub UpdateDialogueMerged()
+        If _dialogueLines.Count = 0 Then
+            TxtDialogueMerged.Text = ""
+            Return
+        End If
+
+        Dim sb = New StringBuilder()
+        Dim entryNum As Integer = 0
+
+        For Each line In _dialogueLines
+            Dim dialogueText = GetDialogueText(line)
+            If String.IsNullOrWhiteSpace(dialogueText) Then Continue For
+
+            entryNum += 1
+
+            ' Kiểm tra xem có text manual cho STT này không
+            Dim manualText As String = Nothing
+            If _dialogueManualTexts.TryGetValue(entryNum, manualText) AndAlso Not String.IsNullOrWhiteSpace(manualText) Then
+                ' Dùng text từ Panel 3
+                If _dialogueFormat = SubtitleFormat.SRT Then
+                    sb.AppendLine(entryNum.ToString())
+                    sb.AppendLine(String.Format("{0} --> {1}",
+                        SubtitleLine.FormatSrtTime(line.StartTime),
+                        SubtitleLine.FormatSrtTime(line.EndTime)))
+                    sb.AppendLine(manualText)
+                    sb.AppendLine()
+                ElseIf _dialogueFormat = SubtitleFormat.ASS Then
+                    Dim assLine = TryCast(line, AssSubtitleLine)
+                    If assLine IsNot Nothing Then
+                        ' Giữ nguyên time code, thay thế dialogue text
+                        sb.AppendLine(String.Format("Dialogue: {0},{1},{2},{3},{4},{5},{6},{7},{8}",
+                            assLine.Layer, SubtitleLine.FormatAssTime(line.StartTime),
+                            SubtitleLine.FormatAssTime(line.EndTime), assLine.Style,
+                            assLine.Name, assLine.MarginL, assLine.MarginR, assLine.MarginV,
+                            manualText))
+                    End If
+                Else
+                    ' Format khác: ghi ra dạng time code + text
+                    sb.AppendLine(String.Format("{0}", manualText))
+                End If
+            End If
+        Next
+
+        TxtDialogueMerged.Text = sb.ToString().TrimEnd()
+    End Sub
+
 #End Region
 
 #Region "Dialogue Only - Toast & Buttons"
@@ -332,6 +434,16 @@ Class MainWindow
         Try
             Clipboard.SetText(TxtDialogueOutput.Text)
             ShowToastDialogue("📋 Đã copy Dialogue!")
+        Catch ex As Exception
+            MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
+        End Try
+    End Sub
+
+    Private Sub BtnCopyMerged_Click(sender As Object, e As RoutedEventArgs)
+        If String.IsNullOrWhiteSpace(TxtDialogueMerged.Text) Then Return
+        Try
+            Clipboard.SetText(TxtDialogueMerged.Text)
+            ShowToastDialogue("📋 Đã copy Merged!")
         Catch ex As Exception
             MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
         End Try
@@ -546,10 +658,11 @@ Class MainWindow
             End If
             _engLines = SubtitleParser.Parse(content)
             TxtEngsubFormat.Text = String.Format("({0} - {1} dòng)", detectedFormat.ToString().ToUpper(), _engLines.Count)
-            UpdateMergeDisplays()
         Catch ex As Exception
             TxtEngsubFormat.Text = String.Format("(Lỗi: {0})", ex.Message)
+            _engLines.Clear()
         Finally
+            UpdateMergeDisplays()
             _isMergeUpdating = False
         End Try
     End Sub
@@ -570,19 +683,30 @@ Class MainWindow
             End If
             _vietLines = SubtitleParser.Parse(content)
             TxtVietsubFormat.Text = String.Format("({0} - {1} dòng)", detectedFormat.ToString().ToUpper(), _vietLines.Count)
-            UpdateMergeDisplays()
         Catch ex As Exception
             TxtVietsubFormat.Text = String.Format("(Lỗi: {0})", ex.Message)
+            _vietLines.Clear()
         Finally
+            UpdateMergeDisplays()
             _isMergeUpdating = False
         End Try
     End Sub
 
     Private Sub UpdateMergeDisplays()
-        Dim mergedLines = MergeService.MergeSubtitles(_engLines, _vietLines, _mergeFormat)
-        TxtMerge.Text = If(mergedLines.Count > 0, SubtitleParser.ToText(mergedLines, _mergeFormat), "")
-        Dim unbreakLines = MergeService.MergeUnbreak(_engLines, _vietLines, _mergeFormat)
-        TxtMergeUnbreak.Text = If(unbreakLines.Count > 0, SubtitleParser.ToText(unbreakLines, _mergeFormat), "")
+        ' Luôn gọi để cập nhật cả 2 panel
+        Try
+            If _engLines Is Nothing Then _engLines = New List(Of SubtitleLine)()
+            If _vietLines Is Nothing Then _vietLines = New List(Of SubtitleLine)()
+
+            Dim mergedLines = MergeService.MergeSubtitles(_engLines, _vietLines, _mergeFormat)
+            TxtMerge.Text = If(mergedLines IsNot Nothing AndAlso mergedLines.Count > 0, SubtitleParser.ToText(mergedLines, _mergeFormat), "")
+
+            Dim unbreakLines = MergeService.MergeUnbreak(_engLines, _vietLines, _mergeFormat)
+            TxtMergeUnbreak.Text = If(unbreakLines IsNot Nothing AndAlso unbreakLines.Count > 0, SubtitleParser.ToText(unbreakLines, _mergeFormat), "")
+        Catch ex As Exception
+            TxtMerge.Text = ""
+            TxtMergeUnbreak.Text = ""
+        End Try
     End Sub
 
     Private Sub BtnCopyMerge_Click(sender As Object, e As RoutedEventArgs)

@@ -3,13 +3,13 @@ Imports Subtitle_draft_GMTPC.Models
 Namespace Services
     ''' <summary>
     ''' Service xử lý merge phụ đề: gộp Engsub và Vietsub
-    ''' Chiến lược: Tất cả Vietsub ở trên, tất cả Engsub ở dưới
+    ''' QUY TẮC: Panel 2 (Vietsub) LUÔN ở trên, Panel 1 (Engsub) LUÔN ở dưới
     ''' </summary>
     Public Class MergeService
 
         ''' <summary>
-        ''' Merge: Vietsub trước (giữ nguyên timecode), Engsub sau (giữ nguyên timecode)
-        ''' Không gộp từng cặp, mà xuất toàn bộ Viet rồi đến toàn bộ Eng
+        ''' Merge: Panel 2 (Vietsub) TRƯỚC → Panel 1 (Engsub) SAU
+        ''' KHÔNG QUAN TÂM ngôn ngữ, chỉ quan trọng panel nào
         ''' </summary>
         Public Shared Function MergeSubtitles(engLines As List(Of SubtitleLine), vietLines As List(Of SubtitleLine), format As SubtitleFormat) As List(Of SubtitleLine)
             If engLines Is Nothing Then engLines = New List(Of SubtitleLine)()
@@ -21,12 +21,12 @@ Namespace Services
 
             Dim result = New List(Of SubtitleLine)()
 
-            ' Thêm tất cả Vietsub trước
+            ' LUÔN thêm Panel 2 (Vietsub) TRƯỚC
             For Each line In vietLines
                 result.Add(line.Clone())
             Next
 
-            ' Thêm tất cả Engsub sau
+            ' SAU ĐÓ mới thêm Panel 1 (Engsub)
             For Each line In engLines
                 result.Add(line.Clone())
             Next
@@ -35,22 +35,29 @@ Namespace Services
         End Function
 
         ''' <summary>
-        ''' Merge Unbreak: Giống Merge nhưng xóa newline trong mỗi dòng
+        ''' Merge (no break line): Giống Merge nhưng xóa newline trong mỗi dòng
+        ''' Panel 2 (Vietsub) TRƯỚC → Panel 1 (Engsub) SAU
         ''' </summary>
         Public Shared Function MergeUnbreak(engLines As List(Of SubtitleLine), vietLines As List(Of SubtitleLine), format As SubtitleFormat) As List(Of SubtitleLine)
+            ' Gọi MergeSubtitles trước (đã đúng thứ tự Viet → Eng)
             Dim mergedLines = MergeSubtitles(engLines, vietLines, format)
 
+            ' Xóa newline trong mỗi dòng (xử lý null an toàn)
             For Each line In mergedLines
                 Dim assLine = TryCast(line, AssSubtitleLine)
                 If assLine IsNot Nothing Then
-                    assLine.DialogText = assLine.DialogText.Replace("\N", " ").Replace("\n", " ")
+                    If assLine.DialogText IsNot Nothing Then
+                        assLine.DialogText = assLine.DialogText.Replace("\N", " ").Replace("\n", " ")
+                    End If
                     assLine.Content = assLine.RebuildLine()
                     Continue For
                 End If
 
                 Dim srtLine = TryCast(line, SrtSubtitleLine)
                 If srtLine IsNot Nothing Then
-                    srtLine.Text = srtLine.Text.Replace(Environment.NewLine, " ").Replace(vbLf, " ").Replace(vbCr, " ")
+                    If srtLine.Text IsNot Nothing Then
+                        srtLine.Text = srtLine.Text.Replace(Environment.NewLine, " ").Replace(vbLf, " ").Replace(vbCr, " ")
+                    End If
                     srtLine.Content = srtLine.RebuildLine()
                 End If
             Next

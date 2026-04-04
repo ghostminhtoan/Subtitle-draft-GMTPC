@@ -408,10 +408,11 @@
                 </Grid>
             </TabItem>
 
-            <!-- Tab 3: Dialogue only -->
-            <TabItem Header="💬 Dialogue only">
+            <!-- Tab 3: Dialogue -->
+            <TabItem Header="💬 Dialogue">
                 <Grid>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
@@ -462,15 +463,53 @@
                         </Grid>
                     </Border>
 
+                    <!-- PANEL 3: Manual Input (STT + Text) -->
+                    <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Content="✏️ Manual Input (STT + Text, mỗi dòng)" Style="{StaticResource SectionLabelStyle}"/>
+
+                            <TextBox x:Name="TxtDialogueManual" Grid.Row="1"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     TextChanged="TxtDialogueManual_TextChanged"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- PANEL 4: Merged (Time Code Panel 1 + Text Panel 3) -->
+                    <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Content="🎬 Merged (Time Code + Manual Text)" Style="{StaticResource SectionLabelStyle}"/>
+
+                            <TextBox x:Name="TxtDialogueMerged" Grid.Row="1"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     IsReadOnly="True"/>
+
+                            <Button x:Name="BtnCopyMerged" Grid.Row="2" Content="📋 Copy Merged"
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    HorizontalAlignment="Right" Margin="0,8,0,0"
+                                    Click="BtnCopyMerged_Click"/>
+                        </Grid>
+                    </Border>
+
                     <!-- Footer: Author info -->
-                    <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                    <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
                             Background="#1A1A1A" BorderBrush="#3E3E42" BorderThickness="0,1,0,0"
                             Padding="12,8">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <TextBlock Text="Tác giả: " Foreground="#808080" FontSize="12"/>
                             <TextBlock Text="Ma Minh Toàn 1993" Foreground="#0078D4" FontSize="12" FontWeight="SemiBold"/>
                             <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
-                            <TextBlock Text="Dialogue Only GMTPC" Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="Dialogue GMTPC" Foreground="#808080" FontSize="12"/>
                             <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
                             <TextBlock Text="Trích xuất thoại từ phụ đề" Foreground="#808080" FontSize="12"/>
                         </StackPanel>
