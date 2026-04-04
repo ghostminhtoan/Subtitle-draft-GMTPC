@@ -407,6 +407,84 @@
                     </Border>
                 </Grid>
             </TabItem>
+            <!-- Tab 3: Dialogue only -->
+            <TabItem Header="💬 Dialogue only">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- PANEL 1: Input Subtitle -->
+                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                <Label Content="📄 Input Subtitle (Paste vào đây)" Style="{StaticResource SectionLabelStyle}"/>
+                                <TextBlock x:Name="TxtDialogueFormat" Text="" Foreground="#808080" FontSize="11"
+                                           VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            </StackPanel>
+
+                            <TextBox x:Name="TxtDialogueInput" Grid.Row="1"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     TextChanged="TxtDialogueInput_TextChanged"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- PANEL 2: Output Dialogue (STT + Dialogue) -->
+                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Content="🔢 Output Dialogue (Copy vào Excel)" Style="{StaticResource SectionLabelStyle}"/>
+
+                            <TextBox x:Name="TxtDialogueOutput" Grid.Row="1"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     IsReadOnly="True"/>
+
+                            <Button x:Name="BtnCopyDialogue" Grid.Row="2" Content="📋 Copy Dialogue"
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    HorizontalAlignment="Right" Margin="0,8,0,0"
+                                    Click="BtnCopyDialogue_Click"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Footer: Author info -->
+                    <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                            Background="#1A1A1A" BorderBrush="#3E3E42" BorderThickness="0,1,0,0"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="Tác giả: " Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="Ma Minh Toàn 1993" Foreground="#0078D4" FontSize="12" FontWeight="SemiBold"/>
+                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                            <TextBlock Text="Dialogue Only GMTPC" Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                            <TextBlock Text="Trích xuất thoại từ phụ đề" Foreground="#808080" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Toast Notification (ẩn mặc định) -->
+                    <Border x:Name="ToastBorderDialogue" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center" VerticalAlignment="Top"
+                            Visibility="Collapsed" Style="{StaticResource ToastBorderStyle}"
+                            Margin="0,20,0,0" MinWidth="300" MaxWidth="500">
+                        <TextBlock x:Name="ToastTextDialogue" Text="" Foreground="#FFFFFF" FontSize="14"
+                                   TextAlignment="Center" TextWrapping="Wrap"/>
+                    </Border>
+                </Grid>
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

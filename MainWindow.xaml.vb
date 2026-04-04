@@ -1,13 +1,15 @@
 ﻿Imports System.Windows
 Imports System.Threading.Tasks
+Imports System.Text
 Imports Subtitle_draft_GMTPC.Models
 Imports Subtitle_draft_GMTPC.Services
 
 ''' <summary>
 ''' Cửa sổ chính của ứng dụng xử lý phụ đề
-''' Gồm 2 tab:
+''' Gồm 3 tab:
 ''' - Subtitle Draft: Original → TimeCode → ConnectGap → Result
 ''' - Subtitle Merge: Engsub + Vietsub → Merge → Merge Unbreak
+''' - Dialogue only: Panel 1 (Dialogue only) → Panel 2 (Line Number + Dialogue)
 ''' </summary>
 Class MainWindow
 
@@ -66,6 +68,25 @@ Class MainWindow
     ''' Flag để tránh re-entrant khi TextChanged cho Merge
     ''' </summary>
     Private _isMergeUpdating As Boolean = False
+
+#End Region
+
+#Region "Dialogue Only Fields"
+
+    ''' <summary>
+    ''' Danh sách phụ đề từ panel Dialogue Input
+    ''' </summary>
+    Private _dialogueLines As New List(Of SubtitleLine)()
+
+    ''' <summary>
+    ''' Định dạng phụ đề của Dialogue tab
+    ''' </summary>
+    Private _dialogueFormat As SubtitleFormat = SubtitleFormat.Unknown
+
+    ''' <summary>
+    ''' Flag để tránh re-entrant khi TextChanged cho Dialogue
+    ''' </summary>
+    Private _isDialogueUpdating As Boolean = False
 
 #End Region
 
@@ -315,6 +336,130 @@ Class MainWindow
         Else
             TxtResult.Text = ""
         End If
+    End Sub
+
+#End Region
+
+#Region "Dialogue Only - Event Handlers - Input Panel"
+
+    ''' <summary>
+    ''' Khi nhập phụ đề vào panel Input → tự động parse và trích xuất thoại
+    ''' Output: STT + Tab + Dialogue (để paste vào Excel tự nhận 2 cột)
+    ''' </summary>
+    Private Sub TxtDialogueInput_TextChanged(sender As Object, e As TextChangedEventArgs)
+        If _isDialogueUpdating Then Return
+
+        Try
+            _isDialogueUpdating = True
+            Dim content = TxtDialogueInput.Text
+
+            If String.IsNullOrWhiteSpace(content) Then
+                _dialogueLines.Clear()
+                _dialogueFormat = SubtitleFormat.Unknown
+                TxtDialogueFormat.Text = ""
+                TxtDialogueOutput.Text = ""
+                Return
+            End If
+
+            ' Phát hiện định dạng và parse
+            _dialogueFormat = SubtitleParser.DetectFormat(content)
+            _dialogueLines = SubtitleParser.Parse(content)
+
+            TxtDialogueFormat.Text = String.Format("({0} - {1} dòng)",
+                _dialogueFormat.ToString().ToUpper(), _dialogueLines.Count)
+
+            ' Cập nhật output dialogue
+            UpdateDialogueOutput()
+
+        Catch ex As Exception
+            TxtDialogueFormat.Text = String.Format("(Lỗi: {0})", ex.Message)
+            System.Diagnostics.Debug.WriteLine("Dialogue parse error: " & ex.ToString())
+        Finally
+            _isDialogueUpdating = False
+        End Try
+    End Sub
+
+#End Region
+
+#Region "Dialogue Only - Update Display Methods"
+
+    ''' <summary>
+    ''' Cập nhật output dialogue panel
+    ''' Format: STT + Tab + Dialogue (Tab-separated để paste vào Excel tự nhận 2 cột)
+    ''' </summary>
+    Private Sub UpdateDialogueOutput()
+        If _dialogueLines.Count = 0 Then
+            TxtDialogueOutput.Text = ""
+            Return
+        End If
+
+        Dim sb = New StringBuilder()
+        Dim lineNum As Integer = 1
+
+        For Each line In _dialogueLines
+            Dim dialogueText = GetDialogueText(line)
+            If Not String.IsNullOrWhiteSpace(dialogueText) Then
+                ' Thay thế newline trong thoại bằng space để mỗi dòng là 1 row
+                Dim cleanText = dialogueText.Replace(Environment.NewLine, " ").Replace(vbCr, " ").Replace(vbLf, " ")
+                sb.AppendLine(String.Format("{0}	{1}", lineNum, cleanText))
+                lineNum += 1
+            End If
+        Next
+
+        TxtDialogueOutput.Text = sb.ToString().TrimEnd()
+    End Sub
+
+    ''' <summary>
+    ''' Lấy text thoại từ dòng phụ đề
+    ''' </summary>
+    Private Function GetDialogueText(line As SubtitleLine) As String
+        Dim assLine = TryCast(line, AssSubtitleLine)
+        If assLine IsNot Nothing Then
+            Return assLine.DialogText
+        End If
+
+        Dim srtLine = TryCast(line, SrtSubtitleLine)
+        If srtLine IsNot Nothing Then
+            Return srtLine.Text
+        End If
+
+        Return line.OriginalText
+    End Function
+
+#End Region
+
+#Region "Dialogue Only - Toast Notification"
+
+    ''' <summary>
+    ''' Hiển thị thông báo toast tự ẩn sau 2 giây cho Dialogue tab
+    ''' </summary>
+    Private Async Sub ShowToastDialogue(message As String)
+        ToastTextDialogue.Text = message
+        ToastBorderDialogue.Visibility = Visibility.Visible
+
+        ' Tự ẩn sau 2 giây
+        Await Task.Delay(2000)
+        ToastBorderDialogue.Visibility = Visibility.Collapsed
+    End Sub
+
+#End Region
+
+#Region "Dialogue Only - Button Handlers"
+
+    ''' <summary>
+    ''' Button Copy Dialogue: Copy nội dung Dialogue vào clipboard
+    ''' Format: STT + Tab + Dialogue (paste vào Excel tự nhận 2 cột)
+    ''' </summary>
+    Private Sub BtnCopyDialogue_Click(sender As Object, e As RoutedEventArgs)
+        If String.IsNullOrWhiteSpace(TxtDialogueOutput.Text) Then Return
+
+        Try
+            Clipboard.SetText(TxtDialogueOutput.Text)
+            ShowToastDialogue("📋 Đã copy Dialogue vào clipboard! Paste vào Excel sẽ tự nhận 2 cột.")
+        Catch ex As Exception
+            MessageBox.Show("Lỗi khi copy: " & ex.Message, "Lỗi",
+                          MessageBoxButton.OK, MessageBoxImage.Error)
+        End Try
     End Sub
 
 #End Region
