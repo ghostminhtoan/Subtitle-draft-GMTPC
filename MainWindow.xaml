@@ -83,6 +83,45 @@
             </Style.Triggers>
         </Style>
 
+        <!-- Style cho ToggleButton theo Windows 11 Dark -->
+        <Style x:Key="ToggleWordWrapStyle" TargetType="ToggleButton">
+            <Setter Property="Background" Value="#0078D4"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#0078D4"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1A86D9"/>
+                    <Setter Property="BorderBrush" Value="#1A86D9"/>
+                </Trigger>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Background" Value="#0078D4"/>
+                    <Setter Property="BorderBrush" Value="#0078D4"/>
+                </Trigger>
+                <Trigger Property="IsChecked" Value="False">
+                    <Setter Property="Background" Value="#505050"/>
+                    <Setter Property="BorderBrush" Value="#505050"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <!-- Style cho TextBox theo Windows 11 Dark -->
         <Style x:Key="DarkTextBoxStyle" TargetType="TextBox">
             <Setter Property="Background" Value="#2D2D2D"/>
@@ -150,7 +189,23 @@
     </Window.Resources>
 
     <Grid>
-        <TabControl x:Name="MainTabControl" Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="1">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar: Word Wrap toggle -->
+        <Border Grid.Row="0" Background="#252526" BorderBrush="#3E3E42" BorderThickness="0,0,0,1" Padding="12,6">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <TextBlock Text="📝 Word Wrap:" Foreground="#E0E0E0" FontSize="12" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <ToggleButton x:Name="ToggleWordWrap" Content="ON" 
+                              Style="{StaticResource ToggleWordWrapStyle}" 
+                              Padding="16,4" FontSize="12"
+                              IsChecked="True" Click="ToggleWordWrap_Click"/>
+            </StackPanel>
+        </Border>
+
+        <TabControl x:Name="MainTabControl" Grid.Row="1" Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="1">
             <!-- Tab 1: Subtitle Merge -->
             <TabItem Header="🔀 Subtitle Merge">
                 <Grid>
@@ -180,7 +235,8 @@
 
                             <TextBox x:Name="TxtEngsub" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     TextChanged="TxtEngsub_TextChanged"/>
+                                     TextChanged="TxtEngsub_TextChanged"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
                         </Grid>
                     </Border>
 
@@ -200,7 +256,8 @@
 
                             <TextBox x:Name="TxtVietsub" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     TextChanged="TxtVietsub_TextChanged"/>
+                                     TextChanged="TxtVietsub_TextChanged"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
                         </Grid>
                     </Border>
 
@@ -217,7 +274,8 @@
 
                             <TextBox x:Name="TxtMerge" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     IsReadOnly="True"/>
+                                     IsReadOnly="True"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <Button x:Name="BtnCopyMerge" Grid.Row="2" Content="📋 Copy Merge"
                                     Style="{StaticResource AccentButtonStyle}"
@@ -239,7 +297,8 @@
 
                             <TextBox x:Name="TxtMergeUnbreak" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     IsReadOnly="True"/>
+                                     IsReadOnly="True"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <Button x:Name="BtnCopyMergeUnbreak" Grid.Row="2" Content="📋 Copy No Break"
                                     Style="{StaticResource AccentButtonStyle}"
@@ -302,7 +361,8 @@
 
                             <TextBox x:Name="TxtOriginal" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     TextChanged="TxtOriginal_TextChanged"/>
+                                     TextChanged="TxtOriginal_TextChanged"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
                         </Grid>
                     </Border>
 
@@ -319,7 +379,8 @@
 
                             <TextBox x:Name="TxtTimeCode" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     IsReadOnly="True"/>
+                                     IsReadOnly="True"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
                                 <Button x:Name="BtnTimePlus200" Content="+200ms"
@@ -348,7 +409,8 @@
 
                             <TextBox x:Name="TxtConnectGap" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     IsReadOnly="True"/>
+                                     IsReadOnly="True"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <Button x:Name="BtnConnectGap" Grid.Row="2" Content="🔗 Connect Gap"
                                     Style="{StaticResource AccentButtonStyle}"
@@ -370,7 +432,8 @@
 
                             <TextBox x:Name="TxtResult" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     IsReadOnly="True"/>
+                                     IsReadOnly="True"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
                                 <Button x:Name="BtnTranslate" Content="🌐 Translate (Web)"
@@ -437,7 +500,8 @@
 
                             <TextBox x:Name="TxtDialogueInput" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     TextChanged="TxtDialogueInput_TextChanged"/>
+                                     TextChanged="TxtDialogueInput_TextChanged"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
                         </Grid>
                     </Border>
 
@@ -454,7 +518,8 @@
 
                             <TextBox x:Name="TxtDialogueOutput" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     IsReadOnly="True"/>
+                                     IsReadOnly="True"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <Button x:Name="BtnCopyDialogue" Grid.Row="2" Content="📋 Copy Dialogue"
                                     Style="{StaticResource AccentButtonStyle}"
@@ -475,7 +540,8 @@
 
                             <TextBox x:Name="TxtDialogueManual" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     TextChanged="TxtDialogueManual_TextChanged"/>
+                                     TextChanged="TxtDialogueManual_TextChanged"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
                         </Grid>
                     </Border>
 
@@ -492,7 +558,8 @@
 
                             <TextBox x:Name="TxtDialogueMerged" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     IsReadOnly="True"/>
+                                     IsReadOnly="True"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <Button x:Name="BtnCopyMerged" Grid.Row="2" Content="📋 Copy Merged"
                                     Style="{StaticResource AccentButtonStyle}"
@@ -553,7 +620,8 @@
                             </StackPanel>
 
                             <TextBox x:Name="TxtStylesInput" Grid.Row="1"
-                                     Style="{StaticResource DarkTextBoxStyle}"/>
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
                         </Grid>
                     </Border>
 
@@ -582,7 +650,8 @@
                             <!-- Output -->
                             <TextBox x:Name="TxtStylesOutput" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     IsReadOnly="True"/>
+                                     IsReadOnly="True"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <!-- Copy button -->
                             <Button x:Name="BtnCopyStyles" Grid.Row="2" Content="📋 Copy Styles"
@@ -644,7 +713,8 @@
                             </StackPanel>
 
                             <TextBox x:Name="TxtTranslateInput" Grid.Row="1"
-                                     Style="{StaticResource DarkTextBoxStyle}"/>
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
                         </Grid>
                     </Border>
 
@@ -675,7 +745,8 @@
                                 </Grid.RowDefinitions>
                                 <Label Grid.Row="0" Content="💬 Prompt:" Style="{StaticResource SectionLabelStyle}" Padding="0"/>
                                 <TextBox x:Name="TxtPrompt" Grid.Row="1" Style="{StaticResource DarkTextBoxStyle}"
-                                         TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" Padding="6"/>
+                                         TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" Padding="6"
+                                         PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
                             </Grid>
 
                             <!-- Status -->

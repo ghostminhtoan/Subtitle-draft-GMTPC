@@ -44,6 +44,48 @@ Class MainWindow
         CmbFontSize.SelectedIndex = 0 ' Default to 1
     End Sub
 
+    ''' <summary>
+    ''' Toggle Word Wrap: Bật/tắt TextWrapping cho tất cả TextBox
+    ''' </summary>
+    Private Sub ToggleWordWrap_Click(sender As Object, e As RoutedEventArgs)
+        Dim wrap = If(ToggleWordWrap.IsChecked = True, TextWrapping.Wrap, TextWrapping.NoWrap)
+        ToggleWordWrap.Content = If(ToggleWordWrap.IsChecked = True, "ON", "OFF")
+
+        ' Áp dụng cho tất cả TextBox
+        Dim textBoxes = {TxtEngsub, TxtVietsub, TxtMerge, TxtMergeUnbreak,
+                         TxtOriginal, TxtTimeCode, TxtConnectGap, TxtResult,
+                         TxtDialogueInput, TxtDialogueOutput, TxtDialogueManual, TxtDialogueMerged,
+                         TxtStylesInput, TxtStylesOutput,
+                         TxtTranslateInput, TxtPrompt}
+
+        For Each tb In textBoxes
+            If tb IsNot Nothing Then
+                tb.TextWrapping = wrap
+            End If
+        Next
+    End Sub
+
+    ''' <summary>
+    ''' Ctrl+Scroll: Phóng to/thu nhỏ font chữ trong TextBox
+    ''' </summary>
+    Private Sub TextBox_PreviewMouseWheel(sender As Object, e As MouseWheelEventArgs)
+        If Keyboard.Modifiers <> ModifierKeys.Control Then Return
+
+        Dim tb = TryCast(sender, TextBox)
+        If tb Is Nothing Then Return
+
+        Dim currentSize = tb.FontSize
+        Dim delta = If(e.Delta > 0, 1, -1)
+        Dim newSize = currentSize + delta
+
+        ' Giới hạn font size từ 8 đến 48
+        If newSize >= 8 AndAlso newSize <= 48 Then
+            tb.FontSize = newSize
+        End If
+
+        e.Handled = True
+    End Sub
+
     Private Sub LoadSettings()
         Try
             If Not String.IsNullOrEmpty(My.Settings.TranslatePrompt) Then
