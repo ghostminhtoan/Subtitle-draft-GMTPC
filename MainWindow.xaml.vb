@@ -5,9 +5,13 @@ Imports Subtitle_draft_GMTPC.Services
 
 ''' <summary>
 ''' Cửa sổ chính của ứng dụng xử lý phụ đề
-''' Bố cục 4 panel: Original → TimeCode → ConnectGap → Result
+''' Gồm 2 tab:
+''' - Subtitle Draft: Original → TimeCode → ConnectGap → Result
+''' - Subtitle Merge: Engsub + Vietsub → Merge → Merge Unbreak
 ''' </summary>
 Class MainWindow
+
+#Region "Subtitle Draft Fields"
 
     ''' <summary>
     ''' Danh sách phụ đề gốc (từ panel Original)
@@ -25,7 +29,7 @@ Class MainWindow
     Private _connectGapLines As New List(Of SubtitleLine)()
 
     ''' <summary>
-    ''' Định dạng phụ đề hiện tại
+    ''' Định dạng phụ đề hiện tại (Subtitle Draft)
     ''' </summary>
     Private _currentFormat As SubtitleFormat = SubtitleFormat.Unknown
 
@@ -38,6 +42,32 @@ Class MainWindow
     ''' Tổng time đã shift (dùng để hiển thị thông báo)
     ''' </summary>
     Private _totalShiftMs As Integer = 0
+
+#End Region
+
+#Region "Subtitle Merge Fields"
+
+    ''' <summary>
+    ''' Danh sách Engsub
+    ''' </summary>
+    Private _engLines As New List(Of SubtitleLine)()
+
+    ''' <summary>
+    ''' Danh sách Vietsub
+    ''' </summary>
+    Private _vietLines As New List(Of SubtitleLine)()
+
+    ''' <summary>
+    ''' Định dạng phụ đề hiện tại (Subtitle Merge)
+    ''' </summary>
+    Private _mergeFormat As SubtitleFormat = SubtitleFormat.Unknown
+
+    ''' <summary>
+    ''' Flag để tránh re-entrant khi TextChanged cho Merge
+    ''' </summary>
+    Private _isMergeUpdating As Boolean = False
+
+#End Region
 
 #Region "Toast Notification"
 
@@ -285,6 +315,167 @@ Class MainWindow
         Else
             TxtResult.Text = ""
         End If
+    End Sub
+
+#End Region
+
+#Region "Merge Tab - Toast Notification"
+
+    ''' <summary>
+    ''' Hiển thị thông báo toast tự ẩn sau 2 giây cho Merge tab
+    ''' </summary>
+    Private Async Sub ShowToastMerge(message As String)
+        ToastTextMerge.Text = message
+        ToastBorderMerge.Visibility = Visibility.Visible
+
+        ' Tự ẩn sau 2 giây
+        Await Task.Delay(2000)
+        ToastBorderMerge.Visibility = Visibility.Collapsed
+    End Sub
+
+#End Region
+
+#Region "Merge Tab - Event Handlers - Engsub Panel"
+
+    ''' <summary>
+    ''' Khi nội dung Engsub thay đổi → tự động parse và cập nhật Merge + Merge Unbreak
+    ''' </summary>
+    Private Sub TxtEngsub_TextChanged(sender As Object, e As TextChangedEventArgs)
+        If _isMergeUpdating Then Return
+
+        Try
+            _isMergeUpdating = True
+            Dim content = TxtEngsub.Text
+
+            If String.IsNullOrWhiteSpace(content) Then
+                _engLines.Clear()
+                ' Nếu không có engsub, merge sẽ chỉ còn vietsub
+                UpdateMergeDisplays()
+                Return
+            End If
+
+            ' Phát hiện định dạng và parse
+            ' Nếu chưa có định dạng, dùng định dạng từ Engsub
+            Dim detectedFormat = SubtitleParser.DetectFormat(content)
+            If _mergeFormat = SubtitleFormat.Unknown AndAlso detectedFormat <> SubtitleFormat.Unknown Then
+                _mergeFormat = detectedFormat
+            End If
+
+            _engLines = SubtitleParser.Parse(content)
+            TxtEngsubFormat.Text = String.Format("({0} - {1} dòng)",
+                detectedFormat.ToString().ToUpper(), _engLines.Count)
+
+            ' Cập nhật Merge và Merge Unbreak
+            UpdateMergeDisplays()
+
+        Catch ex As Exception
+            TxtEngsubFormat.Text = String.Format("(Lỗi: {0})", ex.Message)
+            System.Diagnostics.Debug.WriteLine("Engsub parse error: " & ex.ToString())
+        Finally
+            _isMergeUpdating = False
+        End Try
+    End Sub
+
+#End Region
+
+#Region "Merge Tab - Event Handlers - Vietsub Panel"
+
+    ''' <summary>
+    ''' Khi nội dung Vietsub thay đổi → tự động parse và cập nhật Merge + Merge Unbreak
+    ''' </summary>
+    Private Sub TxtVietsub_TextChanged(sender As Object, e As TextChangedEventArgs)
+        If _isMergeUpdating Then Return
+
+        Try
+            _isMergeUpdating = True
+            Dim content = TxtVietsub.Text
+
+            If String.IsNullOrWhiteSpace(content) Then
+                _vietLines.Clear()
+                ' Nếu không có vietsub, merge sẽ chỉ còn engsub
+                UpdateMergeDisplays()
+                Return
+            End If
+
+            ' Phát hiện định dạng và parse
+            ' Nếu chưa có định dạng, dùng định dạng từ Vietsub
+            Dim detectedFormat = SubtitleParser.DetectFormat(content)
+            If _mergeFormat = SubtitleFormat.Unknown AndAlso detectedFormat <> SubtitleFormat.Unknown Then
+                _mergeFormat = detectedFormat
+            End If
+
+            _vietLines = SubtitleParser.Parse(content)
+            TxtVietsubFormat.Text = String.Format("({0} - {1} dòng)",
+                detectedFormat.ToString().ToUpper(), _vietLines.Count)
+
+            ' Cập nhật Merge và Merge Unbreak
+            UpdateMergeDisplays()
+
+        Catch ex As Exception
+            TxtVietsubFormat.Text = String.Format("(Lỗi: {0})", ex.Message)
+            System.Diagnostics.Debug.WriteLine("Vietsub parse error: " & ex.ToString())
+        Finally
+            _isMergeUpdating = False
+        End Try
+    End Sub
+
+#End Region
+
+#Region "Merge Tab - Update Display Methods"
+
+    ''' <summary>
+    ''' Cập nhật hiển thị Merge và Merge Unbreak
+    ''' </summary>
+    Private Sub UpdateMergeDisplays()
+        ' Merge
+        Dim mergedLines = MergeService.MergeSubtitles(_engLines, _vietLines, _mergeFormat)
+        If mergedLines.Count > 0 Then
+            TxtMerge.Text = SubtitleParser.ToText(mergedLines, _mergeFormat)
+        Else
+            TxtMerge.Text = ""
+        End If
+
+        ' Merge Unbreak
+        Dim unbreakLines = MergeService.MergeUnbreak(_engLines, _vietLines, _mergeFormat)
+        If unbreakLines.Count > 0 Then
+            TxtMergeUnbreak.Text = SubtitleParser.ToText(unbreakLines, _mergeFormat)
+        Else
+            TxtMergeUnbreak.Text = ""
+        End If
+    End Sub
+
+#End Region
+
+#Region "Merge Tab - Button Handlers"
+
+    ''' <summary>
+    ''' Button Copy Merge: Copy nội dung Merge vào clipboard
+    ''' </summary>
+    Private Sub BtnCopyMerge_Click(sender As Object, e As RoutedEventArgs)
+        If String.IsNullOrWhiteSpace(TxtMerge.Text) Then Return
+
+        Try
+            Clipboard.SetText(TxtMerge.Text)
+            ShowToastMerge("📋 Đã copy Merge vào clipboard!")
+        Catch ex As Exception
+            MessageBox.Show("Lỗi khi copy: " & ex.Message, "Lỗi",
+                          MessageBoxButton.OK, MessageBoxImage.Error)
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Button Copy Merge Unbreak: Copy nội dung Merge Unbreak vào clipboard
+    ''' </summary>
+    Private Sub BtnCopyMergeUnbreak_Click(sender As Object, e As RoutedEventArgs)
+        If String.IsNullOrWhiteSpace(TxtMergeUnbreak.Text) Then Return
+
+        Try
+            Clipboard.SetText(TxtMergeUnbreak.Text)
+            ShowToastMerge("📋 Đã copy Merge Unbreak vào clipboard!")
+        Catch ex As Exception
+            MessageBox.Show("Lỗi khi copy: " & ex.Message, "Lỗi",
+                          MessageBoxButton.OK, MessageBoxImage.Error)
+        End Try
     End Sub
 
 #End Region
