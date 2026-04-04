@@ -213,7 +213,7 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <Label Grid.Row="0" Content="🔀 Merge" Style="{StaticResource SectionLabelStyle}"/>
+                            <Label Grid.Row="0" Content="🔀 Merge (break line)" Style="{StaticResource SectionLabelStyle}"/>
 
                             <TextBox x:Name="TxtMerge" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
@@ -226,7 +226,7 @@
                         </Grid>
                     </Border>
 
-                    <!-- PANEL 4: Merge Unbreak -->
+                    <!-- PANEL 4: Merge (no break line) -->
                     <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -235,13 +235,13 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <Label Grid.Row="0" Content="🔧 Merge Unbreak" Style="{StaticResource SectionLabelStyle}"/>
+                            <Label Grid.Row="0" Content="🔧 Merge (no break line)" Style="{StaticResource SectionLabelStyle}"/>
 
                             <TextBox x:Name="TxtMergeUnbreak" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
                                      IsReadOnly="True"/>
 
-                            <Button x:Name="BtnCopyMergeUnbreak" Grid.Row="2" Content="📋 Copy Unbreak"
+                            <Button x:Name="BtnCopyMergeUnbreak" Grid.Row="2" Content="📋 Copy No Break"
                                     Style="{StaticResource AccentButtonStyle}"
                                     HorizontalAlignment="Right" Margin="0,8,0,0"
                                     Click="BtnCopyMergeUnbreak_Click"/>
