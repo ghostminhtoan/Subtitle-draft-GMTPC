@@ -402,11 +402,12 @@ Class MainWindow
                     Dim assLine = TryCast(line, AssSubtitleLine)
                     If assLine IsNot Nothing Then
                         ' Giữ nguyên time code, thay thế dialogue text
-                        sb.AppendLine(String.Format("Dialogue: {0},{1},{2},{3},{4},{5},{6},{7},{8}",
+                        ' Format đúng: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
+                        sb.AppendLine(String.Format("Dialogue: {0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
                             assLine.Layer, SubtitleLine.FormatAssTime(line.StartTime),
                             SubtitleLine.FormatAssTime(line.EndTime), assLine.Style,
                             assLine.Name, assLine.MarginL, assLine.MarginR, assLine.MarginV,
-                            manualText))
+                            assLine.Effect, manualText))
                     End If
                 Else
                     ' Format khác: ghi ra dạng time code + text
