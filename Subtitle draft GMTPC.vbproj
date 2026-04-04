@@ -112,6 +112,8 @@
     <Compile Include="Services\TimeCodeService.vb" />
     <Compile Include="Services\TranslateService.vb" />
     <Compile Include="Services\MergeService.vb" />
+    <Compile Include="Services\QwenTranslateService.vb" />
+    <Compile Include="Services\CookieManager.vb" />
     <Compile Include="My Project\AssemblyInfo.vb">
       <SubType>Code</SubType>
     </Compile>

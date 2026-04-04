@@ -485,6 +485,135 @@
                     </Border>
                 </Grid>
             </TabItem>
+
+            <!-- Tab 4: Translate (AI via WebView2) -->
+            <TabItem Header="🌐 Translate">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- PANEL 1: Input Subtitle -->
+                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                <Label Content="📄 Input Subtitle (Paste vào đây)" Style="{StaticResource SectionLabelStyle}"/>
+                                <TextBlock x:Name="TxtTranslateInputFormat" Text="" Foreground="#808080" FontSize="11"
+                                           VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            </StackPanel>
+
+                            <TextBox x:Name="TxtTranslateInput" Grid.Row="1"
+                                     Style="{StaticResource DarkTextBoxStyle}"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- PANEL 2: Translate Controls + Output -->
+                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Cookies input -->
+                            <Grid Grid.Row="0" Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" Content="🍪 Cookies:" Style="{StaticResource SectionLabelStyle}" Padding="0"/>
+                                <TextBox x:Name="TxtCookies" Grid.Column="1" Style="{StaticResource DarkTextBoxStyle}"
+                                         TextWrapping="NoWrap" AcceptsReturn="False" FontSize="11" Padding="4"
+                                         Height="26" VerticalContentAlignment="Center"/>
+                                <Button x:Name="BtnPasteCookies" Grid.Column="2" Content="Dán Cookies"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="8,2" FontSize="11"
+                                        Margin="6,0,0,0" Click="BtnPasteCookies_Click"/>
+                            </Grid>
+
+                            <!-- Prompt input (multi-line) -->
+                            <Grid Grid.Row="1" Margin="0,0,0,6">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Label Grid.Row="0" Content="💬 Prompt:" Style="{StaticResource SectionLabelStyle}" Padding="0"/>
+                                <ScrollViewer Grid.Row="1" MaxHeight="120" VerticalScrollBarVisibility="Auto">
+                                    <TextBox x:Name="TxtPrompt" Style="{StaticResource DarkTextBoxStyle}"
+                                             TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" Padding="6"/>
+                                </ScrollViewer>
+                            </Grid>
+
+                            <!-- Buttons row -->
+                            <WrapPanel Grid.Row="2" Margin="0,0,0,8" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button x:Name="BtnOpenQwen" Content="🌐 Mở chat.qwen.ai"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
+                                        Margin="0,0,6,0" Click="BtnOpenQwen_Click"/>
+                                <Button x:Name="BtnCopyForPaste" Content="📋 Copy Prompt+Subtitle"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
+                                        Margin="0,0,6,0" Click="BtnCopyForPaste_Click"/>
+                                <Button x:Name="BtnAiTranslate" Content="🤖 AI Translate"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
+                                        Click="BtnAiTranslate_Click"/>
+                            </WrapPanel>
+
+                            <!-- Output area -->
+                            <TextBox x:Name="TxtTranslateOutput" Grid.Row="3"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     IsReadOnly="True"/>
+
+                            <!-- Copy button + Status -->
+                            <Grid Grid.Row="4" Margin="0,8,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="TxtTranslateStatus" Grid.Column="0" HorizontalAlignment="Left"
+                                           VerticalAlignment="Center" Foreground="#808080" FontSize="11"/>
+                                <Button x:Name="BtnCopyTranslate" Grid.Column="1" Content="📋 Copy Result"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6"
+                                        Click="BtnCopyTranslate_Click"/>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <!-- Footer: Author info -->
+                    <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                            Background="#1A1A1A" BorderBrush="#3E3E42" BorderThickness="0,1,0,0"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="Tác giả: " Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="Ma Minh Toàn 1993" Foreground="#0078D4" FontSize="12" FontWeight="SemiBold"/>
+                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                            <TextBlock Text="AI Translate GMTPC" Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                            <TextBlock Text="Dịch phụ đề bằng AI (chat.qwen.ai)" Foreground="#808080" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Toast Notification -->
+                    <Border x:Name="ToastBorderTranslate" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center" VerticalAlignment="Top"
+                            Visibility="Collapsed" Style="{StaticResource ToastBorderStyle}"
+                            Margin="0,20,0,0" MinWidth="300" MaxWidth="500">
+                        <TextBlock x:Name="ToastTextTranslate" Text="" Foreground="#FFFFFF" FontSize="14"
+                                   TextAlignment="Center" TextWrapping="Wrap"/>
+                    </Border>
+                </Grid>
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>
