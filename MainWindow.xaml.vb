@@ -387,7 +387,10 @@ Class MainWindow
     End Sub
 
     ''' <summary>
-    ''' Parse text từ Panel 3: mỗi dòng dạng "STT&lt;TAB&gt;Text" hoặc "STT Text"
+    ''' Parse text từ Panel 3: Hỗ trợ 2 format
+    ''' Format 1 - 3 cột (ngang): STT&lt;TAB&gt;Text gốc&lt;TAB&gt;Text tiếng Việt
+    ''' Format 2 - 3 hàng (dọc): Mỗi nhóm 3 dòng (STT / Text gốc / Text tiếng Việt)
+    ''' Luôn luôn lấy text ở vị trí thứ 3 (cột 3 hoặc dòng 3) làm text để merge
     ''' </summary>
     Private Sub ParseManualText()
         _dialogueManualTexts.Clear()
@@ -395,28 +398,78 @@ Class MainWindow
         If String.IsNullOrWhiteSpace(content) Then Return
 
         Dim lines = content.Split({Environment.NewLine, vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries)
-        For Each line In lines
-            Dim trimmed = line.Trim()
-            If String.IsNullOrWhiteSpace(trimmed) Then Continue For
+        If lines.Length = 0 Then Return
 
-            ' Tách bằng tab hoặc space đầu tiên
-            Dim parts As String() = Nothing
-            If trimmed.Contains(vbTab) Then
-                parts = trimmed.Split({vbTab}, StringSplitOptions.None)
-            Else
-                Dim spaceIdx = trimmed.IndexOf(" "c)
-                If spaceIdx > 0 Then
-                    parts = {trimmed.Substring(0, spaceIdx), trimmed.Substring(spaceIdx + 1)}
-                Else
-                    Continue For
+        ' Bước 1: Xác định format (3 cột hay 3 hàng)
+        Dim is3ColumnFormat = False
+
+        ' Kiểm tra dòng đầu tiên xem có chứa tab và có >= 3 phần tử không
+        If lines.Length > 0 Then
+            Dim firstLine = lines(0).Trim()
+            If firstLine.Contains(vbTab) Then
+                Dim parts = firstLine.Split({vbTab}, StringSplitOptions.None)
+                If parts.Length >= 3 Then
+                    ' Kiểm tra phần tử đầu có phải là số không
+                    Dim stt As Integer = 0
+                    If Integer.TryParse(parts(0).Trim(), stt) Then
+                        is3ColumnFormat = True
+                    End If
                 End If
             End If
+        End If
 
-            Dim stt As Integer = 0
-            If parts.Length >= 2 AndAlso Integer.TryParse(parts(0).Trim(), stt) Then
-                _dialogueManualTexts(stt) = parts(1).Trim()
-            End If
-        Next
+        ' Bước 2: Parse theo format đã xác định
+        If is3ColumnFormat Then
+            ' Format 3 cột: Mỗi dòng là STT<TAB>Text gốc<TAB>Text tiếng Việt
+            For Each line In lines
+                Dim trimmed = line.Trim()
+                If String.IsNullOrWhiteSpace(trimmed) Then Continue For
+
+                If trimmed.Contains(vbTab) Then
+                    Dim parts = trimmed.Split({vbTab}, StringSplitOptions.None)
+                    If parts.Length >= 3 Then
+                        Dim stt As Integer = 0
+                        If Integer.TryParse(parts(0).Trim(), stt) Then
+                            ' Lấy cột 3 (index 2) làm text
+                            _dialogueManualTexts(stt) = parts(2).Trim()
+                        End If
+                    End If
+                End If
+            Next
+        Else
+            ' Format 3 hàng: Mỗi nhóm 3 dòng (STT / Text gốc / Text tiếng Việt)
+            Dim groupIndex As Integer = 0
+            Dim currentStt As Integer = 0
+            Dim hasValidStt As Boolean = False
+
+            For i As Integer = 0 To lines.Length - 1
+                Dim trimmed = lines(i).Trim()
+                If String.IsNullOrWhiteSpace(trimmed) Then Continue For
+
+                Dim positionInGroup = groupIndex Mod 3
+
+                If positionInGroup = 0 Then
+                    ' Dòng 1: STT (số thứ tự)
+                    Dim stt As Integer = 0
+                    If Integer.TryParse(trimmed, stt) Then
+                        currentStt = stt
+                        hasValidStt = True
+                    Else
+                        hasValidStt = False
+                    End If
+                ElseIf positionInGroup = 1 Then
+                    ' Dòng 2: Text gốc (bỏ qua, không cần lưu)
+                    ' Không cần làm gì
+                ElseIf positionInGroup = 2 Then
+                    ' Dòng 3: Text tiếng Việt (lưu lại)
+                    If hasValidStt AndAlso currentStt > 0 Then
+                        _dialogueManualTexts(currentStt) = trimmed
+                    End If
+                End If
+
+                groupIndex += 1
+            Next
+        End If
     End Sub
 
     ''' <summary>
