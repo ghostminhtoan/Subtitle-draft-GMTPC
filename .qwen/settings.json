@@ -3,7 +3,8 @@
     "allow": [
       "Bash(move *)",
       "Bash(dotnet *)",
-      "Bash(timeout *)"
+      "Bash(timeout *)",
+      "Bash(git commit *)"
     ]
   },
   "$version": 3
