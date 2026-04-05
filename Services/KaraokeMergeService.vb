@@ -132,14 +132,20 @@ Namespace Services
         ''' Gom nhom cac dong thanh cau
         ''' - Cau bat dau khi text co ∞
         ''' - Cau ket thuc khi text khong ket thuc bang ♫ va khong co ∞
+        ''' - Trong cung mot cau: extend end time cua moi dong cho trung start time cua dong ke tiep
+        '''   (connect gap trong cau, khong extend giua 2 cau)
         ''' </summary>
         Private Shared Function GroupIntoSentences(lines As List(Of ParsedDialogueLine)) As List(Of KaraokeSentence)
             Dim sentences = New List(Of KaraokeSentence)()
             Dim currentSentence As KaraokeSentence = Nothing
 
-            For Each line In lines
+            For idx As Integer = 0 To lines.Count - 1
+                Dim line = lines(idx)
                 Dim hasInfinity = line.Text.Contains("∞")
                 Dim endsWithMusicNote = line.Text.EndsWith("♫")
+                Dim hasNextLine = (idx + 1 < lines.Count)
+                Dim nextLine = If(hasNextLine, lines(idx + 1), Nothing)
+                Dim nextHasInfinity = If(nextLine IsNot Nothing, nextLine.Text.Contains("∞"), False)
 
                 If hasInfinity Then
                     ' Bat dau cau moi
@@ -167,13 +173,32 @@ Namespace Services
                 Dim word = New KaraokeWord()
                 word.Text = line.Text
                 word.DurationCs = line.DurationCs
+
+                ' Connect gap trong cau:
+                ' Neu dong nay co ♫ HOAC (dong sau khong co ∞ va dong nay khong phai cuoi cau)
+                ' => extend end time cua dong nay cho trung start time cua dong ke tiep
+                Dim isLastWordInSentence = Not endsWithMusicNote AndAlso Not hasInfinity
+                If hasNextLine AndAlso Not isLastWordInSentence Then
+                    ' Dong trong cau (khong phai cuoi cau) => connect gap
+                    word.DurationCs = CalculateDurationCs(line.StartTime, nextLine.StartTime)
+                    word.ConnectedEndTime = nextLine.StartTime
+                ElseIf hasNextLine AndAlso isLastWordInSentence AndAlso Not nextHasInfinity Then
+                    ' Dong cuoi cau nhung dong sau cung thuoc cau nay (edge case) => connect gap
+                    word.DurationCs = CalculateDurationCs(line.StartTime, nextLine.StartTime)
+                    word.ConnectedEndTime = nextLine.StartTime
+                End If
+
                 currentSentence.Words.Add(word)
 
                 ' Cap nhat end time
-                currentSentence.EndTime = line.EndTime
+                If word.ConnectedEndTime IsNot Nothing Then
+                    currentSentence.EndTime = word.ConnectedEndTime
+                Else
+                    currentSentence.EndTime = line.EndTime
+                End If
 
                 ' Kiem tra ket thuc cau
-                If Not endsWithMusicNote AndAlso Not hasInfinity Then
+                If isLastWordInSentence Then
                     sentences.Add(currentSentence)
                     currentSentence = Nothing
                 End If
@@ -267,6 +292,7 @@ Namespace Services
         Private Class KaraokeWord
             Public Property Text As String
             Public Property DurationCs As Integer
+            Public Property ConnectedEndTime As String
         End Class
 
 #End Region
