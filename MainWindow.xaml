@@ -129,7 +129,7 @@
             <Setter Property="BorderBrush" Value="#404040"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="8"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontFamily" Value="Consolas, Courier New"/>
             <Setter Property="AcceptsReturn" Value="True"/>
             <Setter Property="AcceptsTab" Value="True"/>
@@ -808,7 +808,7 @@
 
                             <TextBox x:Name="TxtGpuInfo" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     IsReadOnly="True" FontSize="12"
+                                     IsReadOnly="True" FontSize="14"
                                      PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <Button x:Name="BtnCopyGpu" Grid.Row="2" Content="📋 Copy GPU"
@@ -831,7 +831,7 @@
 
                             <TextBox x:Name="TxtCpuInfo" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     IsReadOnly="True" FontSize="12"
+                                     IsReadOnly="True" FontSize="14"
                                      PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <Button x:Name="BtnCopyCpu" Grid.Row="2" Content="📋 Copy CPU"
@@ -854,7 +854,7 @@
 
                             <TextBox x:Name="TxtRamInfo" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     IsReadOnly="True" FontSize="12"
+                                     IsReadOnly="True" FontSize="14"
                                      PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <Button x:Name="BtnCopyRam" Grid.Row="2" Content="📋 Copy RAM"
@@ -877,7 +877,7 @@
 
                             <TextBox x:Name="TxtMainboardInfo" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
-                                     IsReadOnly="True" FontSize="12"
+                                     IsReadOnly="True" FontSize="14"
                                      PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <Button x:Name="BtnCopyMainboard" Grid.Row="2" Content="📋 Copy Mainboard"
