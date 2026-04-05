@@ -988,7 +988,9 @@ Class MainWindow
             TxtKaraokeCount.Text = String.Format("({0} dòng)", lines.Length)
 
             ' Xử lý karaoke
-            TxtKaraokeOutput.Text = KaraokeVietnameseService.ProcessLyrics(content)
+            Dim karaokeResult = KaraokeVietnameseService.ProcessLyrics(content)
+            TxtKaraokeOutput.Text = karaokeResult
+            TxtKaraokeEditable.Text = karaokeResult
         Catch ex As Exception
             TxtKaraokeCount.Text = String.Format("(Lỗi: {0})", ex.Message)
         Finally
@@ -1004,12 +1006,61 @@ Class MainWindow
     End Sub
 
     Private Sub BtnCopyKaraoke_Click(sender As Object, e As RoutedEventArgs)
-        If String.IsNullOrWhiteSpace(TxtKaraokeOutput.Text) Then Return
+        If String.IsNullOrWhiteSpace(TxtKaraokeEditable.Text) Then Return
         Try
-            Clipboard.SetText(TxtKaraokeOutput.Text)
+            Clipboard.SetText(TxtKaraokeEditable.Text)
             ShowToastKaraoke("📋 Đã copy Karaoke!")
         Catch ex As Exception
             MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
+        End Try
+    End Sub
+
+#End Region
+
+#Region "Karaoke English - Methods"
+
+    Private _isKaraokeEngUpdating As Boolean = False
+
+    Private Sub TxtKaraokeEngInput_TextChanged(sender As Object, e As TextChangedEventArgs)
+        If _isKaraokeEngUpdating Then Return
+        Try
+            _isKaraokeEngUpdating = True
+            Dim content = SubtitleParser.SanitizeContent(TxtKaraokeEngInput.Text)
+            If String.IsNullOrWhiteSpace(content) Then
+                TxtKaraokeEngCount.Text = ""
+                TxtKaraokeEngOutput.Text = ""
+                TxtKaraokeEngEditable.Text = ""
+                Return
+            End If
+
+            Dim lines = content.Split({Environment.NewLine, vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries)
+            TxtKaraokeEngCount.Text = String.Format("({0} lines)", lines.Length)
+
+            ' Xử lý karaoke English
+            Dim karaokeResult = KaraokeVietnameseService.ProcessLyrics(content)
+            TxtKaraokeEngOutput.Text = karaokeResult
+            TxtKaraokeEngEditable.Text = karaokeResult
+        Catch ex As Exception
+            TxtKaraokeEngCount.Text = String.Format("(Error: {0})", ex.Message)
+        Finally
+            _isKaraokeEngUpdating = False
+        End Try
+    End Sub
+
+    Private Async Sub ShowToastKaraokeEng(message As String)
+        ToastTextKaraokeEng.Text = message
+        ToastBorderKaraokeEng.Visibility = Visibility.Visible
+        Await Task.Delay(2000)
+        ToastBorderKaraokeEng.Visibility = Visibility.Collapsed
+    End Sub
+
+    Private Sub BtnCopyKaraokeEng_Click(sender As Object, e As RoutedEventArgs)
+        If String.IsNullOrWhiteSpace(TxtKaraokeEngEditable.Text) Then Return
+        Try
+            Clipboard.SetText(TxtKaraokeEngEditable.Text)
+            ShowToastKaraokeEng("📋 Copied Karaoke!")
+        Catch ex As Exception
+            MessageBox.Show("Error: " & ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error)
         End Try
     End Sub
 

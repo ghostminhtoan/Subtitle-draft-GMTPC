@@ -26,7 +26,7 @@ Namespace Services
                 Dim line = lines(i).Trim()
                 If String.IsNullOrEmpty(line) Then Continue For
 
-                Dim processedLine = ProcessSingleLine(line, isFirstLineOfSong:=(i = 0))
+                Dim processedLine = ProcessSingleLine(line, isFirstWordOfSong:=(i = 0))
                 sb.AppendLine(processedLine)
             Next
 
@@ -35,8 +35,9 @@ Namespace Services
 
         ''' <summary>
         ''' Xử lý một dòng lời bài hát
+        ''' Mỗi từ/âm tiết xuống dòng riêng biệt
         ''' </summary>
-        Private Shared Function ProcessSingleLine(line As String, isFirstLineOfSong As Boolean) As String
+        Private Shared Function ProcessSingleLine(line As String, isFirstWordOfSong As Boolean) As String
             Dim sb = New StringBuilder()
 
             ' Tách dòng thành các từ
@@ -45,13 +46,12 @@ Namespace Services
             For w As Integer = 0 To words.Length - 1
                 Dim word = words(w)
                 Dim isVietnamese = IsVietnameseWord(word)
+                Dim isFirstWordInLine = (w = 0) AndAlso isFirstWordOfSong
 
                 If isVietnamese Then
                     ' Tiếng Việt: full word
-                    Dim isFirstWordInLine = (w = 0)
-
-                    If isFirstWordInLine AndAlso Not isFirstLineOfSong Then
-                        ' Đầu câu: chèn ∞
+                    If isFirstWordInLine Then
+                        ' Đầu bài hát: chèn ∞
                         sb.AppendFormat("∞{0}", word)
                     Else
                         sb.Append(word)
@@ -61,14 +61,15 @@ Namespace Services
                     If w < words.Length - 1 Then
                         sb.Append("♫")
                     End If
+                    ' Xuống dòng
+                    sb.AppendLine()
                 Else
                     ' Tiếng Anh: chia theo âm tiết
                     Dim syllables = SplitEnglishSyllables(word)
-                    Dim isFirstSyllable = (w = 0) AndAlso (Not isFirstLineOfSong)
 
                     For s As Integer = 0 To syllables.Length - 1
-                        If s = 0 AndAlso isFirstSyllable Then
-                            ' Đầu câu tiếng Anh: ∞ dính với âm tiết đầu
+                        If s = 0 AndAlso isFirstWordInLine Then
+                            ' Đầu bài hát tiếng Anh: ∞ dính với âm tiết đầu
                             sb.AppendFormat("∞{0}", syllables(s))
                         Else
                             sb.Append(syllables(s))
@@ -76,14 +77,19 @@ Namespace Services
 
                         ' Giữa các âm tiết trong cùng từ: không thêm gì
                         ' Nhưng nếu là âm tiết cuối và không phải từ cuối → thêm ♫
-                        If s = syllables.Length - 1 AndAlso w < words.Length - 1 Then
+                        Dim isLastSyllable = (s = syllables.Length - 1)
+                        Dim isLastWord = (w = words.Length - 1)
+
+                        If isLastSyllable AndAlso Not isLastWord Then
                             sb.Append("♫")
                         End If
+                        ' Xuống dòng
+                        sb.AppendLine()
                     Next
                 End If
             Next
 
-            Return sb.ToString()
+            Return sb.ToString().TrimEnd()
         End Function
 
         ''' <summary>
@@ -107,94 +113,117 @@ Namespace Services
 
         ''' <summary>
         ''' Tách từ tiếng Anh thành các âm tiết
-        ''' Phương pháp đơn giản: dựa vào nguyên âm
+        ''' Phương pháp: đếm vowel groups (nhóm nguyên âm liên tiếp)
+        ''' Mỗi vowel group = 1 âm tiết. Nếu ≤ 1 → không tách.
         ''' </summary>
         Private Shared Function SplitEnglishSyllables(word As String) As String()
             If String.IsNullOrEmpty(word) Then Return {word}
+            If word.Length <= 2 Then Return {word} ' Từ quá ngắn → không tách
 
             Dim lowerWord = word.ToLower()
-            Dim vowels = "aeiouy"
+            Dim vowels = "aeiou"
             Dim result = New List(Of String)()
-            Dim current = New StringBuilder()
 
-            For i As Integer = 0 To lowerWord.Length - 1
-                Dim ch = lowerWord(i)
-                current.Append(word(i)) ' Giữ nguyên case gốc
-
-                If vowels.IndexOf(ch) >= 0 Then
-                    ' Đây là nguyên âm
-                    ' Nếu ký tự tiếp theo là phụ âm và không phải cuối từ → tách
-                    If i + 1 < lowerWord.Length Then
-                        Dim nextCh = lowerWord(i + 1)
-                        If vowels.IndexOf(nextCh) < 0 Then
-                            ' Tiếp theo là phụ âm → có thể tách
-                            ' Nhưng cần thêm ít nhất 1 phụ âm nữa để tách
-                            If i + 2 < lowerWord.Length Then
-                                Dim afterNext = lowerWord(i + 2)
-                                If vowels.IndexOf(afterNext) < 0 Then
-                                    ' Có 2 phụ âm liên tiếp → tách ở giữa
-                                    result.Add(current.ToString())
-                                    current.Clear()
-                                End If
-                            End If
-                        End If
-                    End If
-                End If
-            Next
-
-            If current.Length > 0 Then
-                result.Add(current.ToString())
+            ' Đếm số vowel groups
+            Dim vowelGroups = CountVowelGroups(lowerWord)
+            If vowelGroups <= 1 Then
+                ' Chỉ có 1 âm tiết → không tách
+                Return {word}
             End If
 
-            ' Nếu chỉ có 1 âm tiết và từ dài > 3 ký tự → thử tách đơn giản
-            If result.Count = 1 AndAlso word.Length > 3 Then
-                result = SplitByPattern(word)
+            ' Tách tại boundary giữa các vowel groups
+            result = SplitByVowelGroups(word, lowerWord, vowels)
+
+            If result.Count <= 1 Then
+                Return {word}
             End If
 
             Return result.ToArray()
         End Function
 
         ''' <summary>
-        ''' Tách âm tiết theo pattern đơn giản hơn
+        ''' Đếm số nhóm nguyên âm liên tiếp
         ''' </summary>
-        Private Shared Function SplitByPattern(word As String) As List(Of String)
-            Dim result = New List(Of String)()
-            Dim vowels = "aeiouy"
-            Dim lowerWord = word.ToLower()
+        Private Shared Function CountVowelGroups(lowerWord As String) As Integer
+            Dim vowels = "aeiou"
+            Dim count = 0
+            Dim inVowelGroup = False
 
-            Dim sylStarts = New List(Of Integer)()
-            sylStarts.Add(0)
-
-            ' Tìm vị trí bắt đầu âm tiết mới (sau nguyên âm + phụ âm)
-            For i As Integer = 0 To lowerWord.Length - 2
+            For i As Integer = 0 To lowerWord.Length - 1
                 Dim ch = lowerWord(i)
-                Dim nextCh = lowerWord(i + 1)
+                Dim isVowel = (vowels.IndexOf(ch) >= 0)
 
-                If vowels.IndexOf(ch) >= 0 AndAlso vowels.IndexOf(nextCh) < 0 Then
-                    ' Nguyên âm + phụ âm → kiểm tra ký tự tiếp
-                    If i + 2 < lowerWord.Length Then
-                        Dim afterNext = lowerWord(i + 2)
-                        If vowels.IndexOf(afterNext) >= 0 Then
-                            ' Phụ âm + nguyên âm → tách trước phụ âm
-                            sylStarts.Add(i + 1)
-                        ElseIf i + 3 < lowerWord.Length Then
-                            Dim third = lowerWord(i + 3)
-                            If vowels.IndexOf(third) >= 0 Then
-                                sylStarts.Add(i + 2)
-                            End If
-                        End If
-                    End If
+                ' Xử lý 'y' như nguyên âm nếu không phải ký tự đầu
+                If ch = "y"c AndAlso i > 0 AndAlso Not inVowelGroup Then
+                    isVowel = True
+                End If
+
+                If isVowel AndAlso Not inVowelGroup Then
+                    count += 1
+                    inVowelGroup = True
+                ElseIf Not isVowel Then
+                    inVowelGroup = False
                 End If
             Next
 
-            For i As Integer = 0 To sylStarts.Count - 1
-                Dim startIdx = sylStarts(i)
-                Dim endIdx = If(i + 1 < sylStarts.Count, sylStarts(i + 1), word.Length)
-                result.Add(word.Substring(startIdx, endIdx - startIdx))
+            Return count
+        End Function
+
+        ''' <summary>
+        ''' Tách từ theo vowel group boundaries
+        ''' Mỗi syllable = (phụ âm trước) + vowel group
+        ''' Ví dụ: "baby" → "ba" + "by"
+        ''' every → "e" + "ve" + "ry"
+        ''' </summary>
+        Private Shared Function SplitByVowelGroups(word As String, lowerWord As String, vowels As String) As List(Of String)
+            Dim result = New List(Of String)()
+
+            ' Tìm tất cả vowel group: (start, end) positions
+            Dim vowelGroups = New List(Of Tuple(Of Integer, Integer))()
+            Dim inVowelGroup = False
+            Dim vgStart = 0
+
+            For i As Integer = 0 To lowerWord.Length - 1
+                Dim ch = lowerWord(i)
+                Dim isVowel = (vowels.IndexOf(ch) >= 0)
+
+                If ch = "y"c AndAlso i > 0 AndAlso Not inVowelGroup Then
+                    isVowel = True
+                End If
+
+                If isVowel AndAlso Not inVowelGroup Then
+                    vgStart = i
+                    inVowelGroup = True
+                ElseIf Not isVowel AndAlso inVowelGroup Then
+                    vowelGroups.Add(Tuple.Create(vgStart, i - 1))
+                    inVowelGroup = False
+                End If
+            Next
+            If inVowelGroup Then
+                vowelGroups.Add(Tuple.Create(vgStart, lowerWord.Length - 1))
+            End If
+
+            If vowelGroups.Count <= 1 Then
+                result.Add(word)
+                Return result
+            End If
+
+            ' Tách: mỗi syllable = phụ âm trước (nếu có) + vowel group
+            Dim sylStart = 0
+            For i As Integer = 0 To vowelGroups.Count - 1
+                Dim vg = vowelGroups(i)
+                Dim vgEnd = vg.Item2
+                ' Syllable kết thúc tại cuối vowel group
+                Dim sylEnd = vgEnd + 1
+                result.Add(word.Substring(sylStart, sylEnd - sylStart))
+                ' Syllable tiếp theo bắt đầu sau vowel group này
+                sylStart = sylEnd
             Next
 
-            If result.Count = 0 Then
-                result.Add(word)
+            ' Nếu còn ký tự thừa → gộp vào syllable cuối
+            If sylStart < word.Length Then
+                Dim lastIdx = result.Count - 1
+                result(lastIdx) = result(lastIdx) & word.Substring(sylStart)
             End If
 
             Return result
