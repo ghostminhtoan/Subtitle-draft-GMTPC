@@ -108,6 +108,7 @@
     <Compile Include="Services\CookieManager.vb" />
     <Compile Include="Services\HardwareInfoService.vb" />
     <Compile Include="Services\KaraokeVietnameseService.vb" />
+    <Compile Include="Services\KaraokeMergeService.vb" />
     <Compile Include="Models\SubtitleFormat.vb" />
     <Compile Include="Models\SubtitleLine.vb" />
     <Compile Include="Models\AssSubtitleLine.vb" />
