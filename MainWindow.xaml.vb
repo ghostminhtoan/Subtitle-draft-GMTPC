@@ -903,7 +903,7 @@ Class MainWindow
     ''' <summary>
     ''' Set toàn bộ StartTime và EndTime về 0 rồi xuất ra
     ''' Hỗ trợ cả phụ đề SRT/ASS và plain text
-    ''' </summary>
+    ''' ''' </summary>
     Private Sub UpdateZeroOutput()
         If _zeroLines.Count = 0 AndAlso _zeroPlainTexts.Count = 0 Then
             TxtZeroOutput.Text = ""
@@ -911,38 +911,33 @@ Class MainWindow
         End If
 
         Dim sb = New StringBuilder()
+        Dim zeroTimeAss = "0:00:00.00"
 
-        ' Nếu là plain text → xuất ra SRT format với time = 0
+        ' Nếu là plain text → xuất ra ASS format với time = 0
         If _zeroPlainTexts.Count > 0 Then
             For i As Integer = 0 To _zeroPlainTexts.Count - 1
-                sb.AppendLine((i + 1).ToString())
-                sb.AppendLine("00:00:00,000 --> 00:00:00,000")
-                sb.AppendLine(_zeroPlainTexts(i))
-                sb.AppendLine()
+                Dim text = _zeroPlainTexts(i).Replace("\N", "\\N").Replace("\n", "\\N").Replace(Environment.NewLine, "\N")
+                sb.AppendLine(String.Format("Dialogue: 0,{0},{1},Default,,0000,0000,0000,,{2}", zeroTimeAss, zeroTimeAss, text))
             Next
             TxtZeroOutput.Text = sb.ToString().TrimEnd()
             Return
         End If
 
-        ' Nếu là phụ đề SRT/ASS
+        ' Nếu là phụ đề SRT/ASS → xuất ASS format
         For Each line In _zeroLines
             Dim assLine = TryCast(line, AssSubtitleLine)
             If assLine IsNot Nothing Then
                 ' ASS: giữ nguyên cấu trúc, thay time bằng 0
-                Dim zeroTime = "0:00:00.00"
                 sb.AppendLine(String.Format("Dialogue: {0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
-                    assLine.Layer, zeroTime, zeroTime, assLine.Style,
+                    assLine.Layer, zeroTimeAss, zeroTimeAss, assLine.Style,
                     assLine.Name, assLine.MarginL, assLine.MarginR, assLine.MarginV,
                     assLine.Effect, assLine.DialogText))
             Else
                 Dim srtLine = TryCast(line, SrtSubtitleLine)
                 If srtLine IsNot Nothing Then
-                    ' SRT: giữ index, text, thay time bằng 0
-                    Dim zeroTime = "00:00:00,000"
-                    sb.AppendLine(srtLine.Index.ToString())
-                    sb.AppendLine(String.Format("{0} --> {1}", zeroTime, zeroTime))
-                    sb.AppendLine(srtLine.Text)
-                    sb.AppendLine()
+                    ' SRT → chuyển sang ASS format
+                    Dim text = srtLine.Text.Replace("\N", "\\N").Replace("\n", "\\N").Replace(Environment.NewLine, "\N")
+                    sb.AppendLine(String.Format("Dialogue: 0,{0},{1},Default,,0000,0000,0000,,{2}", zeroTimeAss, zeroTimeAss, text))
                 End If
             End If
         Next
