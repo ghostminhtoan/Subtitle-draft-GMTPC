@@ -31,6 +31,7 @@ Class MainWindow
     Private Sub MainWindow_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         LoadSettings()
         InitFontSizes()
+        LoadHardwareInfo()
     End Sub
 
     ''' <summary>
@@ -102,6 +103,12 @@ Class MainWindow
         Catch
         End Try
     End Sub
+
+#End Region
+
+#Region "Hardware Info Fields"
+
+    Private _isHardwareLoading As Boolean = False
 
 #End Region
 
@@ -260,17 +267,19 @@ Class MainWindow
 
 #Region "Event Handlers - Result Panel"
 
-    Private Sub BtnTranslate_Click(sender As Object, e As RoutedEventArgs)
+    Private Sub BtnDonate_Click(sender As Object, e As RoutedEventArgs)
         Try
-            System.Diagnostics.Process.Start("https://www.syedgakbar.com/projects/dst")
+            System.Diagnostics.Process.Start("https://tinyurl.com/gmtpcdonate")
         Catch ex As Exception
             MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
         End Try
     End Sub
 
-    Private Sub BtnDonate_Click(sender As Object, e As RoutedEventArgs)
+    Private Sub BtnCopyResult_Click(sender As Object, e As RoutedEventArgs)
+        If String.IsNullOrWhiteSpace(TxtResult.Text) Then Return
         Try
-            System.Diagnostics.Process.Start("https://tinyurl.com/mmtdonate")
+            Clipboard.SetText(TxtResult.Text)
+            ShowToast("📋 Đã copy Result!")
         Catch ex As Exception
             MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
         End Try
@@ -771,6 +780,79 @@ Class MainWindow
         Try
             Clipboard.SetText(TxtMergeUnbreak.Text)
             ShowToastMerge("📋 Đã copy Unbreak!")
+        Catch ex As Exception
+            MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
+        End Try
+    End Sub
+
+#End Region
+
+#Region "Hardware Info - Methods"
+
+    ''' <summary>
+    ''' Load toàn bộ thông tin phần cứng khi mở app
+    ''' </summary>
+    Private Sub LoadHardwareInfo()
+        If _isHardwareLoading Then Return
+        Try
+            _isHardwareLoading = True
+
+            TxtGpuInfo.Text = HardwareInfoService.GetGpuInfo()
+            TxtCpuInfo.Text = HardwareInfoService.GetCpuInfo()
+            TxtRamInfo.Text = HardwareInfoService.GetRamInfo()
+            TxtMainboardInfo.Text = HardwareInfoService.GetMainboardInfo()
+        Catch ex As Exception
+            TxtGpuInfo.Text = String.Format("Lỗi: {0}", ex.Message)
+            TxtCpuInfo.Text = String.Format("Lỗi: {0}", ex.Message)
+            TxtRamInfo.Text = String.Format("Lỗi: {0}", ex.Message)
+            TxtMainboardInfo.Text = String.Format("Lỗi: {0}", ex.Message)
+        Finally
+            _isHardwareLoading = False
+        End Try
+    End Sub
+
+    Private Async Sub ShowToastHardware(message As String)
+        ToastTextHardware.Text = message
+        ToastBorderHardware.Visibility = Visibility.Visible
+        Await Task.Delay(2000)
+        ToastBorderHardware.Visibility = Visibility.Collapsed
+    End Sub
+
+    Private Sub BtnCopyGpu_Click(sender As Object, e As RoutedEventArgs)
+        If String.IsNullOrWhiteSpace(TxtGpuInfo.Text) Then Return
+        Try
+            Clipboard.SetText(TxtGpuInfo.Text)
+            ShowToastHardware("📋 Đã copy GPU info!")
+        Catch ex As Exception
+            MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
+        End Try
+    End Sub
+
+    Private Sub BtnCopyCpu_Click(sender As Object, e As RoutedEventArgs)
+        If String.IsNullOrWhiteSpace(TxtCpuInfo.Text) Then Return
+        Try
+            Clipboard.SetText(TxtCpuInfo.Text)
+            ShowToastHardware("📋 Đã copy CPU info!")
+        Catch ex As Exception
+            MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
+        End Try
+    End Sub
+
+    Private Sub BtnCopyRam_Click(sender As Object, e As RoutedEventArgs)
+        If String.IsNullOrWhiteSpace(TxtRamInfo.Text) Then Return
+        Try
+            Clipboard.SetText(TxtRamInfo.Text)
+            ShowToastHardware("📋 Đã copy RAM info!")
+        Catch ex As Exception
+            MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
+        End Try
+    End Sub
+
+    Private Sub BtnCopyMainboard_Click(sender As Object, e As RoutedEventArgs)
+        If String.IsNullOrWhiteSpace(TxtMainboardInfo.Text) Then Return
+        Try
+            Clipboard.SetText(TxtMainboardInfo.Text)
+            ShowToastHardware("📋 Đã copy Mainboard info!")
         Catch ex As Exception
             MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
         End Try
