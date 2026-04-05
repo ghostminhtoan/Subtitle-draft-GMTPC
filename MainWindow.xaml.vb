@@ -860,4 +860,88 @@ Class MainWindow
 
 #End Region
 
+#Region "Zero Time - Methods"
+
+    Private _zeroLines As New List(Of SubtitleLine)()
+    Private _zeroFormat As SubtitleFormat = SubtitleFormat.Unknown
+    Private _isZeroUpdating As Boolean = False
+
+    Private Sub TxtZeroInput_TextChanged(sender As Object, e As TextChangedEventArgs)
+        If _isZeroUpdating Then Return
+        Try
+            _isZeroUpdating = True
+            Dim content = SubtitleParser.SanitizeContent(TxtZeroInput.Text)
+            If String.IsNullOrWhiteSpace(content) Then
+                _zeroLines.Clear()
+                _zeroFormat = SubtitleFormat.Unknown
+                TxtZeroFormat.Text = ""
+                TxtZeroOutput.Text = ""
+                Return
+            End If
+            _zeroFormat = SubtitleParser.DetectFormat(content)
+            _zeroLines = SubtitleParser.Parse(content)
+            TxtZeroFormat.Text = String.Format("({0} - {1} dòng)", _zeroFormat.ToString().ToUpper(), _zeroLines.Count)
+            UpdateZeroOutput()
+        Catch ex As Exception
+            TxtZeroFormat.Text = String.Format("(Lỗi: {0})", ex.Message)
+        Finally
+            _isZeroUpdating = False
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Set toàn bộ StartTime và EndTime về 0 rồi xuất ra
+    ''' </summary>
+    Private Sub UpdateZeroOutput()
+        If _zeroLines.Count = 0 Then
+            TxtZeroOutput.Text = ""
+            Return
+        End If
+
+        Dim sb = New StringBuilder()
+
+        For Each line In _zeroLines
+            Dim assLine = TryCast(line, AssSubtitleLine)
+            If assLine IsNot Nothing Then
+                ' ASS: giữ nguyên cấu trúc, thay time bằng 0
+                Dim zeroTime = "0:00:00.00"
+                sb.AppendLine(String.Format("Dialogue: {0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
+                    assLine.Layer, zeroTime, zeroTime, assLine.Style,
+                    assLine.Name, assLine.MarginL, assLine.MarginR, assLine.MarginV,
+                    assLine.Effect, assLine.DialogText))
+            Else
+                Dim srtLine = TryCast(line, SrtSubtitleLine)
+                If srtLine IsNot Nothing Then
+                    ' SRT: giữ index, text, thay time bằng 0
+                    Dim zeroTime = "00:00:00,000"
+                    sb.AppendLine(srtLine.Index.ToString())
+                    sb.AppendLine(String.Format("{0} --> {1}", zeroTime, zeroTime))
+                    sb.AppendLine(srtLine.Text)
+                    sb.AppendLine()
+                End If
+            End If
+        Next
+
+        TxtZeroOutput.Text = sb.ToString().TrimEnd()
+    End Sub
+
+    Private Async Sub ShowToastZero(message As String)
+        ToastTextZero.Text = message
+        ToastBorderZero.Visibility = Visibility.Visible
+        Await Task.Delay(2000)
+        ToastBorderZero.Visibility = Visibility.Collapsed
+    End Sub
+
+    Private Sub BtnCopyZero_Click(sender As Object, e As RoutedEventArgs)
+        If String.IsNullOrWhiteSpace(TxtZeroOutput.Text) Then Return
+        Try
+            Clipboard.SetText(TxtZeroOutput.Text)
+            ShowToastZero("📋 Đã copy Zero Time!")
+        Catch ex As Exception
+            MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
+        End Try
+    End Sub
+
+#End Region
+
 End Class
