@@ -26,7 +26,7 @@ Namespace Services
                 Dim line = lines(i).Trim()
                 If String.IsNullOrEmpty(line) Then Continue For
 
-                Dim processedLine = ProcessSingleLine(line, isFirstWordOfSong:=(i = 0))
+                Dim processedLine = ProcessSingleLine(line)
                 sb.AppendLine(processedLine)
             Next
 
@@ -36,8 +36,9 @@ Namespace Services
         ''' <summary>
         ''' Xử lý một dòng lời bài hát
         ''' Mỗi từ/âm tiết xuống dòng riêng biệt
+        ''' Đầu mỗi dòng luôn có ∞
         ''' </summary>
-        Private Shared Function ProcessSingleLine(line As String, isFirstWordOfSong As Boolean) As String
+        Private Shared Function ProcessSingleLine(line As String) As String
             Dim sb = New StringBuilder()
 
             ' Tách dòng thành các từ
@@ -46,12 +47,12 @@ Namespace Services
             For w As Integer = 0 To words.Length - 1
                 Dim word = words(w)
                 Dim isVietnamese = IsVietnameseWord(word)
-                Dim isFirstWordInLine = (w = 0) AndAlso isFirstWordOfSong
+                Dim isFirstWordInLine = (w = 0)
 
                 If isVietnamese Then
                     ' Tiếng Việt: full word
                     If isFirstWordInLine Then
-                        ' Đầu bài hát: chèn ∞
+                        ' Đầu câu: chèn ∞
                         sb.AppendFormat("∞{0}", word)
                     Else
                         sb.Append(word)
@@ -69,7 +70,7 @@ Namespace Services
 
                     For s As Integer = 0 To syllables.Length - 1
                         If s = 0 AndAlso isFirstWordInLine Then
-                            ' Đầu bài hát tiếng Anh: ∞ dính với âm tiết đầu
+                            ' Đầu câu tiếng Anh: ∞ dính với âm tiết đầu
                             sb.AppendFormat("∞{0}", syllables(s))
                         Else
                             sb.Append(syllables(s))
