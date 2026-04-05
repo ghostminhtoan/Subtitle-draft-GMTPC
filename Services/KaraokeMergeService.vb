@@ -141,11 +141,13 @@ Namespace Services
 
             For idx As Integer = 0 To lines.Count - 1
                 Dim line = lines(idx)
-                Dim hasInfinity = line.Text.Contains("∞")
-                Dim endsWithMusicNote = line.Text.EndsWith("♫")
+                Dim cleanText = line.Text.Trim()
+                Dim hasInfinity = cleanText.Contains("∞")
+                Dim endsWithMusicNote = cleanText.EndsWith("♫")
                 Dim hasNextLine = (idx + 1 < lines.Count)
                 Dim nextLine = If(hasNextLine, lines(idx + 1), Nothing)
-                Dim nextHasInfinity = If(nextLine IsNot Nothing, nextLine.Text.Contains("∞"), False)
+                Dim nextCleanText = If(nextLine IsNot Nothing, nextLine.Text.Trim(), "")
+                Dim nextHasInfinity = nextCleanText.Contains("∞")
 
                 If hasInfinity Then
                     ' Bat dau cau moi
