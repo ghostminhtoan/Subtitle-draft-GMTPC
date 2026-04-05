@@ -49,6 +49,12 @@ Namespace Services
 
                     Dim status = GetProperty(obj, "Status")
                     If Not String.IsNullOrEmpty(status) Then sb.AppendLine(String.Format("  Trạng thái: {0}", status))
+
+                    ' Kiểm tra encoder hỗ trợ dựa trên tên GPU
+                    Dim encoderInfo = GetEncoderInfo(name)
+                    If Not String.IsNullOrEmpty(encoderInfo) Then
+                        sb.AppendLine(String.Format("  Hardware Encoder: {0}", encoderInfo))
+                    End If
                 Next
 
                 If gpuIndex = 0 Then sb.AppendLine("  Không tìm thấy GPU!")
@@ -69,6 +75,86 @@ Namespace Services
                 End If
             End If
             Return ramStr
+        End Function
+
+        ''' <summary>
+        ''' Xác định hardware encoder dựa trên tên GPU
+        ''' NVIDIA → NVENC, AMD → AMF, Intel → Quick Sync (QSV)
+        ''' </summary>
+        Private Shared Function GetEncoderInfo(gpuName As String) As String
+            If String.IsNullOrWhiteSpace(gpuName) Then Return String.Empty
+
+            Dim nameLower = gpuName.ToLower()
+
+            ' NVIDIA - NVENC
+            If nameLower.Contains("nvidia") OrElse nameLower.Contains("geforce") OrElse nameLower.Contains("quadro") OrElse nameLower.Contains("rtx") OrElse nameLower.Contains("gtx") OrElse nameLower.Contains("tesla") Then
+                ' Kiểm tra generation
+                If nameLower.Contains("rtx 50") OrElse nameLower.Contains("5090") OrElse nameLower.Contains("5080") OrElse nameLower.Contains("5070") Then
+                    Return "NVENC (8th Gen - AV1 + HEVC)"
+                ElseIf nameLower.Contains("rtx 40") OrElse nameLower.Contains("4090") OrElse nameLower.Contains("4080") OrElse nameLower.Contains("4070") OrElse nameLower.Contains("4060") Then
+                    Return "NVENC (8th Gen - AV1 + HEVC)"
+                ElseIf nameLower.Contains("rtx 30") OrElse nameLower.Contains("3090") OrElse nameLower.Contains("3080") OrElse nameLower.Contains("3070") OrElse nameLower.Contains("3060") Then
+                    Return "NVENC (7th Gen - HEVC)"
+                ElseIf nameLower.Contains("rtx 20") OrElse nameLower.Contains("2080") OrElse nameLower.Contains("2070") OrElse nameLower.Contains("2060") Then
+                    Return "NVENC (Turing - HEVC)"
+                ElseIf nameLower.Contains("gtx 16") OrElse nameLower.Contains("1660") OrElse nameLower.Contains("1650") Then
+                    Return "NVENC (Turing - HEVC)"
+                ElseIf nameLower.Contains("gtx 10") OrElse nameLower.Contains("1080") OrElse nameLower.Contains("1070") OrElse nameLower.Contains("1060") OrElse nameLower.Contains("1050") Then
+                    Return "NVENC (Pascal - HEVC 8-bit)"
+                ElseIf nameLower.Contains("gtx 9") OrElse nameLower.Contains("980") OrElse nameLower.Contains("970") OrElse nameLower.Contains("960") Then
+                    Return "NVENC (Maxwell)"
+                ElseIf nameLower.Contains("gtx 7") OrElse nameLower.Contains("780") OrElse nameLower.Contains("770") OrElse nameLower.Contains("760") Then
+                    Return "NVENC (Kepler)"
+                Else
+                    Return "NVENC (NVIDIA)"
+                End If
+            End If
+
+            ' AMD - AMF
+            If nameLower.Contains("amd") OrElse nameLower.Contains("radeon") OrElse nameLower.Contains("rx ") OrElse nameLower.Contains("rx vega") OrElse nameLower.Contains("wrx") OrElse nameLower.Contains("firepro") Then
+                If nameLower.Contains("rx 9000") OrElse nameLower.Contains("9070") OrElse nameLower.Contains("9060") Then
+                    Return "AMF (RDNA 4 - AV1 + HEVC + H.264)"
+                ElseIf nameLower.Contains("rx 7") OrElse nameLower.Contains("7900") OrElse nameLower.Contains("7800") OrElse nameLower.Contains("7700") OrElse nameLower.Contains("7600") Then
+                    Return "AMF (RDNA 3 - AV1 + HEVC)"
+                ElseIf nameLower.Contains("rx 6") OrElse nameLower.Contains("6900") OrElse nameLower.Contains("6800") OrElse nameLower.Contains("6700") OrElse nameLower.Contains("6600") OrElse nameLower.Contains("6500") Then
+                    Return "AMF (RDNA 2 - HEVC)"
+                ElseIf nameLower.Contains("rx 5") OrElse nameLower.Contains("5700") OrElse nameLower.Contains("5600") OrElse nameLower.Contains("5500") Then
+                    Return "AMF (RDNA - HEVC)"
+                ElseIf nameLower.Contains("rx vega") OrElse nameLower.Contains("vega ") Then
+                    Return "AMF (Vega - HEVC)"
+                ElseIf nameLower.Contains("rx 4") OrElse nameLower.Contains("480") OrElse nameLower.Contains("470") OrElse nameLower.Contains("460") Then
+                    Return "AMF (Polaris - HEVC)"
+                Else
+                    Return "AMF (AMD)"
+                End If
+            End If
+
+            ' Intel - Quick Sync Video (QSV)
+            If nameLower.Contains("intel") OrElse nameLower.Contains("uhd") OrElse nameLower.Contains("hd graphics") OrElse nameLower.Contains("iris") OrElse nameLower.Contains("arc ") OrElse nameLower.Contains("battlemage") Then
+                If nameLower.Contains("battlemage") OrElse nameLower.Contains("arc b") Then
+                    Return "Intel Quick Sync + Xe Media (AV1 + HEVC + H.264)"
+                ElseIf nameLower.Contains("arc a") Then
+                    Return "Intel Quick Sync + Xe Media (AV1 + HEVC)"
+                ElseIf nameLower.Contains("ultra") OrElse nameLower.Contains("meteor lake") OrElse nameLower.Contains("lunar lake") OrElse nameLower.Contains("arrow lake") Then
+                    Return "Intel Quick Sync (Xe-LPG - AV1 + HEVC)"
+                ElseIf nameLower.Contains("13th") OrElse nameLower.Contains("14th") OrElse nameLower.Contains("raptor lake") Then
+                    Return "Intel Quick Sync (Gen12 - AV1 + HEVC)"
+                ElseIf nameLower.Contains("11th") OrElse nameLower.Contains("12th") Then
+                    Return "Intel Quick Sync (Gen12 - HEVC)"
+                ElseIf nameLower.Contains("10th") OrElse nameLower.Contains("9th") Then
+                    Return "Intel Quick Sync (Gen9.5 - HEVC)"
+                ElseIf nameLower.Contains("8th") OrElse nameLower.Contains("7th") Then
+                    Return "Intel Quick Sync (Gen9 - HEVC)"
+                ElseIf nameLower.Contains("uhd") OrElse nameLower.Contains("iris xe") Then
+                    Return "Intel Quick Sync (Gen11/12 - HEVC)"
+                ElseIf nameLower.Contains("hd graphics") Then
+                    Return "Intel Quick Sync (Gen8/9 - HEVC)"
+                Else
+                    Return "Intel Quick Sync (QSV)"
+                End If
+            End If
+
+            Return String.Empty
         End Function
 
 #End Region
