@@ -865,6 +865,7 @@ Class MainWindow
     Private _zeroLines As New List(Of SubtitleLine)()
     Private _zeroFormat As SubtitleFormat = SubtitleFormat.Unknown
     Private _isZeroUpdating As Boolean = False
+    Private _zeroPlainTexts As New List(Of String)()
 
     Private Sub TxtZeroInput_TextChanged(sender As Object, e As TextChangedEventArgs)
         If _isZeroUpdating Then Return
@@ -874,13 +875,23 @@ Class MainWindow
             If String.IsNullOrWhiteSpace(content) Then
                 _zeroLines.Clear()
                 _zeroFormat = SubtitleFormat.Unknown
+                _zeroPlainTexts.Clear()
                 TxtZeroFormat.Text = ""
                 TxtZeroOutput.Text = ""
                 Return
             End If
             _zeroFormat = SubtitleParser.DetectFormat(content)
-            _zeroLines = SubtitleParser.Parse(content)
-            TxtZeroFormat.Text = String.Format("({0} - {1} dòng)", _zeroFormat.ToString().ToUpper(), _zeroLines.Count)
+            If _zeroFormat <> SubtitleFormat.Unknown Then
+                ' Phụ đề chuẩn (SRT/ASS)
+                _zeroLines = SubtitleParser.Parse(content)
+                _zeroPlainTexts.Clear()
+                TxtZeroFormat.Text = String.Format("({0} - {1} dòng)", _zeroFormat.ToString().ToUpper(), _zeroLines.Count)
+            Else
+                ' Plain text: mỗi dòng là 1 entry
+                _zeroLines.Clear()
+                _zeroPlainTexts = content.Split({Environment.NewLine, vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries).ToList()
+                TxtZeroFormat.Text = String.Format("(Text - {0} dòng)", _zeroPlainTexts.Count)
+            End If
             UpdateZeroOutput()
         Catch ex As Exception
             TxtZeroFormat.Text = String.Format("(Lỗi: {0})", ex.Message)
@@ -891,15 +902,29 @@ Class MainWindow
 
     ''' <summary>
     ''' Set toàn bộ StartTime và EndTime về 0 rồi xuất ra
+    ''' Hỗ trợ cả phụ đề SRT/ASS và plain text
     ''' </summary>
     Private Sub UpdateZeroOutput()
-        If _zeroLines.Count = 0 Then
+        If _zeroLines.Count = 0 AndAlso _zeroPlainTexts.Count = 0 Then
             TxtZeroOutput.Text = ""
             Return
         End If
 
         Dim sb = New StringBuilder()
 
+        ' Nếu là plain text → xuất ra SRT format với time = 0
+        If _zeroPlainTexts.Count > 0 Then
+            For i As Integer = 0 To _zeroPlainTexts.Count - 1
+                sb.AppendLine((i + 1).ToString())
+                sb.AppendLine("00:00:00,000 --> 00:00:00,000")
+                sb.AppendLine(_zeroPlainTexts(i))
+                sb.AppendLine()
+            Next
+            TxtZeroOutput.Text = sb.ToString().TrimEnd()
+            Return
+        End If
+
+        ' Nếu là phụ đề SRT/ASS
         For Each line In _zeroLines
             Dim assLine = TryCast(line, AssSubtitleLine)
             If assLine IsNot Nothing Then
