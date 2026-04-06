@@ -725,6 +725,7 @@
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
@@ -736,11 +737,39 @@
                                         Margin="0,0,6,0" Click="BtnOpenQwen_Click"/>
                                 <Button x:Name="BtnCopyForPaste" Content="📋 Copy Prompt+Subtitle"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
-                                        Click="BtnCopyForPaste_Click"/>
+                                        Margin="0,0,6,0" Click="BtnCopyForPaste_Click"/>
+                                <Button x:Name="BtnSavePrompts" Content="💾 Save Prompts"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
+                                        Margin="0,0,6,0" Click="BtnSavePrompts_Click"/>
+                                <Button x:Name="BtnLoadPrompts" Content="📂 Load Prompts"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
+                                        Click="BtnLoadPrompts_Click"/>
                             </WrapPanel>
 
+                            <!-- Prompt Buttons -->
+                            <StackPanel Grid.Row="1" Margin="0,0,0,8" Orientation="Horizontal" HorizontalAlignment="Left">
+                                <Button x:Name="BtnPrompt1" Content="1. Prompt 1"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
+                                        Margin="0,0,4,0" Click="BtnPrompt_Click" Tag="1"/>
+                                <Button x:Name="BtnPrompt2" Content="2. Prompt 2"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
+                                        Margin="0,0,4,0" Click="BtnPrompt_Click" Tag="2"/>
+                                <Button x:Name="BtnPrompt3" Content="3. Prompt 3"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
+                                        Margin="0,0,4,0" Click="BtnPrompt_Click" Tag="3"/>
+                                <Button x:Name="BtnPrompt4" Content="4. Prompt 4"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
+                                        Margin="0,0,4,0" Click="BtnPrompt_Click" Tag="4"/>
+                                <Button x:Name="BtnPrompt5" Content="5. Prompt 5"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
+                                        Margin="0,0,4,0" Click="BtnPrompt_Click" Tag="5"/>
+                                <Button x:Name="BtnRenamePrompt" Content="✏️ Rename"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="10,6" FontSize="11"
+                                        Margin="8,0,0,0" Click="BtnRenamePrompt_Click"/>
+                            </StackPanel>
+
                             <!-- Prompt input (expanded) -->
-                            <Grid Grid.Row="1" Margin="0,0,0,6">
+                            <Grid Grid.Row="2" Margin="0,0,0,6">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
@@ -752,7 +781,7 @@
                             </Grid>
 
                             <!-- Status -->
-                            <TextBlock x:Name="TxtTranslateStatus" Grid.Row="2" HorizontalAlignment="Left"
+                            <TextBlock x:Name="TxtTranslateStatus" Grid.Row="3" HorizontalAlignment="Left"
                                        VerticalAlignment="Center" Foreground="#808080" FontSize="11"/>
                         </Grid>
                     </Border>

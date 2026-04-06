@@ -113,6 +113,7 @@
     <Compile Include="Models\SubtitleLine.vb" />
     <Compile Include="Models\AssSubtitleLine.vb" />
     <Compile Include="Models\SrtSubtitleLine.vb" />
+    <Compile Include="Models\PromptItem.vb" />
     <Compile Include="Services\SubtitleParser.vb" />
     <Compile Include="Services\TimeCodeService.vb" />
     <Compile Include="Services\TranslateService.vb" />

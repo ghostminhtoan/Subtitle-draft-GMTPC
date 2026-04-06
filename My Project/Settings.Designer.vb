@@ -65,6 +65,126 @@ Namespace My
                 Me("TranslatePrompt") = value
             End Set
         End Property
+
+        <Global.System.Configuration.UserScopedSettingAttribute(), _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
+         Global.System.Configuration.DefaultSettingValueAttribute("Prompt 1")> _
+        Public Property PromptName1() As String
+            Get
+                Return CType(Me("PromptName1"), String)
+            End Get
+            Set(value As String)
+                Me("PromptName1") = value
+            End Set
+        End Property
+
+        <Global.System.Configuration.UserScopedSettingAttribute(), _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
+         Global.System.Configuration.DefaultSettingValueAttribute("Prompt 2")> _
+        Public Property PromptName2() As String
+            Get
+                Return CType(Me("PromptName2"), String)
+            End Get
+            Set(value As String)
+                Me("PromptName2") = value
+            End Set
+        End Property
+
+        <Global.System.Configuration.UserScopedSettingAttribute(), _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
+         Global.System.Configuration.DefaultSettingValueAttribute("Prompt 3")> _
+        Public Property PromptName3() As String
+            Get
+                Return CType(Me("PromptName3"), String)
+            End Get
+            Set(value As String)
+                Me("PromptName3") = value
+            End Set
+        End Property
+
+        <Global.System.Configuration.UserScopedSettingAttribute(), _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
+         Global.System.Configuration.DefaultSettingValueAttribute("Prompt 4")> _
+        Public Property PromptName4() As String
+            Get
+                Return CType(Me("PromptName4"), String)
+            End Get
+            Set(value As String)
+                Me("PromptName4") = value
+            End Set
+        End Property
+
+        <Global.System.Configuration.UserScopedSettingAttribute(), _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
+         Global.System.Configuration.DefaultSettingValueAttribute("Prompt 5")> _
+        Public Property PromptName5() As String
+            Get
+                Return CType(Me("PromptName5"), String)
+            End Get
+            Set(value As String)
+                Me("PromptName5") = value
+            End Set
+        End Property
+
+        <Global.System.Configuration.UserScopedSettingAttribute(), _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
+         Global.System.Configuration.DefaultSettingValueAttribute("")> _
+        Public Property PromptContent1() As String
+            Get
+                Return CType(Me("PromptContent1"), String)
+            End Get
+            Set(value As String)
+                Me("PromptContent1") = value
+            End Set
+        End Property
+
+        <Global.System.Configuration.UserScopedSettingAttribute(), _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
+         Global.System.Configuration.DefaultSettingValueAttribute("")> _
+        Public Property PromptContent2() As String
+            Get
+                Return CType(Me("PromptContent2"), String)
+            End Get
+            Set(value As String)
+                Me("PromptContent2") = value
+            End Set
+        End Property
+
+        <Global.System.Configuration.UserScopedSettingAttribute(), _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
+         Global.System.Configuration.DefaultSettingValueAttribute("")> _
+        Public Property PromptContent3() As String
+            Get
+                Return CType(Me("PromptContent3"), String)
+            End Get
+            Set(value As String)
+                Me("PromptContent3") = value
+            End Set
+        End Property
+
+        <Global.System.Configuration.UserScopedSettingAttribute(), _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
+         Global.System.Configuration.DefaultSettingValueAttribute("")> _
+        Public Property PromptContent4() As String
+            Get
+                Return CType(Me("PromptContent4"), String)
+            End Get
+            Set(value As String)
+                Me("PromptContent4") = value
+            End Set
+        End Property
+
+        <Global.System.Configuration.UserScopedSettingAttribute(), _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(), _
+         Global.System.Configuration.DefaultSettingValueAttribute("")> _
+        Public Property PromptContent5() As String
+            Get
+                Return CType(Me("PromptContent5"), String)
+            End Get
+            Set(value As String)
+                Me("PromptContent5") = value
+            End Set
+        End Property
     End Class
 End Namespace
 
