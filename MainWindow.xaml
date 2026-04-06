@@ -538,7 +538,7 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <Label Grid.Row="0" Content="✏️ Manual Input (3 cột: STT+Text gốc+Text Việt | 3 hàng: STT/Text gốc/Text Việt)" Style="{StaticResource SectionLabelStyle}"/>
+                            <Label Grid.Row="0" Content="✏️ Manual Input (3 cột: STT+Text gốc+Text Việt | 3 hàng: STT/Text gốc/Text Việt - Ghép Text gốc với Time Code)" Style="{StaticResource SectionLabelStyle}"/>
 
                             <TextBox x:Name="TxtDialogueManual" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"

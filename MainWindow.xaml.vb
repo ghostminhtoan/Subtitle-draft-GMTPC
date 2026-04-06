@@ -392,7 +392,7 @@ Class MainWindow
     ''' Parse text từ Panel 3: Hỗ trợ 2 format
     ''' Format 1 - 3 cột (ngang): STT&lt;TAB&gt;Text gốc&lt;TAB&gt;Text tiếng Việt
     ''' Format 2 - 3 hàng (dọc): Mỗi nhóm 3 dòng (STT / Text gốc / Text tiếng Việt)
-    ''' Luôn luôn lấy text ở vị trí thứ 3 (cột 3 hoặc dòng 3) làm text để merge
+    ''' Luôn luôn lấy text ở cột text (cột 2 hoặc dòng 2) để merge với time code từ Panel 1
     ''' </summary>
     Private Sub ParseManualText()
         _dialogueManualTexts.Clear()
@@ -405,12 +405,12 @@ Class MainWindow
         ' Bước 1: Xác định format (3 cột hay 3 hàng)
         Dim is3ColumnFormat = False
 
-        ' Kiểm tra dòng đầu tiên xem có chứa tab và có >= 3 phần tử không
+        ' Kiểm tra dòng đầu tiên xem có chứa tab và có >= 2 phần tử không
         If lines.Length > 0 Then
             Dim firstLine = lines(0).Trim()
             If firstLine.Contains(vbTab) Then
                 Dim parts = firstLine.Split({vbTab}, StringSplitOptions.None)
-                If parts.Length >= 3 Then
+                If parts.Length >= 2 Then
                     ' Kiểm tra phần tử đầu có phải là số không
                     Dim stt As Integer = 0
                     If Integer.TryParse(parts(0).Trim(), stt) Then
@@ -423,23 +423,25 @@ Class MainWindow
         ' Bước 2: Parse theo format đã xác định
         If is3ColumnFormat Then
             ' Format 3 cột: Mỗi dòng là STT<TAB>Text gốc<TAB>Text tiếng Việt
+            ' Lấy cột 2 (index 1) làm text để merge
             For Each line In lines
                 Dim trimmed = line.Trim()
                 If String.IsNullOrWhiteSpace(trimmed) Then Continue For
 
                 If trimmed.Contains(vbTab) Then
                     Dim parts = trimmed.Split({vbTab}, StringSplitOptions.None)
-                    If parts.Length >= 3 Then
+                    If parts.Length >= 2 Then
                         Dim stt As Integer = 0
                         If Integer.TryParse(parts(0).Trim(), stt) Then
-                            ' Lấy cột 3 (index 2) làm text
-                            _dialogueManualTexts(stt) = parts(2).Trim()
+                            ' Lấy cột 2 (index 1) làm text - Text gốc
+                            _dialogueManualTexts(stt) = parts(1).Trim()
                         End If
                     End If
                 End If
             Next
         Else
             ' Format 3 hàng: Mỗi nhóm 3 dòng (STT / Text gốc / Text tiếng Việt)
+            ' Lấy dòng 2 (Text gốc) làm text để merge
             Dim groupIndex As Integer = 0
             Dim currentStt As Integer = 0
             Dim hasValidStt As Boolean = False
@@ -460,13 +462,13 @@ Class MainWindow
                         hasValidStt = False
                     End If
                 ElseIf positionInGroup = 1 Then
-                    ' Dòng 2: Text gốc (bỏ qua, không cần lưu)
-                    ' Không cần làm gì
-                ElseIf positionInGroup = 2 Then
-                    ' Dòng 3: Text tiếng Việt (lưu lại)
+                    ' Dòng 2: Text gốc (lưu lại làm text để merge)
                     If hasValidStt AndAlso currentStt > 0 Then
                         _dialogueManualTexts(currentStt) = trimmed
                     End If
+                ElseIf positionInGroup = 2 Then
+                    ' Dòng 3: Text tiếng Việt (bỏ qua)
+                    ' Không cần làm gì
                 End If
 
                 groupIndex += 1
