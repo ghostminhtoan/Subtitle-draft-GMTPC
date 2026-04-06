@@ -1,0 +1,77 @@
+# Quy Tắc Workflow cho Subtitle Draft GMTPC
+
+## Tổng Quan Dự Án
+- **Loại**: Ứng dụng VB.NET WPF
+- **Ngôn ngữ**: Visual Basic .NET
+- **Framework**: Windows Presentation Foundation (WPF)
+- **Tệp Solution**: Subtitle draft GMTPC.sln
+
+## Cấu Trúc Dự Án
+
+```
+├── Models/          # Model dữ liệu và các lớp
+├── Services/       # Logic nghiệp vụ và dịch vụ
+├── My Project/     # Cấu hình dự án (AssemblyInfo, tài nguyên)
+├── bin/            # File đã biên dịch
+├── obj/            # File build tạm thời
+├── MainWindow.xaml # Cửa sổ chính của ứng dụng
+└── TranslateWindow.xaml # Cửa sổ dịch thuật
+```
+
+## Quy Ước Code
+
+### Phong Cách VB.NET
+- Dùng `PascalCase` cho các thành viên công khai, phương thức và thuộc tính
+- Dùng `camelCase` cho biến private/địa phương
+- Dùng tên có ý nghĩa: `GetSubtitleByTime()` thay vì `GetST()`
+- Ưu tiên hậu tố `Async` cho phương thức bất đồng bộ: `LoadSubtitlesAsync()`
+- Dùng `WithEvents` và `Handles` cho mô hình hướng sự kiện
+
+### Quy Ước XAML
+- Dùng 4 dấu cách để thụt lề
+- Đặt tên phần tử có ý nghĩa: `<Button x:Name="btnLoadSubtitles">`
+- Dùng PascalCase cho khóa tài nguyên
+- Nhóm các thuộc tính liên quan một cách logic
+- Ưu tiên dùng binding expression thay vì code-behind khi có thể
+
+### Mô Hình WPF
+- Tuân theo mô hình MVVM-lite (không bắt buộc MVVM nghiêm ngặt)
+- Giữ code-behind ở mức tối thiểu
+- Dùng DataBinding để cập nhật giao diện
+- Xử lý ngoại lệ một cách nhẹ nhàng bằng Try-Catch
+- Giải phóng tài nguyên đúng cách (IDisposable)
+
+## Xử Lý File
+
+### Xử Lý File Phụ Đề
+- Hỗ trợ các định dạng phổ biến: .srt, .vtt, .ass, .sub
+- Dùng StreamReader/StreamWriter cho I/O file
+- Luôn dùng encoding phù hợp (UTF-8 được ưu tiên)
+- Kiểm tra định dạng file trước khi xử lý
+
+### Quản Lý Tài Nguyên
+- Luôn đóng file handle (dùng khối Using trong VB.NET)
+- Xử lý file lớn bằng streaming, không load toàn bộ file vào bộ nhớ
+
+## Hướng Dẫn UI/UX
+
+### Quản Lý Cửa Sổ
+- Đặt kích thước cửa sổ phù hợp (tối thiểu 800x600 cho cửa sổ chính)
+- Dùng vị trí và kích thước cửa sổ hợp lý
+- Xử lý các thay đổi trạng thái cửa sổ (thu nhỏ, phóng to, khôi phục)
+- Triển khai phím tắt cho các thao tác thường dùng
+
+### Xử Lý Lỗi
+- Hiển thị thông báo lỗi thân thiện bằng MessageBox
+- Ghi log lỗi chi tiết ra file hoặc console
+- Không bao giờ crash khi input không hợp lệ
+- Kiểm tra input của người dùng trước khi xử lý
+
+
+### Dependencies
+- Giữ các DLL bên ngoài trong thư mục bin/
+- Cập nhật references trong .vbproj khi thêm/bớt dependencies
+
+### Build and push
+- Luôn luôn build sau khi code xong, sau khi build nếu có error hoặc warning thì tự sửa lỗi đến khi build xong.
+- Luôn luôn git push sau khi build xong

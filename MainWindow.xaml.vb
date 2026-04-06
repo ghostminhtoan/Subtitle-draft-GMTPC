@@ -1161,4 +1161,218 @@ Class MainWindow
 
 #End Region
 
+#Region "Karaoke Sync - Methods"
+
+    Private _isSyncUpdating As Boolean = False
+
+    ''' <summary>
+    ''' Khi input thay đổi, cập nhật số dòng
+    ''' </summary>
+    Private Sub TxtSyncInput_TextChanged(sender As Object, e As TextChangedEventArgs)
+        If _isSyncUpdating Then Return
+        Try
+            _isSyncUpdating = True
+            Dim content = TxtSyncInput.Text.Trim()
+            If String.IsNullOrWhiteSpace(content) Then
+                TxtSyncInputCount.Text = ""
+                TxtSyncOutput.Text = ""
+                TxtSyncOutputCount.Text = ""
+                Return
+            End If
+
+            Dim lines = content.Split({Environment.NewLine, vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries)
+            TxtSyncInputCount.Text = String.Format("({0} dòng)", lines.Length)
+
+            ' Tự động sync khi có input
+            SyncTimeCodes()
+        Catch ex As Exception
+            TxtSyncInputCount.Text = String.Format("(Lỗi: {0})", ex.Message)
+        Finally
+            _isSyncUpdating = False
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Offset toàn bộ time code theo start time (giữ nguyên duration)
+    ''' </summary>
+    Private Sub BtnSyncTime_Click(sender As Object, e As RoutedEventArgs)
+        Try
+            SyncTimeCodes()
+        Catch ex As Exception
+            MessageBox.Show("Lỗi sync time: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Thực hiện sync time codes
+    ''' </summary>
+    Private Sub SyncTimeCodes()
+        Dim inputContent = TxtSyncInput.Text.Trim()
+        If String.IsNullOrWhiteSpace(inputContent) Then
+            TxtSyncOutput.Text = ""
+            TxtSyncOutputCount.Text = ""
+            Return
+        End If
+
+        ' Lấy offset time từ các textbox
+        Dim hours As Integer = 0
+        Dim minutes As Integer = 0
+        Dim seconds As Integer = 0
+
+        Integer.TryParse(TxtSyncHours.Text, hours)
+        Integer.TryParse(TxtSyncMinutes.Text, minutes)
+        Integer.TryParse(TxtSyncSeconds.Text, seconds)
+
+        ' Tính tổng offset tính bằng milliseconds
+        Dim offsetMs As Long = (hours * 3600L + minutes * 60L + seconds) * 1000L
+
+        Dim lines = inputContent.Split({Environment.NewLine, vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries)
+        Dim sb = New StringBuilder()
+        Dim processedCount As Integer = 0
+
+        For Each line In lines
+            Dim processedLine = line
+
+            ' Xử lý SRT format: 00:00:00,000 --> 00:00:00,000
+            Dim srtMatch = System.Text.RegularExpressions.Regex.Match(line, "(\d{2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2},\d{3})")
+            If srtMatch.Success Then
+                Dim startTimeStr = srtMatch.Groups(1).Value
+                Dim endTimeStr = srtMatch.Groups(2).Value
+
+                Dim startMs = ParseSrtTimeToMs(startTimeStr)
+                Dim endMs = ParseSrtTimeToMs(endTimeStr)
+
+                ' Offset time, đảm bảo không âm
+                Dim newStartMs = Math.Max(0L, startMs + offsetMs)
+                Dim newEndMs = Math.Max(0L, endMs + offsetMs)
+
+                ' Giữ nguyên duration
+                Dim duration = endMs - startMs
+                newEndMs = newStartMs + duration
+
+                Dim newStartStr = MsToSrtTime(newStartMs)
+                Dim newEndStr = MsToSrtTime(newEndMs)
+
+                processedLine = line.Replace(startTimeStr, newStartStr).Replace(endTimeStr, newEndStr)
+                processedCount += 1
+            Else
+                ' Xử lý ASS format: Dialogue: 0,Start,End,...
+                Dim assMatch = System.Text.RegularExpressions.Regex.Match(line, "^(Dialogue:\s*\d+,)(\d+:\d{2}:\d{2}\.\d{2}),(\d+:\d{2}:\d{2}\.\d{2})", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+                If assMatch.Success Then
+                    Dim prefix = assMatch.Groups(1).Value
+                    Dim startTimeStr = assMatch.Groups(2).Value
+                    Dim endTimeStr = assMatch.Groups(3).Value
+
+                    Dim startMs = ParseAssTimeToMs(startTimeStr)
+                    Dim endMs = ParseAssTimeToMs(endTimeStr)
+
+                    ' Offset time, đảm bảo không âm
+                    Dim newStartMs = Math.Max(0L, startMs + offsetMs)
+                    Dim newEndMs = Math.Max(0L, endMs + offsetMs)
+
+                    ' Giữ nguyên duration
+                    Dim duration = endMs - startMs
+                    newEndMs = newStartMs + duration
+
+                    Dim newStartStr = MsToAssTime(newStartMs)
+                    Dim newEndStr = MsToAssTime(newEndMs)
+
+                    processedLine = line.Replace(startTimeStr, newStartStr).Replace(endTimeStr, newEndStr)
+                    processedCount += 1
+                End If
+            End If
+
+            sb.AppendLine(processedLine)
+        Next
+
+        TxtSyncOutput.Text = sb.ToString().TrimEnd()
+        TxtSyncOutputCount.Text = String.Format("({0} dòng đã sync)", processedCount)
+    End Sub
+
+    ''' <summary>
+    ''' Parse SRT time string (00:00:00,000) sang milliseconds
+    ''' </summary>
+    Private Function ParseSrtTimeToMs(timeStr As String) As Long
+        Dim parts = timeStr.Split(":"c, ","c)
+        If parts.Length <> 4 Then Return 0L
+
+        Dim hours = Integer.Parse(parts(0))
+        Dim minutes = Integer.Parse(parts(1))
+        Dim seconds = Integer.Parse(parts(2))
+        Dim milliseconds = Integer.Parse(parts(3))
+
+        Return hours * 3600000L + minutes * 60000L + seconds * 1000L + milliseconds
+    End Function
+
+    ''' <summary>
+    ''' Convert milliseconds sang SRT time string (00:00:00,000)
+    ''' </summary>
+    Private Function MsToSrtTime(ms As Long) As String
+        Dim isNegative = ms < 0
+        ms = Math.Abs(ms)
+
+        Dim hours = ms \ 3600000L
+        ms = ms Mod 3600000L
+        Dim minutes = ms \ 60000L
+        ms = ms Mod 60000L
+        Dim seconds = ms \ 1000L
+        Dim milliseconds = ms Mod 1000L
+
+        Return String.Format("{0:D2}:{1:D2}:{2:D2},{3:D3}", hours, minutes, seconds, milliseconds)
+    End Function
+
+    ''' <summary>
+    ''' Parse ASS time string (H:MM:SS.cc) sang milliseconds
+    ''' </summary>
+    Private Function ParseAssTimeToMs(timeStr As String) As Long
+        Dim parts = timeStr.Split(":"c, "."c)
+        If parts.Length <> 4 Then Return 0L
+
+        Dim hours = Integer.Parse(parts(0))
+        Dim minutes = Integer.Parse(parts(1))
+        Dim seconds = Integer.Parse(parts(2))
+        Dim centiseconds = Integer.Parse(parts(3))
+
+        Return hours * 3600000L + minutes * 60000L + seconds * 1000L + centiseconds * 10L
+    End Function
+
+    ''' <summary>
+    ''' Convert milliseconds sang ASS time string (H:MM:SS.cc)
+    ''' </summary>
+    Private Function MsToAssTime(ms As Long) As String
+        Dim isNegative = ms < 0
+        ms = Math.Abs(ms)
+
+        Dim hours = ms \ 3600000L
+        ms = ms Mod 3600000L
+        Dim minutes = ms \ 60000L
+        ms = ms Mod 60000L
+        Dim seconds = ms \ 1000L
+        Dim centiseconds = (ms Mod 1000L) \ 10L
+
+        Return String.Format("{0}:{1:D2}:{2:D2}.{3:D2}", hours, minutes, seconds, centiseconds)
+    End Function
+
+    ''' <summary>
+    ''' Copy kết quả sync
+    ''' </summary>
+    Private Sub BtnCopySync_Click(sender As Object, e As RoutedEventArgs)
+        If String.IsNullOrWhiteSpace(TxtSyncOutput.Text) Then Return
+        Try
+            Clipboard.SetText(TxtSyncOutput.Text)
+            ShowToastSync("📋 Đã copy kết quả sync!")
+        Catch ex As Exception
+            MessageBox.Show("Lỗi: " & ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error)
+        End Try
+    End Sub
+
+    Private Async Sub ShowToastSync(message As String)
+        ToastTextSync.Text = message
+        ToastBorderSync.Visibility = Visibility.Visible
+        Await Task.Delay(2000)
+        ToastBorderSync.Visibility = Visibility.Collapsed
+    End Sub
+
+#End Region
+
 End Class

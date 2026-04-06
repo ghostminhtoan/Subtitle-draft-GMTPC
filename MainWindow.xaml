@@ -1264,6 +1264,128 @@
                             </Border>
                         </Grid>
                     </TabItem>
+
+                    <!-- Sub-tab: Karaoke Sync -->
+                    <TabItem Header="🎵 Karaoke Sync">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Sync Controls Panel -->
+                            <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
+                                    Background="#252526" BorderBrush="#3E3E42" BorderThickness="0,0,0,1" 
+                                    Padding="12,8" Margin="0,0,0,4">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Label Content="⏰ Start Time Offset:" Style="{StaticResource SectionLabelStyle}" 
+                                           Padding="0,0,8,0" Margin="0,0,0,0"/>
+                                    
+                                    <!-- Hours -->
+                                    <TextBox x:Name="TxtSyncHours" Width="50" FontSize="14" 
+                                             Style="{StaticResource DarkTextBoxStyle}" 
+                                             Text="0" TextAlignment="Center" Margin="0,0,4,0"/>
+                                    <TextBlock Text="h" Foreground="#E0E0E0" FontSize="14" 
+                                               VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    
+                                    <!-- Minutes -->
+                                    <TextBox x:Name="TxtSyncMinutes" Width="50" FontSize="14" 
+                                             Style="{StaticResource DarkTextBoxStyle}" 
+                                             Text="0" TextAlignment="Center" Margin="0,0,4,0"/>
+                                    <TextBlock Text="m" Foreground="#E0E0E0" FontSize="14" 
+                                               VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    
+                                    <!-- Seconds -->
+                                    <TextBox x:Name="TxtSyncSeconds" Width="50" FontSize="14" 
+                                             Style="{StaticResource DarkTextBoxStyle}" 
+                                             Text="0" TextAlignment="Center" Margin="0,0,4,0"/>
+                                    <TextBlock Text="s" Foreground="#E0E0E0" FontSize="14" 
+                                               VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                    
+                                    <!-- Sync Button -->
+                                    <Button x:Name="BtnSyncTime" Content="🔄 Sync Time"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            Padding="16,6" FontSize="14"
+                                            Click="BtnSyncTime_Click" Margin="0,0,8,0"/>
+                                    
+                                    <!-- Copy Button -->
+                                    <Button x:Name="BtnCopySync" Content="📋 Copy Result"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            Padding="16,6" FontSize="14"
+                                            Click="BtnCopySync_Click"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- PANEL 1: Input Subtitle -->
+                            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                        <Label Content="📝 Input Subtitle (Manual Input)" Style="{StaticResource SectionLabelStyle}"/>
+                                        <TextBlock x:Name="TxtSyncInputCount" Text="" Foreground="#808080" FontSize="11"
+                                                   VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                    </StackPanel>
+
+                                    <TextBox x:Name="TxtSyncInput" Grid.Row="1"
+                                             Style="{StaticResource DarkTextBoxStyle}"
+                                             TextChanged="TxtSyncInput_TextChanged"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- PANEL 2: Synced Output -->
+                            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                        <Label Content="✅ Synced Output" Style="{StaticResource SectionLabelStyle}"/>
+                                        <TextBlock x:Name="TxtSyncOutputCount" Text="" Foreground="#808080" FontSize="11"
+                                                   VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                    </StackPanel>
+
+                                    <TextBox x:Name="TxtSyncOutput" Grid.Row="1"
+                                             Style="{StaticResource DarkTextBoxStyle}"
+                                             IsReadOnly="True" FontSize="14"
+                                             PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Footer: Author info -->
+                            <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Background="#1A1A1A" BorderBrush="#3E3E42" BorderThickness="0,1,0,0"
+                                    Padding="12,8">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="Tác giả: " Foreground="#808080" FontSize="12"/>
+                                    <TextBlock Text="Ma Minh Toàn 1993" Foreground="#0078D4" FontSize="12" FontWeight="SemiBold"/>
+                                    <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                                    <TextBlock Text="Karaoke Sync GMTPC" Foreground="#808080" FontSize="12"/>
+                                    <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                                    <TextBlock Text="Đồng bộ time code phụ đề karaoke" Foreground="#808080" FontSize="12"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Toast Notification -->
+                            <Border x:Name="ToastBorderSync" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                                    HorizontalAlignment="Center" VerticalAlignment="Top"
+                                    Visibility="Collapsed" Style="{StaticResource ToastBorderStyle}"
+                                    Margin="0,20,0,0" MinWidth="300" MaxWidth="500">
+                                <TextBlock x:Name="ToastTextSync" Text="" Foreground="#FFFFFF" FontSize="14"
+                                           TextAlignment="Center" TextWrapping="Wrap"/>
+                            </Border>
+                        </Grid>
+                    </TabItem>
                 </TabControl>
             </TabItem>
         </TabControl>
