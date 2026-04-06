@@ -757,21 +757,23 @@ Class MainWindow
     End Sub
 
     ''' <summary>
-    ''' Nút Rename: Cho phép người dùng đổi tên prompt được chọn (dựa vào prompt đang hiển thị trong TxtPrompt)
+    ''' Nút Rename: Hỏi chọn prompt cần rename, sau đó hỏi tên mới
     ''' </summary>
     Private Sub BtnRenamePrompt_Click(sender As Object, e As RoutedEventArgs)
-        ' Tìm prompt đang được hiển thị trong TxtPrompt (nếu có)
-        Dim currentPromptId As Integer = FindCurrentPromptId()
+        ' Luôn hỏi chọn prompt cần rename trước
+        Dim input = Microsoft.VisualBasic.InputBox("Nhập số thứ tự prompt cần rename (1-5):" & vbCrLf & vbCrLf &
+                                                   "1. " & GetPromptNameById(1) & vbCrLf &
+                                                   "2. " & GetPromptNameById(2) & vbCrLf &
+                                                   "3. " & GetPromptNameById(3) & vbCrLf &
+                                                   "4. " & GetPromptNameById(4) & vbCrLf &
+                                                   "5. " & GetPromptNameById(5), "Rename Prompt", "1")
 
-        If currentPromptId = 0 Then
-            ' Nếu không tìm thấy prompt phù hợp, mặc định cho chọn prompt cần rename
-            Dim input = Microsoft.VisualBasic.InputBox("Nhập số thứ tự prompt cần rename (1-5):", "Rename Prompt", "1")
-            If Integer.TryParse(input, currentPromptId) AndAlso currentPromptId >= 1 AndAlso currentPromptId <= 5 Then
-                ' OK
-            Else
-                TxtTranslateStatus.Text = "⚠️ Số thứ tự không hợp lệ!"
-                Return
-            End If
+        Dim currentPromptId As Integer = 0
+        If Integer.TryParse(input, currentPromptId) AndAlso currentPromptId >= 1 AndAlso currentPromptId <= 5 Then
+            ' OK
+        Else
+            TxtTranslateStatus.Text = "⚠️ Số thứ tự không hợp lệ!"
+            Return
         End If
 
         Dim currentName = GetPromptNameById(currentPromptId)
@@ -786,19 +788,65 @@ Class MainWindow
     End Sub
 
     ''' <summary>
-    ''' Nút Save Prompts: Lưu toàn bộ prompt names và content vào Settings
+    ''' Nút Save Prompts: Hỏi chọn prompt cần save, sau đó lưu nội dung hiện tại vào prompt đó
     ''' </summary>
     Private Sub BtnSavePrompts_Click(sender As Object, e As RoutedEventArgs)
-        SaveAllPrompts()
-        ShowToastTranslate("💾 Đã lưu 5 prompts vào Settings!")
+        ' Hỏi chọn prompt cần save vào
+        Dim input = Microsoft.VisualBasic.InputBox("Nhập số thứ tự prompt cần save (1-5):" & vbCrLf & vbCrLf &
+                                                   "1. " & GetPromptNameById(1) & vbCrLf &
+                                                   "2. " & GetPromptNameById(2) & vbCrLf &
+                                                   "3. " & GetPromptNameById(3) & vbCrLf &
+                                                   "4. " & GetPromptNameById(4) & vbCrLf &
+                                                   "5. " & GetPromptNameById(5), "Save Prompt", "1")
+
+        Dim promptId As Integer = 0
+        If Integer.TryParse(input, promptId) AndAlso promptId >= 1 AndAlso promptId <= 5 Then
+            ' Lưu nội dung hiện tại trong TxtPrompt vào prompt đã chọn
+            Dim currentContent = TxtPrompt.Text.Trim()
+            If String.IsNullOrWhiteSpace(currentContent) Then
+                ' Prompt trống thì clear (xóa nội dung cũ)
+                SetPromptContentById(promptId, "")
+                TxtTranslateStatus.Text = String.Format("🧹 Đã clear Prompt {0}!", promptId)
+            Else
+                SetPromptContentById(promptId, currentContent)
+                TxtTranslateStatus.Text = String.Format("💾 Đã save nội dung vào Prompt {0}: {1}", promptId, GetPromptNameById(promptId))
+            End If
+            My.Settings.Save()
+        Else
+            TxtTranslateStatus.Text = "⚠️ Số thứ tự không hợp lệ!"
+            Return
+        End If
     End Sub
 
     ''' <summary>
-    ''' Nút Load Prompts: Load toàn bộ prompt names và content từ Settings
+    ''' Nút Load Prompts: Hỏi chọn prompt cần load từ Settings
     ''' </summary>
     Private Sub BtnLoadPrompts_Click(sender As Object, e As RoutedEventArgs)
-        LoadAllPrompts()
-        ShowToastTranslate("📂 Đã load 5 prompts từ Settings!")
+        ' Hỏi chọn prompt cần load
+        Dim input = Microsoft.VisualBasic.InputBox("Nhập số thứ tự prompt cần load (1-5):" & vbCrLf & vbCrLf &
+                                                   "1. " & GetPromptNameById(1) & vbCrLf &
+                                                   "2. " & GetPromptNameById(2) & vbCrLf &
+                                                   "3. " & GetPromptNameById(3) & vbCrLf &
+                                                   "4. " & GetPromptNameById(4) & vbCrLf &
+                                                   "5. " & GetPromptNameById(5), "Load Prompt", "1")
+
+        Dim promptId As Integer = 0
+        If Integer.TryParse(input, promptId) AndAlso promptId >= 1 AndAlso promptId <= 5 Then
+            Dim content = GetPromptContentById(promptId)
+            If Not String.IsNullOrWhiteSpace(content) Then
+                TxtPrompt.Text = content
+                TxtTranslateStatus.Text = String.Format("📋 Đã load Prompt {0}: {1}", promptId, GetPromptNameById(promptId))
+            Else
+                ' Prompt trống thì clear TxtPrompt
+                TxtPrompt.Text = ""
+                TxtTranslateStatus.Text = String.Format("🧹 Prompt {0} đang trống, đã clear ô nhập!", promptId)
+            End If
+            ' Cập nhật lại display buttons
+            UpdatePromptButtonDisplay()
+        Else
+            TxtTranslateStatus.Text = "⚠️ Số thứ tự không hợp lệ!"
+            Return
+        End If
     End Sub
 
     Private Async Sub ShowToastTranslate(message As String)

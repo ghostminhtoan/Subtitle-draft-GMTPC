@@ -73,5 +73,5 @@
 - Cập nhật references trong .vbproj khi thêm/bớt dependencies
 
 ### Build and push
-- Luôn luôn build sau khi code xong, sau khi build nếu có error hoặc warning thì tự sửa lỗi đến khi build xong.
+- Luôn luôn  build sau khi code xong, nếu build mà file đang chạy thì taskkill, sau khi build nếu có error hoặc warning thì tự sửa lỗi đến khi build xong.
 - Luôn luôn git push sau khi build xong
