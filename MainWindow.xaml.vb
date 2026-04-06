@@ -1205,6 +1205,7 @@ Class MainWindow
 
     ''' <summary>
     ''' Thực hiện sync time codes
+    ''' Logic: Tính offset từ dòng đầu tiên, áp dụng offset đó cho tất cả các dòng
     ''' </summary>
     Private Sub SyncTimeCodes()
         Dim inputContent = TxtSyncInput.Text.Trim()
@@ -1214,19 +1215,55 @@ Class MainWindow
             Return
         End If
 
-        ' Lấy offset time từ các textbox
+        ' Lấy desired start time từ các textbox
         Dim hours As Integer = 0
         Dim minutes As Integer = 0
         Dim seconds As Integer = 0
+        Dim milliseconds As Integer = 0
 
         Integer.TryParse(TxtSyncHours.Text, hours)
         Integer.TryParse(TxtSyncMinutes.Text, minutes)
         Integer.TryParse(TxtSyncSeconds.Text, seconds)
+        Integer.TryParse(TxtSyncMilliseconds.Text, milliseconds)
 
-        ' Tính tổng offset tính bằng milliseconds
-        Dim offsetMs As Long = (hours * 3600L + minutes * 60L + seconds) * 1000L
+        ' Tính desired start time tính bằng milliseconds
+        Dim desiredStartMs As Long = (hours * 3600L + minutes * 60L + seconds) * 1000L + milliseconds
 
         Dim lines = inputContent.Split({Environment.NewLine, vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries)
+        
+        ' Tìm dòng đầu tiên có time code (Dialogue hoặc Comment)
+        Dim firstLineStartTimeMs As Long? = Nothing
+        Dim offsetMs As Long = 0
+
+        For Each line In lines
+            ' Thử parse SRT format
+            Dim srtMatch = System.Text.RegularExpressions.Regex.Match(line, "(\d{2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2},\d{3})")
+            If srtMatch.Success Then
+                Dim startTimeStr = srtMatch.Groups(1).Value
+                firstLineStartTimeMs = ParseSrtTimeToMs(startTimeStr)
+                Exit For
+            End If
+
+            ' Thử parse ASS format (Dialogue hoặc Comment)
+            Dim assMatch = System.Text.RegularExpressions.Regex.Match(line, "^(?:Dialogue|Comment):\s*\d+,(\d+:\d{2}:\d{2}\.\d{2}),(\d+:\d{2}:\d{2}\.\d{2})", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+            If assMatch.Success Then
+                Dim startTimeStr = assMatch.Groups(1).Value
+                firstLineStartTimeMs = ParseAssTimeToMs(startTimeStr)
+                Exit For
+            End If
+        Next
+
+        ' Nếu không tìm thấy time code nào
+        If firstLineStartTimeMs Is Nothing Then
+            TxtSyncOutput.Text = inputContent
+            TxtSyncOutputCount.Text = "(0 dòng đã sync)"
+            Return
+        End If
+
+        ' Tính offset: desired - actual
+        offsetMs = desiredStartMs - firstLineStartTimeMs
+
+        ' Áp dụng offset cho tất cả các dòng
         Dim sb = New StringBuilder()
         Dim processedCount As Integer = 0
 
@@ -1256,12 +1293,13 @@ Class MainWindow
                 processedLine = line.Replace(startTimeStr, newStartStr).Replace(endTimeStr, newEndStr)
                 processedCount += 1
             Else
-                ' Xử lý ASS format: Dialogue: 0,Start,End,...
-                Dim assMatch = System.Text.RegularExpressions.Regex.Match(line, "^(Dialogue:\s*\d+,)(\d+:\d{2}:\d{2}\.\d{2}),(\d+:\d{2}:\d{2}\.\d{2})", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+                ' Xử lý ASS format: Dialogue hoặc Comment
+                Dim assMatch = System.Text.RegularExpressions.Regex.Match(line, "^((?:Dialogue|Comment):\s*\d+,)(\d+:\d{2}:\d{2}\.\d{2}),(\d+:\d{2}:\d{2}\.\d{2})(.*)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
                 If assMatch.Success Then
                     Dim prefix = assMatch.Groups(1).Value
                     Dim startTimeStr = assMatch.Groups(2).Value
                     Dim endTimeStr = assMatch.Groups(3).Value
+                    Dim suffix = assMatch.Groups(4).Value
 
                     Dim startMs = ParseAssTimeToMs(startTimeStr)
                     Dim endMs = ParseAssTimeToMs(endTimeStr)
@@ -1277,7 +1315,7 @@ Class MainWindow
                     Dim newStartStr = MsToAssTime(newStartMs)
                     Dim newEndStr = MsToAssTime(newEndMs)
 
-                    processedLine = line.Replace(startTimeStr, newStartStr).Replace(endTimeStr, newEndStr)
+                    processedLine = prefix & newStartStr & "," & newEndStr & suffix
                     processedCount += 1
                 End If
             End If

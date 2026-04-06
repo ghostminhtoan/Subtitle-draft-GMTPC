@@ -1283,7 +1283,7 @@
                                     Background="#252526" BorderBrush="#3E3E42" BorderThickness="0,0,0,1" 
                                     Padding="12,8" Margin="0,0,0,4">
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Label Content="⏰ Start Time Offset:" Style="{StaticResource SectionLabelStyle}" 
+                                    <Label Content="⏰ Desired Start Time:" Style="{StaticResource SectionLabelStyle}" 
                                            Padding="0,0,8,0" Margin="0,0,0,0"/>
                                     
                                     <!-- Hours -->
@@ -1305,6 +1305,13 @@
                                              Style="{StaticResource DarkTextBoxStyle}" 
                                              Text="0" TextAlignment="Center" Margin="0,0,4,0"/>
                                     <TextBlock Text="s" Foreground="#E0E0E0" FontSize="14" 
+                                               VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    
+                                    <!-- Milliseconds -->
+                                    <TextBox x:Name="TxtSyncMilliseconds" Width="60" FontSize="14" 
+                                             Style="{StaticResource DarkTextBoxStyle}" 
+                                             Text="0" TextAlignment="Center" Margin="0,0,4,0"/>
+                                    <TextBlock Text="ms" Foreground="#E0E0E0" FontSize="14" 
                                                VerticalAlignment="Center" Margin="0,0,16,0"/>
                                     
                                     <!-- Sync Button -->
