@@ -1193,7 +1193,19 @@ Class MainWindow
     End Sub
 
     ''' <summary>
-    ''' Offset toàn bộ time code theo start time (giữ nguyên duration)
+    ''' Khi time input thay đổi, auto sync
+    ''' </summary>
+    Private Sub TxtSyncTimeInput_TextChanged(sender As Object, e As TextChangedEventArgs)
+        If _isSyncUpdating Then Return
+        Try
+            SyncTimeCodes()
+        Catch ex As Exception
+            ' Ignore parse errors during typing
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' Offset toàn bộ time code theo desired start time (giữ nguyên duration)
     ''' </summary>
     Private Sub BtnSyncTime_Click(sender As Object, e As RoutedEventArgs)
         Try
@@ -1215,19 +1227,13 @@ Class MainWindow
             Return
         End If
 
-        ' Lấy desired start time từ các textbox
-        Dim hours As Integer = 0
-        Dim minutes As Integer = 0
-        Dim seconds As Integer = 0
-        Dim milliseconds As Integer = 0
-
-        Integer.TryParse(TxtSyncHours.Text, hours)
-        Integer.TryParse(TxtSyncMinutes.Text, minutes)
-        Integer.TryParse(TxtSyncSeconds.Text, seconds)
-        Integer.TryParse(TxtSyncMilliseconds.Text, milliseconds)
-
-        ' Tính desired start time tính bằng milliseconds
-        Dim desiredStartMs As Long = (hours * 3600L + minutes * 60L + seconds) * 1000L + milliseconds
+        ' Parse desired start time từ textbox (format: HH:MM:SS.mmm hoặc HH:MM:SS,mmm)
+        Dim desiredStartMs As Long = ParseTimeInputToMs(TxtSyncTimeInput.Text)
+        If desiredStartMs < 0 Then
+            TxtSyncOutput.Text = inputContent
+            TxtSyncOutputCount.Text = "(Lỗi: Time format không hợp lệ)"
+            Return
+        End If
 
         Dim lines = inputContent.Split({Environment.NewLine, vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries)
         
@@ -1326,6 +1332,44 @@ Class MainWindow
         TxtSyncOutput.Text = sb.ToString().TrimEnd()
         TxtSyncOutputCount.Text = String.Format("({0} dòng đã sync)", processedCount)
     End Sub
+
+    ''' <summary>
+    ''' Parse time input string (HH:MM:SS.mmm hoặc HH:MM:SS,mmm) sang milliseconds
+    ''' Trả về -1 nếu format không hợp lệ
+    ''' </summary>
+    Private Function ParseTimeInputToMs(timeStr As String) As Long
+        If String.IsNullOrWhiteSpace(timeStr) Then Return 0L
+
+        ' Chuẩn hóa: thay comma bằng dot để统一 xử lý
+        timeStr = timeStr.Trim().Replace(","c, "."c)
+
+        ' Regex: HH:MM:SS.mmm (có thể bỏ HH hoặc MM)
+        Dim match = System.Text.RegularExpressions.Regex.Match(timeStr, "^(\d+):(\d{2}):(\d{2})\.(\d+)$")
+        If Not match.Success Then
+            Return -1L
+        End If
+
+        Try
+            Dim hours = Integer.Parse(match.Groups(1).Value)
+            Dim minutes = Integer.Parse(match.Groups(2).Value)
+            Dim seconds = Integer.Parse(match.Groups(3).Value)
+            Dim fracSeconds = match.Groups(4).Value
+
+            ' Parse fractional seconds (có thể là 1-3 digits)
+            Dim milliseconds As Integer = 0
+            If fracSeconds.Length = 1 Then
+                milliseconds = Integer.Parse(fracSeconds) * 100
+            ElseIf fracSeconds.Length = 2 Then
+                milliseconds = Integer.Parse(fracSeconds) * 10
+            Else
+                milliseconds = Integer.Parse(fracSeconds.Substring(0, 3))
+            End If
+
+            Return (hours * 3600L + minutes * 60L + seconds) * 1000L + milliseconds
+        Catch
+            Return -1L
+        End Try
+    End Function
 
     ''' <summary>
     ''' Parse SRT time string (00:00:00,000) sang milliseconds

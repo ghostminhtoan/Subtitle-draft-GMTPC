@@ -1286,33 +1286,12 @@
                                     <Label Content="⏰ Desired Start Time:" Style="{StaticResource SectionLabelStyle}" 
                                            Padding="0,0,8,0" Margin="0,0,0,0"/>
                                     
-                                    <!-- Hours -->
-                                    <TextBox x:Name="TxtSyncHours" Width="50" FontSize="14" 
+                                    <!-- Single time input textbox -->
+                                    <TextBox x:Name="TxtSyncTimeInput" Width="140" FontSize="16" 
                                              Style="{StaticResource DarkTextBoxStyle}" 
-                                             Text="0" TextAlignment="Center" Margin="0,0,4,0"/>
-                                    <TextBlock Text="h" Foreground="#E0E0E0" FontSize="14" 
-                                               VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    
-                                    <!-- Minutes -->
-                                    <TextBox x:Name="TxtSyncMinutes" Width="50" FontSize="14" 
-                                             Style="{StaticResource DarkTextBoxStyle}" 
-                                             Text="0" TextAlignment="Center" Margin="0,0,4,0"/>
-                                    <TextBlock Text="m" Foreground="#E0E0E0" FontSize="14" 
-                                               VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    
-                                    <!-- Seconds -->
-                                    <TextBox x:Name="TxtSyncSeconds" Width="50" FontSize="14" 
-                                             Style="{StaticResource DarkTextBoxStyle}" 
-                                             Text="0" TextAlignment="Center" Margin="0,0,4,0"/>
-                                    <TextBlock Text="s" Foreground="#E0E0E0" FontSize="14" 
-                                               VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    
-                                    <!-- Milliseconds -->
-                                    <TextBox x:Name="TxtSyncMilliseconds" Width="60" FontSize="14" 
-                                             Style="{StaticResource DarkTextBoxStyle}" 
-                                             Text="0" TextAlignment="Center" Margin="0,0,4,0"/>
-                                    <TextBlock Text="ms" Foreground="#E0E0E0" FontSize="14" 
-                                               VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                             Text="00:00:00.000" TextAlignment="Center" 
+                                             Margin="0,0,16,0" FontFamily="Consolas, Courier New"
+                                             TextChanged="TxtSyncTimeInput_TextChanged"/>
                                     
                                     <!-- Sync Button -->
                                     <Button x:Name="BtnSyncTime" Content="🔄 Sync Time"
