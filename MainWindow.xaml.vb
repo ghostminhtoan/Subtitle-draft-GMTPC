@@ -9,7 +9,7 @@ Imports System.Windows.Media
 
 ''' <summary>
 ''' Cửa sổ chính của ứng dụng xử lý phụ đề
-''' Code đã được tách thành các file:
+''' Code đã được tách thành các file partial class:
 ''' - MainWindowSystemGlobalEvents.vb: Window initialization, global events
 ''' - MainWindowTabSubtitleMerge.vb: Tab Subtitle Merge
 ''' - MainWindowTabSubtitleDraft.vb: Tab Subtitle Draft
@@ -25,6 +25,7 @@ Imports System.Windows.Media
 ''' - MainWindowTabKaraokeSync.vb: Tab Karaoke Sync
 ''' </summary>
 Partial Class MainWindow
-    ' All code has been moved to partial class files listed above.
-    ' This file only contains imports and class declaration for compilation.
+    ' This file contains imports and class declaration.
+    ' All event handlers and logic are in partial class files.
+    ' The XAML designer generates WithEvents controls automatically.
 End Class

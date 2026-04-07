@@ -108,9 +108,9 @@ Partial Class MainWindow
 
     ''' <summary>
     ''' Parse text từ Panel 3: Hỗ trợ 2 format
-    ''' Format 1 - 3 cột (ngang): STT&lt;TAB&gt;Text gốc&lt;TAB&gt;Text tiếng Việt
-    ''' Format 2 - 3 hàng (dọc): Mỗi nhóm 3 dòng (STT / Text gốc / Text tiếng Việt)
-    ''' Luôn luôn lấy text ở cột text (cột 2 hoặc dòng 2) để merge với time code từ Panel 1
+    ''' Format 1 - 3 cột (ngang): STT&lt;TAB&gt;Text gốc&lt;TAB&gt;Text tiếng Việt → Lấy cột 2 (Text gốc)
+    ''' Format 2 - 3 hàng (dọc): Mỗi nhóm 3 dòng (STT / Text tiếng Việt / Text gốc) → Lấy hàng 3 (Text gốc)
+    ''' Luôn luôn lấy Text gốc để merge với time code từ Panel 1
     ''' </summary>
     Private Sub ParseManualText()
         _dialogueManualTexts.Clear()
@@ -158,8 +158,8 @@ Partial Class MainWindow
                 End If
             Next
         Else
-            ' Format 3 hàng: Mỗi nhóm 3 dòng (STT / Text gốc / Text tiếng Việt)
-            ' Lấy dòng 2 (Text gốc) làm text để merge
+            ' Format 3 hàng: Mỗi nhóm 3 dòng (STT / Text tiếng Việt / Text gốc)
+            ' Lấy dòng 3 (Text gốc - index 2) làm text để merge
             Dim groupIndex As Integer = 0
             Dim currentStt As Integer = 0
             Dim hasValidStt As Boolean = False
@@ -180,13 +180,13 @@ Partial Class MainWindow
                         hasValidStt = False
                     End If
                 ElseIf positionInGroup = 1 Then
-                    ' Dòng 2: Text gốc (lưu lại làm text để merge)
+                    ' Dòng 2: Text tiếng Việt (bỏ qua)
+                    ' Không cần làm gì
+                ElseIf positionInGroup = 2 Then
+                    ' Dòng 3: Text gốc (lưu lại làm text để merge)
                     If hasValidStt AndAlso currentStt > 0 Then
                         _dialogueManualTexts(currentStt) = trimmed
                     End If
-                ElseIf positionInGroup = 2 Then
-                    ' Dòng 3: Text tiếng Việt (bỏ qua)
-                    ' Không cần làm gì
                 End If
 
                 groupIndex += 1
