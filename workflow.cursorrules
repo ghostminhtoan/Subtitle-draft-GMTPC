@@ -709,27 +709,28 @@ Khi user nhập lệnh với `@` kèm tên tab (ví dụ: `MainWindowTab*.vb` ho
 
 **Ví dụ:**
 ```
+## [2026-04-07 06:00:00 PM Tuesday]
+
+### Changed
+- Sửa workflow rules
+
 ## [2026-04-07 05:24:34 PM Tuesday]
 
 ### Changed
-- Tách MainWindow.xaml.vb (2123 dòng) thành 14 files nhỏ
-- Thêm workflow rules mới
-
-### Fixed
-- Sửa logic parse Manual Input format 3 hàng
+- Tách MainWindow.xaml.vb thành 14 files nhỏ
 ```
 
 **Quy trình:**
 1. Code xong → Build → Push
 2. Mở `changelog.cursorrules`
-3. **Thêm entry mới ở CUỐI file (dưới cùng)** - Thứ tự từ dưới lên trên (cũ → mới)
+3. **Thêm entry mới ở ĐẦU file (TRÊN CÙNG)** - Ngay sau header
 4. Commit changelog cùng với code changes
 
 **⚠️ Lưu ý quan trọng:**
-- Entry CŨ NHẤT ở ĐẦU file (trên cùng)
-- Entry MỚI NHẤT ở CUỐI file (dưới cùng)
-- KHÔNG được thêm entry mới lên đầu file
-- Luôn append xuống cuối file để giữ thứ tự thời gian từ cũ đến mới
+- Entry MỚI NHẤT ở ĐẦU file (TRÊN CÙNG) ← Mới code xong
+- Entry CŨ NHẤT ở CUỐI file (DƯỚI CÙNG) ← Code từ lâu
+- LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header)
+- Thứ tự: Từ TRÊN xuống DƯỚI = từ MỚI đến CŨ
 
 ---
 

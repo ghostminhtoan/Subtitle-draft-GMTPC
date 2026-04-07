@@ -2,10 +2,28 @@
 
 Tất cả thay đổi đáng chú ý của project sẽ được ghi lại trong file này.
 
-**⚠️ Lưu ý:** Thứ tự entries từ TRÊN xuống DƯỚI = từ CŨ đến MỚI
-- Entry đầu tiên (trên cùng) = Cũ nhất
-- Entry cuối cùng (dưới cùng) = Mới nhất
-- LUÔN append entry mới xuống CUỐI file
+**⚠️ Lưu ý:** Thứ tự entries từ TRÊN xuống DƯỚI = từ MỚI đến CŨ
+- Entry đầu tiên (trên cùng, ngay sau header) = MỚI nhất
+- Entry cuối cùng (dưới cùng) = CŨ nhất
+- LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
+
+---
+
+## [2026-04-07 06:00:00 PM Tuesday]
+
+### Changed
+- Sửa quy tắc changelog: Entry mới nhất ở ĐẦU file (trên cùng)
+- Entry cũ nhất ở CUỐI file (dưới cùng)
+- Cập nhật workflow rules và changelog.cursorrules
+
+---
+
+## [2026-04-07 05:53:09 PM Tuesday]
+
+### Fixed
+- Sửa logic parse Manual Input trong Tab Dialogue
+- Format 3 hàng: Sửa từ lấy hàng 2 → hàng 3 (Text gốc tiếng Anh)
+- Cập nhật comment trong code cho rõ ràng
 
 ---
 
@@ -35,23 +53,5 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 ### Fixed
 - Sửa lỗi imports trong các file tab mới tạo
 - Sửa lỗi compile do thiếu file trong .vbproj
-
----
-
-## [2026-04-07 05:53:09 PM Tuesday]
-
-### Fixed
-- Sửa logic parse Manual Input trong Tab Dialogue
-- Format 3 hàng: Sửa từ lấy hàng 2 → hàng 3 (Text gốc tiếng Anh)
-- Cập nhật comment trong code cho rõ ràng
-
----
-
-## [2026-04-07 06:00:00 PM Tuesday]
-
-### Changed
-- Cập nhật workflow rules: Changelog phải theo thứ tự từ cũ đến mới
-- Entry mới LUÔN append xuống cuối file
-- Thêm hướng dẫn rõ ràng trong changelog.cursorrules
 
 ---
