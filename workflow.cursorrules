@@ -668,6 +668,65 @@ End Sub
 
 ---
 
+## ⚠️ QUY TẮC BẮT BUỘC VỀ FILE CODE
+
+### 🚫 CẤM TUYỆT ĐỐI: MainWindow.xaml.vb
+- **KHÔNG BAO GIỜ** code vào `MainWindow.xaml.vb`
+- File này chỉ chứa imports và class declaration
+- Mọi thay đổi đều phải code vào file Tab hoặc System tương ứng
+
+### 📌 Quy Tắc Nhận Diện Tab Từ User Input
+Khi user nhập lệnh với `@` kèm tên tab (ví dụ: `MainWindowTab*.vb` hoặc `@MainWindowTabDialogueOnly.vb`):
+
+**Nếu tab đã tồn tại:**
+→ Mở file tab đó và code trực tiếp vào file
+
+**Nếu tab chưa tồn tại:**
+→ Tạo file `MainWindowTab[TênTab].vb` mới
+→ Thêm file vào `.vbproj`
+→ Code vào file mới tạo
+
+**Cách nhận diện tab cần code:**
+- User nói: "Trong tab @MainWindowTabDialogueOnly.vb" → Code vào `MainWindowTabDialogueOnly.vb`
+- User nói: "Tab Karaoke" → Tìm file `MainWindowTabKaraoke*.vb` phù hợp
+- User nói: "Subtitle Merge" → Code vào `MainWindowTabSubtitleMerge.vb`
+- User nói: "Translate" → Code vào `MainWindowTabTranslate.vb`
+
+### 📝 Quy Tắc Changelog
+**BẮT BUỘC:** Sau mỗi lần code xong → Ghi changelog vào `changelog.cursorrules`
+
+**Format changelog:**
+```
+## [YYYY-MM-DD HH:MM:SS AM/PM DayOfWeek]
+
+### Changed
+- [Mô tả thay đổi 1]
+- [Mô tả thay đổi 2]
+
+### Fixed
+- [Bug fix 1]
+```
+
+**Ví dụ:**
+```
+## [2026-04-07 05:24:34 PM Tuesday]
+
+### Changed
+- Tách MainWindow.xaml.vb (2123 dòng) thành 14 files nhỏ
+- Thêm workflow rules mới
+
+### Fixed
+- Sửa logic parse Manual Input format 3 hàng
+```
+
+**Quy trình:**
+1. Code xong → Build → Push
+2. Mở `changelog.cursorrules`
+3. Thêm entry mới ở ĐẦU file (trên cùng)
+4. Commit changelog cùng với code changes
+
+---
+
 ## 📋 Quick Reference
 
 ### Common Tasks Checklist

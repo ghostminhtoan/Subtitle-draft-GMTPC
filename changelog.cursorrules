@@ -1,0 +1,43 @@
+# Changelog - Subtitle Draft GMTPC
+
+Tất cả thay đổi đáng chú ý của project sẽ được ghi lại trong file này.
+
+---
+
+## [2026-04-07 05:24:34 PM Tuesday]
+
+### Changed
+- Tách MainWindow.xaml.vb (2123 dòng) thành 14 files nhỏ theo tab
+- Thêm workflow rules mới: Cấm code vào MainWindow.xaml.vb
+- Thêm quy tắc nhận diện tab từ user input (@MainWindowTab*.vb)
+- Thêm quy tắc bắt buộc ghi changelog sau mỗi lần code
+
+### Added
+- MainWindowSystemGlobalEvents.vb (136 dòng) - Window init, global events
+- MainWindowTabSubtitleMerge.vb (122 dòng)
+- MainWindowTabSubtitleDraft.vb (160 dòng)
+- MainWindowTabDialogueOnly.vb (262 dòng)
+- MainWindowTabAssFontAdjust.vb (146 dòng)
+- MainWindowTabTranslate.vb (404 dòng)
+- MainWindowTabSearchFonts.vb (352 dòng)
+- MainWindowTabHardwareInfo.vb (93 dòng)
+- MainWindowTabKaraokeVietnamese.vb (66 dòng)
+- MainWindowTabZeroTime.vb (124 dòng)
+- MainWindowTabKaraokeEnglish.vb (67 dòng)
+- MainWindowTabKaraokeMerge.vb (65 dòng)
+- MainWindowTabKaraokeSync.vb (320 dòng)
+
+### Fixed
+- Sửa lỗi imports trong các file tab mới tạo
+- Sửa lỗi compile do thiếu file trong .vbproj
+
+---
+
+## [2026-04-07 05:53:09 PM Tuesday]
+
+### Fixed
+- Sửa logic parse Manual Input trong Tab Dialogue
+- Format 3 hàng: Sửa từ lấy hàng 2 → hàng 3 (Text gốc tiếng Anh)
+- Cập nhật comment trong code cho rõ ràng
+
+---
