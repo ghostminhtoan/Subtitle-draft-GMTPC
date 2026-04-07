@@ -722,8 +722,14 @@ Khi user nhập lệnh với `@` kèm tên tab (ví dụ: `MainWindowTab*.vb` ho
 **Quy trình:**
 1. Code xong → Build → Push
 2. Mở `changelog.cursorrules`
-3. Thêm entry mới ở ĐẦU file (trên cùng)
+3. **Thêm entry mới ở CUỐI file (dưới cùng)** - Thứ tự từ dưới lên trên (cũ → mới)
 4. Commit changelog cùng với code changes
+
+**⚠️ Lưu ý quan trọng:**
+- Entry CŨ NHẤT ở ĐẦU file (trên cùng)
+- Entry MỚI NHẤT ở CUỐI file (dưới cùng)
+- KHÔNG được thêm entry mới lên đầu file
+- Luôn append xuống cuối file để giữ thứ tự thời gian từ cũ đến mới
 
 ---
 
