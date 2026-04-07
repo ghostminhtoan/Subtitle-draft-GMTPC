@@ -4,7 +4,9 @@
       "Bash(move *)",
       "Bash(dotnet *)",
       "Bash(timeout *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(findstr *)",
+      "Bash(\"c:\\program files\\microsoft visual studio\\2022\\community\\common7\\ide\\devenv.com\" *)"
     ]
   },
   "$version": 3
