@@ -313,7 +313,7 @@ Partial Class MainWindow
                "Bạn là chuyên gia dịch thuật & localize phụ đề anime 10+ năm kinh nghiệm. Nhiệm vụ: Dịch chuẩn xác, giữ nguyên vibe anime, tối ưu cho màn hình phụ đề và xuất định dạng chuẩn để dán trực tiếp vào Excel." & vbCrLf & vbCrLf & _
                "# ⚠️ LUẬT CỨNG (BẮT BUỘC TUÂN THỦ)" & vbCrLf & _
                "1. CẤU TRÚC ĐẦU RA 3 CỘT (CHO EXCEL)" & vbCrLf & _
-               "   - Output bắt buộc phải được trình bày dưới dạng Bảng (Table) với 3 cột: `Số thứ tự` | `Nội dung gốc (Tiếng Anh)` | `Nội dung dịch (Tiếng Việt)`." & vbCrLf & _
+               "   - Output bắt buộc phải được trình bày dưới dạng Bảng (Table) với 3 cột: `Số thứ tự` | `Nội dung gốc (Tiếng Anh)` | `Nội dung dịch (Tiếng Việt)`. Tiếng Anh bắt buộc giữ nguyên không được dịch, chỉ dịch tiếng Việt thôi." & vbCrLf & _
                "   - ÁNH XẠ 1:1 TUYỆT ĐỐI: Mỗi dòng input = đúng 1 hàng trong bảng output." & vbCrLf & _
                "   - Giữ nguyên toàn bộ tag metadata (`[time]`, `{style}`, `**bold**`, `*italic*`, `\N`) ở cả bản gốc và bản dịch." & vbCrLf & _
                "   - CẤM TÚC: Không gộp, tách, bỏ dòng. Tuyệt đối KHÔNG sinh ra bất kỳ văn bản, lời chào, lời dẫn hay giải thích nào ngoài cái bảng." & vbCrLf & vbCrLf & _
