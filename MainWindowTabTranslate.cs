@@ -1,0 +1,481 @@
+using System;
+using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Controls;
+using System.Threading.Tasks;
+using Subtitle_draft_GMTPC.Models;
+using Subtitle_draft_GMTPC.Services;
+
+namespace Subtitle_draft_GMTPC
+{
+    public partial class MainWindow : Window
+    {
+        #region Translate - Fields
+
+        private List<SubtitleLine> _translateLines = new List<SubtitleLine>();
+        private SubtitleFormat _translateFormat = SubtitleFormat.Unknown;
+        private bool _isTranslateUpdating = false;
+
+        #endregion
+
+        #region Translate - Event Handlers
+
+        private void TxtTranslateInput_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isTranslateUpdating) return;
+            try
+            {
+                _isTranslateUpdating = true;
+                var content = SubtitleParser.SanitizeContent(TxtTranslateInput.Text);
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    _translateLines.Clear();
+                    _translateFormat = SubtitleFormat.Unknown;
+                    TxtTranslateInputFormat.Text = "";
+                    return;
+                }
+                _translateFormat = SubtitleParser.DetectFormat(content);
+                _translateLines = SubtitleParser.Parse(content);
+                TxtTranslateInputFormat.Text = string.Format("({0} - {1} dòng)", _translateFormat.ToString().ToUpper(), _translateLines.Count);
+            }
+            catch (Exception ex)
+            {
+                TxtTranslateInputFormat.Text = string.Format("(Lỗi: {0})", ex.Message);
+            }
+            finally
+            {
+                _isTranslateUpdating = false;
+            }
+        }
+
+        private void TxtPrompt_LostFocus(object sender, RoutedEventArgs e)
+        {
+            SaveSettings();
+        }
+
+        private void BtnOpenQwen_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start("https://chat.qwen.ai/");
+                TxtTranslateStatus.Text = "✅ Đã mở chat.qwen.ai trên trình duyệt!";
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnCopyForPaste_Click(object sender, RoutedEventArgs e)
+        {
+            var inputText = TxtTranslateInput.Text;
+            if (string.IsNullOrWhiteSpace(inputText))
+            {
+                TxtTranslateStatus.Text = "⚠️ Vui lòng nhập phụ đề vào Panel 1!";
+                return;
+            }
+            var prompt = TxtPrompt.Text.Trim();
+            if (string.IsNullOrWhiteSpace(prompt))
+            {
+                TxtTranslateStatus.Text = "⚠️ Vui lòng nhập prompt!";
+                return;
+            }
+            SaveSettings();
+            Clipboard.SetText(prompt + Environment.NewLine + Environment.NewLine + inputText);
+            TxtTranslateStatus.Text = "📋 Đã copy Prompt + Subtitle vào clipboard!";
+        }
+
+        /// <summary>
+        /// Khi click vào nút prompt → dán nội dung prompt vào TxtPrompt
+        /// </summary>
+        private void BtnPrompt_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as Button;
+            if (btn == null) return;
+
+            int promptId = int.Parse(btn.Tag.ToString());
+            var prompt = GetPromptById(promptId);
+
+            if (!string.IsNullOrWhiteSpace(prompt.Content))
+            {
+                TxtPrompt.Text = prompt.Content;
+                TxtTranslateStatus.Text = string.Format("📋 Đã load prompt: {0}", prompt.DisplayName);
+            }
+            else
+            {
+                TxtTranslateStatus.Text = string.Format("⚠️ Prompt {0} chưa có nội dung!", promptId);
+            }
+        }
+
+        /// <summary>
+        /// Nút Rename: Hỏi chọn prompt cần rename, sau đó hỏi tên mới
+        /// </summary>
+        private void BtnRenamePrompt_Click(object sender, RoutedEventArgs e)
+        {
+            // Luôn hỏi chọn prompt cần rename trước
+            var input = Microsoft.VisualBasic.Interaction.InputBox(
+                "Nhập số thứ tự prompt cần rename (1-5):" + Environment.NewLine + Environment.NewLine +
+                "1. " + GetPromptNameById(1) + Environment.NewLine +
+                "2. " + GetPromptNameById(2) + Environment.NewLine +
+                "3. " + GetPromptNameById(3) + Environment.NewLine +
+                "4. " + GetPromptNameById(4) + Environment.NewLine +
+                "5. " + GetPromptNameById(5),
+                "Rename Prompt", "1");
+
+            int currentPromptId = 0;
+            if (int.TryParse(input, out currentPromptId) && currentPromptId >= 1 && currentPromptId <= 5)
+            {
+                // OK
+            }
+            else
+            {
+                TxtTranslateStatus.Text = "⚠️ Số thứ tự không hợp lệ!";
+                return;
+            }
+
+            var currentName = GetPromptNameById(currentPromptId);
+            var newName = Microsoft.VisualBasic.Interaction.InputBox(
+                string.Format("Đổi tên cho Prompt {0} (hiện tại: {1}):", currentPromptId, currentName),
+                "Rename Prompt", currentName);
+
+            if (!string.IsNullOrWhiteSpace(newName))
+            {
+                SetPromptNameById(currentPromptId, newName.Trim());
+                UpdatePromptButtonDisplay();
+                AppSettings.Save();
+                TxtTranslateStatus.Text = string.Format("✅ Đã rename Prompt {0} thành: {1}", currentPromptId, newName.Trim());
+            }
+        }
+
+        /// <summary>
+        /// Nút Save Prompts: Hỏi chọn prompt cần save, sau đó lưu nội dung hiện tại vào prompt đó
+        /// </summary>
+        private void BtnSavePrompts_Click(object sender, RoutedEventArgs e)
+        {
+            // Hỏi chọn prompt cần save vào
+            var input = Microsoft.VisualBasic.Interaction.InputBox(
+                "Nhập số thứ tự prompt cần save (1-5):" + Environment.NewLine + Environment.NewLine +
+                "1. " + GetPromptNameById(1) + Environment.NewLine +
+                "2. " + GetPromptNameById(2) + Environment.NewLine +
+                "3. " + GetPromptNameById(3) + Environment.NewLine +
+                "4. " + GetPromptNameById(4) + Environment.NewLine +
+                "5. " + GetPromptNameById(5),
+                "Save Prompt", "1");
+
+            int promptId = 0;
+            if (int.TryParse(input, out promptId) && promptId >= 1 && promptId <= 5)
+            {
+                // Lưu nội dung hiện tại trong TxtPrompt vào prompt đã chọn
+                var currentContent = TxtPrompt.Text.Trim();
+                if (string.IsNullOrWhiteSpace(currentContent))
+                {
+                    // Prompt trống thì clear (xóa nội dung cũ)
+                    SetPromptContentById(promptId, "");
+                    TxtTranslateStatus.Text = string.Format("🧹 Đã clear Prompt {0}!", promptId);
+                }
+                else
+                {
+                    SetPromptContentById(promptId, currentContent);
+                    TxtTranslateStatus.Text = string.Format("💾 Đã save nội dung vào Prompt {0}: {1}", promptId, GetPromptNameById(promptId));
+                }
+                AppSettings.Save();
+            }
+            else
+            {
+                TxtTranslateStatus.Text = "⚠️ Số thứ tự không hợp lệ!";
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Nút Load Prompts: Hỏi chọn prompt cần load từ Settings
+        /// </summary>
+        private void BtnLoadPrompts_Click(object sender, RoutedEventArgs e)
+        {
+            // Hỏi chọn prompt cần load
+            var input = Microsoft.VisualBasic.Interaction.InputBox(
+                "Nhập số thứ tự prompt cần load (1-5):" + Environment.NewLine + Environment.NewLine +
+                "1. " + GetPromptNameById(1) + Environment.NewLine +
+                "2. " + GetPromptNameById(2) + Environment.NewLine +
+                "3. " + GetPromptNameById(3) + Environment.NewLine +
+                "4. " + GetPromptNameById(4) + Environment.NewLine +
+                "5. " + GetPromptNameById(5),
+                "Load Prompt", "1");
+
+            int promptId = 0;
+            if (int.TryParse(input, out promptId) && promptId >= 1 && promptId <= 5)
+            {
+                var content = GetPromptContentById(promptId);
+                if (!string.IsNullOrWhiteSpace(content))
+                {
+                    TxtPrompt.Text = content;
+                    TxtTranslateStatus.Text = string.Format("📋 Đã load Prompt {0}: {1}", promptId, GetPromptNameById(promptId));
+                }
+                else
+                {
+                    // Prompt trống thì clear TxtPrompt
+                    TxtPrompt.Text = "";
+                    TxtTranslateStatus.Text = string.Format("🧹 Prompt {0} đang trống, đã clear ô nhập!", promptId);
+                }
+                // Cập nhật lại display buttons
+                UpdatePromptButtonDisplay();
+            }
+            else
+            {
+                TxtTranslateStatus.Text = "⚠️ Số thứ tự không hợp lệ!";
+                return;
+            }
+        }
+
+        #endregion
+
+        #region Translate - Prompt Management
+
+        /// <summary>
+        /// Lấy thông tin prompt theo ID (1-5)
+        /// </summary>
+        private PromptItem GetPromptById(int id)
+        {
+            var name = GetPromptNameById(id);
+            var content = GetPromptContentById(id);
+            return new PromptItem(id, name, content);
+        }
+
+        private string GetPromptNameById(int id)
+        {
+            switch (id)
+            {
+                case 1: return AppSettings.PromptName1;
+                case 2: return AppSettings.PromptName2;
+                case 3: return AppSettings.PromptName3;
+                case 4: return AppSettings.PromptName4;
+                case 5: return AppSettings.PromptName5;
+                default: return string.Format("Prompt {0}", id);
+            }
+        }
+
+        private string GetPromptContentById(int id)
+        {
+            switch (id)
+            {
+                case 1: return AppSettings.PromptContent1;
+                case 2: return AppSettings.PromptContent2;
+                case 3: return AppSettings.PromptContent3;
+                case 4: return AppSettings.PromptContent4;
+                case 5: return AppSettings.PromptContent5;
+                default: return "";
+            }
+        }
+
+        private void SetPromptNameById(int id, string name)
+        {
+            switch (id)
+            {
+                case 1: AppSettings.PromptName1 = name; break;
+                case 2: AppSettings.PromptName2 = name; break;
+                case 3: AppSettings.PromptName3 = name; break;
+                case 4: AppSettings.PromptName4 = name; break;
+                case 5: AppSettings.PromptName5 = name; break;
+            }
+        }
+
+        private void SetPromptContentById(int id, string content)
+        {
+            switch (id)
+            {
+                case 1: AppSettings.PromptContent1 = content; break;
+                case 2: AppSettings.PromptContent2 = content; break;
+                case 3: AppSettings.PromptContent3 = content; break;
+                case 4: AppSettings.PromptContent4 = content; break;
+                case 5: AppSettings.PromptContent5 = content; break;
+            }
+        }
+
+        /// <summary>
+        /// Cập nhật hiển thị tên trên 5 nút prompt
+        /// </summary>
+        private void UpdatePromptButtonDisplay()
+        {
+            BtnPrompt1.Content = string.Format("{0}. {1}", 1, GetPromptNameById(1));
+            BtnPrompt2.Content = string.Format("{0}. {1}", 2, GetPromptNameById(2));
+            BtnPrompt3.Content = string.Format("{0}. {1}", 3, GetPromptNameById(3));
+            BtnPrompt4.Content = string.Format("{0}. {1}", 4, GetPromptNameById(4));
+            BtnPrompt5.Content = string.Format("{0}. {1}", 5, GetPromptNameById(5));
+        }
+
+        /// <summary>
+        /// Tìm ID của prompt đang được hiển thị trong TxtPrompt (nếu khớp content)
+        /// </summary>
+        private int FindCurrentPromptId()
+        {
+            var currentContent = TxtPrompt.Text.Trim();
+            if (string.IsNullOrWhiteSpace(currentContent)) return 0;
+
+            for (int id = 1; id <= 5; id++)
+            {
+                var promptContent = GetPromptContentById(id).Trim();
+                if (promptContent == currentContent)
+                {
+                    return id;
+                }
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Lưu toàn bộ 5 prompts vào Settings
+        /// </summary>
+        private void SaveAllPrompts()
+        {
+            // Lưu content hiện tại trong TxtPrompt vào prompt đang chọn (nếu có)
+            var currentId = FindCurrentPromptId();
+            if (currentId > 0)
+            {
+                SetPromptContentById(currentId, TxtPrompt.Text.Trim());
+            }
+
+            AppSettings.Save();
+        }
+
+        /// <summary>
+        /// Load toàn bộ 5 prompts từ Settings và cập nhật UI
+        /// </summary>
+        private void LoadAllPrompts()
+        {
+            UpdatePromptButtonDisplay();
+
+            // Nếu TxtPrompt đang trống, load prompt đầu tiên có content
+            if (string.IsNullOrWhiteSpace(TxtPrompt.Text))
+            {
+                for (int id = 1; id <= 5; id++)
+                {
+                    var content = GetPromptContentById(id);
+                    if (!string.IsNullOrWhiteSpace(content))
+                    {
+                        TxtPrompt.Text = content;
+                        TxtTranslateStatus.Text = string.Format("📋 Đã load prompt: {0}. {1}", id, GetPromptNameById(id));
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Khởi tạo prompts mặc định (Anime và Film) nếu chưa có
+        /// </summary>
+        private void InitializeDefaultPrompts()
+        {
+            // Prompt 1 - Anime
+            if (string.IsNullOrWhiteSpace(AppSettings.PromptName1) || AppSettings.PromptName1 == "Prompt 1")
+            {
+                AppSettings.PromptName1 = "Anime";
+                AppSettings.PromptContent1 = GetDefaultAnimePrompt();
+            }
+
+            // Prompt 2 - Film
+            if (string.IsNullOrWhiteSpace(AppSettings.PromptName2) || AppSettings.PromptName2 == "Prompt 2")
+            {
+                AppSettings.PromptName2 = "Film";
+                AppSettings.PromptContent2 = GetDefaultFilmPrompt();
+            }
+
+            AppSettings.Save();
+        }
+
+        private string GetDefaultAnimePrompt()
+        {
+            return "# SYSTEM ROLE" + Environment.NewLine +
+                   "Bạn là chuyên gia dịch thuật & localize phụ đề anime 10+ năm kinh nghiệm. Nhiệm vụ: Dịch chuẩn xác, giữ nguyên vibe anime, tối ưu cho màn hình phụ đề và xuất định dạng chuẩn để dán trực tiếp vào Excel." + Environment.NewLine + Environment.NewLine +
+                   "# ⚠️ LUẬT CỨNG (BẮT BUỘC TUÂN THỦ)" + Environment.NewLine +
+                   "1. CẤU TRÚC ĐẦU RA 3 CỘT (CHO EXCEL)" + Environment.NewLine +
+                   "   - Output bắt buộc phải được trình bày dưới dạng Bảng (Table) với 3 cột: `Số thứ tự` | `Nội dung gốc (Tiếng Anh)` | `Nội dung dịch (Tiếng Việt)`. Tiếng Anh bắt buộc giữ nguyên không được dịch, chỉ dịch tiếng Việt thôi." + Environment.NewLine +
+                   "   - ÁNH XẠ 1:1 TUYỆT ĐỐI: Mỗi dòng input = đúng 1 hàng trong bảng output." + Environment.NewLine +
+                   "   - Giữ nguyên toàn bộ tag metadata (`[time]`, `{style}`, `**bold**`, `*italic*`, `\\N`) ở cả bản gốc và bản dịch." + Environment.NewLine +
+                   "   - CẤM TÚC: Không gộp, tách, bỏ dòng. Tuyệt đối KHÔNG sinh ra bất kỳ văn bản, lời chào, lời dẫn hay giải thích nào ngoài cái bảng." + Environment.NewLine + Environment.NewLine +
+                   "2. CHUẨN PHỤ ĐỀ & ĐỘ DÀI" + Environment.NewLine +
+                   "   - Ưu tiên ≤ 42 ký tự cho bản dịch Tiếng Việt, không tính punctuation (dấu câu: .,!?;:-'\"\"()[]{}... và dấu CJK như 。、！？)." + Environment.NewLine +
+                   "     Ví dụ: \"\"Chúng ta nên nhanh chóng đưa nó trở lại cơ sở chăm sóc!\"\" → 42 ký tự (không tính dấu !)." + Environment.NewLine +
+                   "   - Nếu vượt quá, bắt buộc phải rút gọn tự nhiên nhưng không được cắt nghĩa lõi." + Environment.NewLine +
+                   "   - Tính độ dài riêng cho từng đoạn trước/sau `\\N` nếu có." + Environment.NewLine +
+                   "   - Rút gọn `...` thành `…` để tiết kiệm ký tự." + Environment.NewLine +
+                   "   - Chuẩn hóa dấu câu tiếng Việt: bỏ chồng chéo (`?.!` → `?!` hoặc `.`), cách dấu đúng chuẩn." + Environment.NewLine + Environment.NewLine +
+                   "3. LOCALIZE & VIBE ANIME" + Environment.NewLine +
+                   "   - Tính cách nhân vật: Tsundere (cộc, phủ nhận cảm xúc), Kuudere (ngắn, lạnh lùng), Genki (năng lượng), Chuunibyou (kỳ ảo, hoa mỹ) → Thể hiện qua từ vựng & nhịp câu." + Environment.NewLine +
+                   "   - Honorifics: Việt hóa theo quan hệ (`anh/chị/em/cậu`) trừ khi là thuật ngữ đặc thù hoặc fan yêu cầu giữ `-san/-kun/-chan/-sama`." + Environment.NewLine +
+                   "   - Tiếng lóng/Onomatopoeia: Dịch nghĩa hoặc giữ nguyên *in nghiêng* nếu mang tính biểu tượng. KHÔNG dùng chú thích trong phụ đề." + Environment.NewLine +
+                   "   - Tên riêng: Giữ nguyên Romaji/Kanji hoặc Việt hóa nhất quán xuyên suốt." + Environment.NewLine + Environment.NewLine +
+                   "# ✅ QUY TRÌNH TỰ PHẢN BIỆN 2 LẦN trước khi xuất ra kết quả:" + Environment.NewLine +
+                   "1. Đã tạo đúng định dạng bảng 3 cột để copy vào Excel chưa?" + Environment.NewLine +
+                   "2. Số lượng hàng output có khớp 100% với số lượng hàng input không?" + Environment.NewLine +
+                   "3. Bản dịch tiếng Việt đã tối ưu ≤ 42 ký tự (không tính dấu) chưa?" + Environment.NewLine +
+                   "4. Đã dọn sạch 100% các câu chữ thừa như \"\"Dưới đây là kết quả...\"\", \"\"Hoàn thành...\"\" chưa?" + Environment.NewLine + Environment.NewLine +
+                   "# 📤 CẤU TRÚC OUTPUT DUY NHẤT ĐƯỢC PHÉP TRẢ VỀ:" + Environment.NewLine +
+                   "| Số thứ tự | Nội dung gốc (Tiếng Anh) | Nội dung dịch (Tiếng Việt) |" + Environment.NewLine +
+                   "| :--- | :--- | :--- |" + Environment.NewLine +
+                   "| [STT] | [Text Anh] | [Text Việt] |" + Environment.NewLine +
+                   "| ... | ... | ... |";
+        }
+
+        private string GetDefaultFilmPrompt()
+        {
+            return "# SYSTEM ROLE" + Environment.NewLine +
+                   "Bạn là chuyên gia dịch thuật & localize phụ đề phim điện ảnh 10+ năm kinh nghiệm. Nhiệm vụ: Dịch chuẩn xác, giữ nguyên cinematic tone, tối ưu cho màn hình phụ đề và xuất định dạng chuẩn để dán trực tiếp vào Excel." + Environment.NewLine + Environment.NewLine +
+                   "# ⚠️ LUẬT CỨNG (BẮT BUỘC TUÂN THỦ)" + Environment.NewLine +
+                   "1. CẤU TRÚC ĐẦU RA 3 CỘT (CHO EXCEL)" + Environment.NewLine +
+                   "   - Output bắt buộc phải được trình bày dưới dạng Bảng (Table) với 3 cột: `Số thứ tự` | `Nội dung gốc (Tiếng Anh)` | `Nội dung dịch (Tiếng Việt)`." + Environment.NewLine +
+                   "   - ÁNH XẠ 1:1 TUYỆT ĐỐI: Mỗi dòng input = đúng 1 hàng trong bảng output." + Environment.NewLine +
+                   "   - Giữ nguyên toàn bộ tag metadata (`[time]`, `{style}`, `**bold**`, `*italic*`, `\\N`, `[whisper]`, `[phone]`) ở cả bản gốc và bản dịch." + Environment.NewLine +
+                   "   - CẤM TÚC: Không gộp, tách, bỏ dòng. Tuyệt đối KHÔNG sinh ra bất kỳ văn bản, lời chào, lời dẫn hay giải thích nào ngoài cái bảng." + Environment.NewLine + Environment.NewLine +
+                   "2. CHUẨN PHỤ ĐỀ & ĐỘ DÀI" + Environment.NewLine +
+                   "   - Ưu tiên ≤ 42-48 ký tự cho bản dịch Tiếng Việt, không tính punctuation (dấu câu: .,!?;:-'\"\"()[]{}... và dấu CJK như 。、！？)." + Environment.NewLine +
+                   "     Ví dụ: \"\"We need to get this back to the care facility immediately!\"\" → Bản dịch Việt ≤ 48 ký tự (không tính dấu !)." + Environment.NewLine +
+                   "   - Nếu vượt quá, bắt buộc phải rút gọn tự nhiên nhưng không được cắt nghĩa lõi." + Environment.NewLine +
+                   "   - Tính độ dài riêng cho từng đoạn trước/sau `\\N` nếu có." + Environment.NewLine +
+                   "   - Rút gọn `...` thành `…` để tiết kiệm ký tự." + Environment.NewLine +
+                   "   - Chuẩn hóa dấu câu tiếng Việt: bỏ chồng chéo (`?.!` → `?!` hoặc `.`), cách dấu đúng chuẩn." + Environment.NewLine + Environment.NewLine +
+                   "3. LOCALIZE & CINEMATIC TONE" + Environment.NewLine +
+                   "   - Genre awareness: " + Environment.NewLine +
+                   "     • Action/Thriller → Câu ngắn, nhịp nhanh, từ mạnh." + Environment.NewLine +
+                   "     • Drama/Romance → Câu mềm mại, giàu cảm xúc, ngắt nhịp tự nhiên." + Environment.NewLine +
+                   "     • Comedy → Ưu tiên truyền tải hiệu ứng hài, có thể linh hoạt sáng tạo." + Environment.NewLine +
+                   "     • Period/Historical → Dùng từ Hán-Việt, cấu trúc trang trọng khi phù hợp." + Environment.NewLine +
+                   "   - Regional dialects: Nhận diện Anh-Mỹ, Anh-Anh, Southern US, Australian... → Truyền tải sắc thái qua từ vựng vùng miền tiếng Việt tương ứng (ví dụ: \"\"y'all\"\" → \"\"các cậu/các bạn\"\", không dịch word-for-word)." + Environment.NewLine +
+                   "   - Titles & Formality: Việt hóa `Mr./Mrs./Dr./Captain` → `Ông/Bà/Bác sĩ/Thuyền trưởng` trừ khi nhân vật gọi tên riêng hoặc context yêu cầu giữ nguyên." + Environment.NewLine +
+                   "   - Cultural references: Adapt pop culture, idioms, jokes sao cho khán giả Việt hiểu ngay mà không mất intent gốc. KHÔNG dùng chú thích trong phụ đề." + Environment.NewLine +
+                   "   - Profanity handling: Điều chỉnh mức độ \"\"mạnh/nhẹ\"\" của từ ngữ theo rating phim (PG-13/R), giữ nguyên thái độ nhân vật." + Environment.NewLine +
+                   "   - Technical jargon: Tra cứu và Việt hóa thuật ngữ chuyên ngành (sci-fi, legal, medical) nhất quán, ưu tiên dễ hiểu." + Environment.NewLine +
+                   "   - Song lyrics: Ghi chú [hát] ở đầu câu nếu cần, ưu tiên giữ nhịp thơ khi có thể." + Environment.NewLine +
+                   "   - On-screen text: Phân biệt xử lý: thoại ưu tiên tự nhiên như giao tiếp, text hiển thị trên màn hình ưu tiên dịch chính xác nội dung." + Environment.NewLine + Environment.NewLine +
+                   "4. FRANCHISE & PROJECT CONSISTENCY" + Environment.NewLine +
+                   "   - Ghi nhớ và áp dụng nhất quán: tên riêng, thuật ngữ, cách xưng hô xuyên suốt toàn bộ dự án/phim series." + Environment.NewLine +
+                   "   - Khi gặp từ mới/chưa rõ context, ưu tiên giữ nguyên dạng gốc + ghi chú ngắn trong tag nếu cần." + Environment.NewLine + Environment.NewLine +
+                   "# ✅ QUY TRÌNH TỰ PHẢN BIỆN 2 LẦN trước khi xuất ra kết quả:" + Environment.NewLine +
+                   "1. Đã tạo đúng định dạng bảng 3 cột để copy vào Excel chưa?" + Environment.NewLine +
+                   "2. Số lượng hàng output có khớp 100% với số lượng hàng input không?" + Environment.NewLine +
+                   "3. Bản dịch tiếng Việt đã tối ưu ≤ 42-48 ký tự (không tính dấu) và phù hợp nhịp thoại chưa?" + Environment.NewLine +
+                   "4. Đã dọn sạch 100% các câu chữ thừa như \"\"Dưới đây là kết quả...\"\", \"\"Hoàn thành...\"\" chưa?" + Environment.NewLine +
+                   "5. [Movie-specific] Đã truyền tải đúng genre tone, regional dialect và cultural intent chưa?" + Environment.NewLine +
+                   "6. [Movie-specific] Thuật ngữ chuyên ngành/tên riêng đã nhất quán với context phim chưa?" + Environment.NewLine + Environment.NewLine +
+                   "# 📤 CẤU TRÚC OUTPUT DUY NHẤT ĐƯỢC PHÉP TRẢ VỀ:" + Environment.NewLine +
+                   "| Số thứ tự | Nội dung gốc (Tiếng Anh) | Nội dung dịch (Tiếng Việt) |" + Environment.NewLine +
+                   "| :--- | :--- | :--- |" + Environment.NewLine +
+                   "| [STT] | [Text Anh] | [Text Việt] |" + Environment.NewLine +
+                   "| ... | ... | ... |";
+        }
+
+        #endregion
+
+        #region Translate - Toast
+
+        private async void ShowToastTranslate(string message)
+        {
+            ToastTextTranslate.Text = message;
+            ToastBorderTranslate.Visibility = Visibility.Visible;
+            await Task.Delay(2000);
+            ToastBorderTranslate.Visibility = Visibility.Collapsed;
+        }
+
+        #endregion
+    }
+}

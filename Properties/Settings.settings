@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Subtitle_draft_GMTPC.Properties" GeneratedClassName="Settings">
+  <Profiles>
+    <Profile Name="(Default)" />
+  </Profiles>
+  <Settings>
+    <Setting Name="TranslatePrompt" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="PromptName1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Prompt 1</Value>
+    </Setting>
+    <Setting Name="PromptName2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Prompt 2</Value>
+    </Setting>
+    <Setting Name="PromptName3" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Prompt 3</Value>
+    </Setting>
+    <Setting Name="PromptName4" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Prompt 4</Value>
+    </Setting>
+    <Setting Name="PromptName5" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Prompt 5</Value>
+    </Setting>
+    <Setting Name="PromptContent1" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="PromptContent2" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="PromptContent3" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="PromptContent4" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="PromptContent5" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+  </Settings>
+</SettingsFile>

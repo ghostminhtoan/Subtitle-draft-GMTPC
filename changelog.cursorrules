@@ -8,6 +8,92 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-08 03:00:00 PM Wednesday]
+
+### Added - Full C# Project Conversion
+- Chuyển đổi toàn bộ dự án từ VB.NET sang C# (.NET Framework 4.8)
+- Tạo `Subtitle draft GMTPC.csproj` - project file C# mới
+- Xóa tất cả file `.vb` (36 files) - project giờ thuần C#
+- Sửa `MainWindow.xaml`: `x:Class="Subtitle_draft_GMTPC.MainWindow"` (thêm namespace đầy đủ)
+
+### Added - New C# Files
+**Models/** (6 files):
+- `Models/SubtitleFormat.cs` - Enum SubtitleFormat
+- `Models/AssEffectModels.cs` - AssTagType, AssTag, AssTagGroup, EffectPreset, LineEffectInfo
+- `Models/PromptItem.cs` - Model prompt dịch thuật
+- `Models/SubtitleLine.cs` - Abstract base class cho subtitle lines
+- `Models/AssSubtitleLine.cs` - Implement cho định dạng ASS
+- `Models/SrtSubtitleLine.cs` - Implement cho định dạng SRT
+
+**Services/** (10 files):
+- `Services/SubtitleParser.cs` - Parse SRT/ASS, detect format, sanitize content
+- `Services/TimeCodeService.cs` - Shift time, connect gap
+- `Services/MergeService.cs` - Gộp 2 file phụ đề
+- `Services/TranslateService.cs` - Google Translate API
+- `Services/QwenTranslateService.cs` - Qwen AI translation
+- `Services/CookieManager.cs` - Cookie management
+- `Services/HardwareInfoService.cs` - GPU/CPU/RAM/Mainboard info via WMI
+- `Services/KaraokeVietnameseService.cs` - Xử lý karaoke tiếng Việt
+- `Services/KaraokeMergeService.cs` - Merge karaoke ASS lines
+- `Services/AssEffectBuilder.cs` - Build ASS override tags
+
+**MainWindow Tab Files** (14 files):
+- `MainWindowTabSubtitleMerge.cs` - Merge Eng + Viet subtitles
+- `MainWindowTabSubtitleDraft.cs` - Time shift, connect gap
+- `MainWindowTabDialogueOnly.cs` - Extract dialogues, manual merge
+- `MainWindowTabAssFontAdjust.cs` - ASS font size adjustment
+- `MainWindowTabTranslate.cs` - Translate with prompts (Google + Qwen)
+- `MainWindowTabSearchFonts.cs` - Find missing fonts, install font pack
+- `MainWindowTabHardwareInfo.cs` - Display hardware info
+- `MainWindowTabKaraokeVietnamese.cs` - Vietnamese karaoke processing
+- `MainWindowTabZeroTime.cs` - Zero time code for all lines
+- `MainWindowTabKaraokeEnglish.cs` - English karaoke processing
+- `MainWindowTabKaraokeMerge.cs` - Merge karaoke lines
+- `MainWindowTabKaraokeSync.cs` - Sync time codes
+- `MainWindowTabEffect.cs` - ASS effect builder UI
+- `MainWindowSystemGlobalEvents.cs` - Global events, settings, Ctrl+Scroll
+
+**System Files**:
+- `AppSettings.cs` - Wrapper cho Properties.Settings (thay My.Settings)
+- `Properties/Settings.settings` - Application settings
+- `Properties/Settings.Designer.cs` - Generated settings class
+- `Properties/AssemblyInfo.cs` - Assembly metadata
+- `Application.xaml.cs` - Application entry point
+- `MainWindow.xaml.cs` - Main window partial class
+
+### Changed - Key Conversions
+- `My.Settings.*` → `AppSettings.*` (custom wrapper)
+- `vbCrLf`/`vbCr`/`vbLf` → `Environment.NewLine`/`"\r"`/`"\n"`
+- `vbTab` → `"\t"`
+- `CDbl()`/`CInt()`/`CLng()` → `double.Parse()`/`int.Parse()`/`(long)`
+- `Select Case` → `switch`
+- `For Each` → `foreach`
+- `TryCast(x, T)` → `x as T`
+- `If(cond, a, b)` → `cond ? a : b`
+- `MustInherit`/`MustOverride` → `abstract`
+- `Shared` → `static`
+- `Async Sub` → `async void`
+- `Handles` keyword → event registration in XAML
+
+### Fixed
+- Fix `HardwareInfoService.cs`: `CDbl(string)` → `double.Parse(string)` (4 locations)
+- Fix `SubtitleFormat.SRT` → `SubtitleFormat.Srt` (C# enum PascalCase)
+- Fix `SubtitleFormat.ASS` → `SubtitleFormat.Ass`
+- Fix `DialogResult.OK` → `System.Windows.Forms.DialogResult.OK`
+- Fix ambiguous `Clipboard` → `System.Windows.Clipboard`
+- Fix ambiguous `Orientation` → `System.Windows.Controls.Orientation`
+- Fix ambiguous `TextBox` → `System.Windows.Controls.TextBox`
+- Add missing `using System.Linq;` for `.ToList()`, `.OfType()`, `.SelectMany()`
+- Add missing `using System.Threading.Tasks;` for `Task.Delay()`
+- Add `using System.Windows.Threading;` for `DispatcherTimer`
+- Add `Microsoft.VisualBasic` reference to .csproj (for `Interaction.InputBox`)
+
+### Build Result
+- **Build**: SUCCESS ✅ (0 errors, 1 warning - unused field)
+- **Framework**: .NET Framework 4.8
+- **Language**: C# 7.3
+
+---
 ## [2026-04-08 02:00:00 PM Wednesday]
 
 ### Added - Tab Effect (ASS Override Tags Visual Builder)
