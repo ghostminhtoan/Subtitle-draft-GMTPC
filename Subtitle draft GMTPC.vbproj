@@ -55,6 +55,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Management" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System" />
@@ -137,6 +138,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MainWindowTabEffect.vb">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Import Include="System.Threading.Tasks" />
@@ -167,11 +172,13 @@
     <Compile Include="Models\AssSubtitleLine.vb" />
     <Compile Include="Models\SrtSubtitleLine.vb" />
     <Compile Include="Models\PromptItem.vb" />
+    <Compile Include="Models\AssEffectModels.vb" />
     <Compile Include="Services\SubtitleParser.vb" />
     <Compile Include="Services\TimeCodeService.vb" />
     <Compile Include="Services\TranslateService.vb" />
     <Compile Include="Services\MergeService.vb" />
     <Compile Include="Services\QwenTranslateService.vb" />
+    <Compile Include="Services\AssEffectBuilder.vb" />
     <Compile Include="My Project\AssemblyInfo.vb">
       <SubType>Code</SubType>
     </Compile>

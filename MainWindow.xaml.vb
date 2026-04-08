@@ -25,6 +25,8 @@ Imports System.Windows.Media
 ''' - MainWindowTabKaraokeSync.vb: Tab Karaoke Sync
 ''' </summary>
 Partial Class MainWindow
+    Inherits Window
+
     ' This file contains imports and class declaration.
     ' All event handlers and logic are in partial class files.
     ' The XAML designer generates WithEvents controls automatically.

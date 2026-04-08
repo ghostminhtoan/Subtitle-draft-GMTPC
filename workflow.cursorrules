@@ -1,778 +1,161 @@
-# Quy Tắc Workflow cho Subtitle Draft GMTPC
+# Quy Tắc Workflow - Subtitle Draft GMTPC (VB.NET WPF)
 
-## 🚀 Quick Start Guide
+## 🚀 Hướng Dẫn Nhanh
+- **Thêm tính năng**: Xác định tab → Mở `MainWindowTab[Tên].vb` → Code vào Region phù hợp
+- **Sửa lỗi**: Nhìn tên control (`Txt*`, `Btn*`) → Mở file tab tương ứng → Sửa → Build
+- **File >500 dòng**: Tách Region thành file mới
+- **Luôn luôn**: Build sau khi code → Sửa hết lỗi/cảnh báo → Git push
 
-**Cho người mới bắt đầu:**
-1. **Thêm tính năng mới** → Xác định tab → Mở `MainWindowTab[TênTab].vb` → Thêm code vào Region phù hợp
-2. **Sửa lỗi** → Nhìn control name (`Txt*`, `Btn*`) → Mở file tab tương ứng → Sửa → Build
-3. **File quá dài (>500 dòng)** → Tách Region thành file mới
-4. **Luôn build** sau khi code xong → Fix hết warnings/errors → Git push
-
-**Checklist nhanh:**
-- [ ] Code của tôi nằm đúng file tab/system chưa?
-- [ ] Đã dùng Region naming chuẩn chưa? (`"Tab Name - Category"`)
-- [ ] Fields có prefix `_` chưa? (ví dụ: `_mergeLines`)
-- [ ] Đã xử lý lỗi bằng Try-Catch chưa?
-- [ ] Đã build và không có errors/warnings chưa?
+**Checklist**: Đúng file? ✅ Đặt tên Region chuẩn? ✅ Prefix `_` cho fields? ✅ Try-Catch? ✅ Build sạch?
 
 ---
-
-## Tổng Quan Dự Án
-- **Loại**: Ứng dụng VB.NET WPF
-- **Ngôn ngữ**: Visual Basic .NET
-- **Framework**: Windows Presentation Foundation (WPF)
-- **Tệp Solution**: Subtitle draft GMTPC.sln
 
 ## Cấu Trúc Dự Án
+- **Loại**: Ứng dụng VB.NET WPF | **Framework**: WPF
+- **Kiến trúc**: MainWindow.xaml (UI) + Các file Partial Class (code-behind)
 
 ```
-├── Models/                    # Model dữ liệu và các lớp
-├── Services/                  # Logic nghiệp vụ và dịch vụ
-├── My Project/                # Cấu hình dự án (AssemblyInfo, tài nguyên)
-├── bin/                       # File đã biên dịch
-├── obj/                       # File build tạm thời
-├── MainWindow.xaml            # Cửa sổ chính của ứng dụng
-├── MainWindowTab*.vb          # Code-behind cho từng tab (Tách từ MainWindow.xaml.vb)
-├── MainWindowSystem*.vb       # Code-behind hệ thống chung (Toast, Settings, Hardware...)
-├── TranslateWindow.xaml       # Cửa sổ dịch thuật
-└── workflow.cursorrules       # File quy tắc workflow này
+├── Models/ & Services/          # Model dữ liệu & logic nghiệp vụ
+├── MainWindowTab*.vb           # 12 file tab (300-500 dòng mỗi file)
+├── MainWindowSystem*.vb        # 5-6 file hệ thống (code dùng chung)
+└── MainWindow.xaml.vb          # Chỉ giữ core (khởi tạo, sự kiện toàn cục, bridge)
 ```
 
-### Architecture Diagram
+**File Tab**: SubtitleMerge, SubtitleDraft, DialogueOnly, Translate, AssFontAdjust, HardwareInfo, ZeroTime, KaraokeVietnamese, KaraokeEnglish, KaraokeMerge, KaraokeSync, SearchFonts
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    MainWindow.xaml                       │
-│              (UI Definition - XAML)                      │
-└─────────────────────────────────────────────────────────┘
-                            │
-            ┌───────────────┴───────────────┐
-            │                               │
-┌───────────────────────┐     ┌─────────────────────────┐
-│  MainWindow.xaml.vb   │     │   MainWindowTab*.vb     │
-│  (Core + Bridge)      │◄───►│   (12 files - 1/tab)    │
-│  - Window Init        │     │   - SubtitleMerge       │
-│  - Global Events      │     │   - SubtitleDraft       │
-│  - Tab Bridge Methods │     │   - DialogueOnly        │
-│  - Error Handler      │     │   - Translate           │
-└───────────────────────┘     │   - AssFontAdjust       │
-            │                 │   - HardwareInfo        │
-            ├─────────────────┤   - ZeroTime            │
-            │                 │   - KaraokeVietnamese   │
-┌───────────────────────┐     │   - KaraokeEnglish      │
-│ MainWindowSystem*.vb  │     │   - KaraokeMerge        │
-│  (5-6 system files)   │     │   - KaraokeSync         │
-│  - Settings           │     │   - SearchFonts         │
-│  - Toast              │     └─────────────────────────┘
-│  - Hardware           │
-│  - FontHelpers        │     Mỗi file: 300-500 dòng
-│  - GlobalEvents       │     Target: Dễ maintain
-└───────────────────────┘
-```
+**File Hệ Thống**: Settings, GlobalEvents, Hardware, FontHelpers, Bridge, ErrorHandler
 
 ---
 
-## ⚡ QUY TẮC TÁCH FILE - BẮT BUỘC
+## ⚡ Quy Tắc Tách File (BẮT BUỘC)
 
-### Nguyên Tắc Cốt Lõi
-1. **MainWindow.xaml.vb** chỉ giữ lại:
-   - Window initialization (`Public Sub New`, `MainWindow_Loaded`)
-   - Global event handlers (Word Wrap, Ctrl+Scroll)
-   - Tab bridge methods (nếu cần cross-tab communication)
-   - Central error handler (nếu có)
+### MainWindow.xaml.vb - Chỉ giữ lại:
+- Khởi tạo window (`Public Sub New`, `MainWindow_Loaded`)
+- Event handlers toàn cục
+- Methods bridge giữa các tab
+- Error handler trung tâm
 
-2. **Mỗi tab** được tách thành file `MainWindowTab[TênTab].vb` riêng biệt
+### File Tab - `MainWindowTab[Tên].vb`
+Chứa TOÀN BỘ code của tab: fields (prefix `_[tênTab]`), event handlers, methods cập nhật UI, toast, logic nghiệp vụ
 
-3. **Chức năng hệ thống chung** được tách thành `MainWindowSystem[Tên].vb`
-
-4. **Mục tiêu 300-500 dòng/file** - Ưu tiên tách theo logical boundaries thay vì đếm dòng cứng nhắc
-   - Dưới 300 dòng: ✅ Tuyệt vời
-   - 300-500 dòng: ✅ Chấp nhận được
-   - 500-700 dòng: ⚠️ Cân nhắc tách thêm
-   - Trên 700 dòng: ❌ Bắt buộc phải tách
-
-### ⚠️ WARNING: Conflict Prevention
-- **KHÔNG** định nghĩa trùng tên fields/methods giữa các files
-- **KHÔNG** duplicate code giữa Tab files và System files
-- **NÊN** dùng prefix `_` cho tất cả private fields
-- **NÊN** dùng Region để group code logic
-
----
-
-### 1. Tab Files - MainWindowTab[TênTab].vb
-
-Mỗi file tab chứa TOÀN BỘ code của tab đó bao gồm:
-- Fields/variables private của tab (prefix: `_[tabName]`)
-- Event handlers của controls trong tab
-- Update display methods của tab
-- Toast notification methods của tab
-- Business logic methods của tab
-
-#### Quy ước đặt tên file:
-| Tab Name | File Name |
-|----------|-----------|
-| Subtitle Merge | `MainWindowTabSubtitleMerge.vb` |
-| Subtitle Draft | `MainWindowTabSubtitleDraft.vb` |
-| Dialogue Only | `MainWindowTabDialogueOnly.vb` |
-| Translate | `MainWindowTabTranslate.vb` |
-| ASS Font Adjust | `MainWindowTabAssFontAdjust.vb` |
-| Hardware Info | `MainWindowTabHardwareInfo.vb` |
-| Zero Time | `MainWindowTabZeroTime.vb` |
-| Karaoke Vietnamese | `MainWindowTabKaraokeVietnamese.vb` |
-| Karaoke English | `MainWindowTabKaraokeEnglish.vb` |
-| Karaoke Merge | `MainWindowTabKaraokeMerge.vb` |
-| Karaoke Sync | `MainWindowTabKaraokeSync.vb` |
-| Search Fonts | `MainWindowTabSearchFonts.vb` |
-
-#### Cấu trúc file Tab (Template):
-
+**Mẫu cấu trúc**:
 ```vb
 Partial Class MainWindow
-
-#Region "Subtitle Merge - Fields"
-    ' Private fields cho tab
-    Private _mergeLines As New List(Of SubtitleLine)()
-    Private _mergeFormat As SubtitleFormat = SubtitleFormat.Unknown
-    Private _isMergeUpdating As Boolean = False
+#Region "Tên Tab - Fields"
+    Private _tenTabData As New List(Of String)()
+    Private _isTabUpdating As Boolean = False
 #End Region
 
-#Region "Subtitle Merge - Event Handlers"
-    ' Event handlers cho controls trong tab
-    Private Sub TxtEngsub_TextChanged(sender As Object, e As TextChangedEventArgs)
-        If _isMergeUpdating Then Return
-        Try
-            _isMergeUpdating = True
-            ' ... logic ở đây
-        Catch ex As Exception
-            ' Xử lý lỗi
-        Finally
-            _isMergeUpdating = False
-        End Try
-    End Sub
-
-    Private Sub BtnCopyMerge_Click(sender As Object, e As RoutedEventArgs)
-        ' ... logic ở đây
+#Region "Tên Tab - Event Handlers"
+    Private Sub BtnAction_Click(...) Handles BtnAction.Click
+        Try ' logic
+        Catch ex As Exception ' xử lý lỗi
+        Finally _isTabUpdating = False: End Try
     End Sub
 #End Region
 
-#Region "Subtitle Merge - Display Methods"
-    ' Update UI methods
-    Private Sub UpdateMergeDisplays()
-        ' ... logic ở đây
-    End Sub
+#Region "Tên Tab - Display/Toast/Helpers"
+    Private Sub UpdateDisplays() ' ...
+    Private Async Sub ShowToast(msg As String) ' ...
 #End Region
-
-#Region "Subtitle Merge - Toast & Helpers"
-    ' Toast và helper methods
-    Private Async Sub ShowToastMerge(message As String)
-        ToastTextMerge.Text = message
-        ToastBorderMerge.Visibility = Visibility.Visible
-        Await Task.Delay(2000)
-        ToastBorderMerge.Visibility = Visibility.Collapsed
-    End Sub
-#End Region
-
 End Class
 ```
 
-#### Real Code Example - Tách từ MainWindow.xaml.vb:
+### File Hệ Thống - `MainWindowSystem[Tên].vb`
+Code dùng chung giữa nhiều tab (Settings, Hardware, FontHelpers, GlobalEvents, Bridge, ErrorHandler)
 
-**Trước (trong MainWindow.xaml.vb - 2123 dòng):**
-```vb
-#Region "Event Handlers - Original Panel"
-    Private Sub TxtOriginal_TextChanged(sender As Object, e As TextChangedEventArgs)
-        If _isUpdating Then Return
-        Try
-            _isUpdating = True
-            Dim content = SubtitleParser.SanitizeContent(TxtOriginal.Text)
-            ' ... 30 dòng code
-        Catch ex As Exception
-            ' ...
-        Finally
-            _isUpdating = False
-        End Try
-    End Sub
-#End Region
-```
-
-**Sau (trong MainWindowTabSubtitleDraft.vb - file riêng):**
-```vb
-Partial Class MainWindow
-
-#Region "Subtitle Draft - Fields"
-    Private _originalLines As New List(Of SubtitleLine)()
-    Private _timeCodeLines As New List(Of SubtitleLine)()
-    Private _connectGapLines As New List(Of SubtitleLine)()
-    Private _currentFormat As SubtitleFormat = SubtitleFormat.Unknown
-    Private _isUpdating As Boolean = False
-    Private _totalShiftMs As Integer = 0
-#End Region
-
-#Region "Subtitle Draft - Event Handlers"
-    Private Sub TxtOriginal_TextChanged(sender As Object, e As TextChangedEventArgs)
-        If _isUpdating Then Return
-        Try
-            _isUpdating = True
-            Dim content = SubtitleParser.SanitizeContent(TxtOriginal.Text)
-            If String.IsNullOrWhiteSpace(content) Then
-                _originalLines.Clear()
-                _timeCodeLines.Clear()
-                _connectGapLines.Clear()
-                TxtTimeCode.Text = ""
-                TxtConnectGap.Text = ""
-                TxtResult.Text = ""
-                TxtOriginalFormat.Text = ""
-                _currentFormat = SubtitleFormat.Unknown
-                Return
-            End If
-            _currentFormat = SubtitleParser.DetectFormat(content)
-            _originalLines = SubtitleParser.Parse(content)
-            TxtOriginalFormat.Text = String.Format("({0} - {1} dòng)", _currentFormat.ToString().ToUpper(), _originalLines.Count)
-            ' ... tiếp tục logic
-        Catch ex As Exception
-            TxtOriginalFormat.Text = String.Format("(Lỗi: {0})", ex.Message)
-        Finally
-            _isUpdating = False
-        End Try
-    End Sub
-#End Region
-
-#Region "Subtitle Draft - Display Methods"
-    Private Sub UpdateTimeCodeDisplay()
-        ' ... logic
-    End Sub
-
-    Private Sub UpdateConnectGapDisplay()
-        ' ... logic
-    End Sub
-
-    Private Sub UpdateResultDisplay()
-        ' ... logic
-    End Sub
-#End Region
-
-#Region "Subtitle Draft - Time Code Methods"
-    Private Sub BtnTimePlus200_Click(sender As Object, e As RoutedEventArgs)
-        ' ... logic
-    End Sub
-
-    Private Sub BtnTimeMinus200_Click(sender As Object, e As RoutedEventArgs)
-        ' ... logic
-    End Sub
-
-    Private Sub BtnCopyTimeCode_Click(sender As Object, e As RoutedEventArgs)
-        ' ... logic
-    End Sub
-#End Region
-
-#Region "Subtitle Draft - Toast"
-    Private Async Sub ShowToastDraft(message As String)
-        ' ... logic
-    End Sub
-#End Region
-
-End Class
-```
+### ⚠️ Quy tắc:
+- **KHÔNG** trùng tên fields/methods giữa các file
+- **KHÔNG** duplicate code giữa file Tab và file System
+- **DÙNG** prefix `_` cho TẤT CẢ private fields
+- **DÙNG** Region để nhóm code logic
+- **Mục tiêu**: 300-500 dòng/file | **Tối đa**: 700 dòng (PHẢI tách)
 
 ---
 
-### 2. System Files - MainWindowSystem[Tên].vb
+## Giao Tiếp Giữa Các Tab
 
-Chứa các chức năng hệ thống chung được sử dụng bởi nhiều tabs:
+**Pattern 1: Truy cập trực tiếp** (Đơn giản): `Dim content = TxtOriginal.Text` (từ tab khác)
 
-| File Name | Chứa |
-|-----------|------|
-| `MainWindowSystemSettings.vb` | Load/Save Settings, Prompts management |
-| `MainWindowSystemGlobalEvents.vb` | Word Wrap, Ctrl+Scroll, Window Loaded |
-| `MainWindowSystemHardware.vb` | Hardware info loading |
-| `MainWindowSystemFontHelpers.vb` | Font size, font search helpers |
-| `MainWindowSystemBridge.vb` | Cross-tab communication methods |
-| `MainWindowSystemErrorHandler.vb` | Central error handling |
+**Pattern 2: Bridge Methods** (Tốt hơn): Tạo methods trong `MainWindowSystemBridge.vb`
 
-#### Cấu trúc file System (Template):
+**Pattern 3: Events** (Tốt nhất): `Event SubtitleContentChanged(content)` → `RaiseEvent` → `Handles`
 
-```vb
-Partial Class MainWindow
-
-#Region "System Settings - Methods"
-    Private Sub LoadSettings()
-        Try
-            If Not String.IsNullOrEmpty(My.Settings.TranslatePrompt) Then
-                TxtPrompt.Text = My.Settings.TranslatePrompt
-            End If
-        Catch
-        End Try
-    End Sub
-
-    Private Sub SaveSettings()
-        Try
-            My.Settings.TranslatePrompt = TxtPrompt.Text.Trim()
-            My.Settings.Save()
-        Catch
-        End Try
-    End Sub
-#End Region
-
-#Region "System Settings - Prompt Management"
-    Private Function GetPromptById(id As Integer) As PromptItem
-        ' ... logic
-    End Function
-
-    Private Sub UpdatePromptButtonDisplay()
-        ' ... logic
-    End Sub
-#End Region
-
-End Class
-```
+**Quy tắc**: File hệ thống **KHÔNG BAO GIỜ** gọi file Tab. Tránh phụ thuộc vòng tròn.
 
 ---
 
-### Quy Tắc Truy Cập Giữa Các File
+## 🛡️ Xử Lý Lỗi
 
-1. **Partial Class**: Tất cả files đều dùng `Partial Class MainWindow`
-2. **Fields Access**: Fields trong Tab file **CHỈ** được truy cập từ Tab đó
-3. **Shared Data**: Dữ liệu dùng chung đặt trong file System hoặc MainWindow.xaml.vb
-4. **Cross-Tab Communication**: 
-   - **Cách tốt nhất**: Dùng events hoặc callback pattern
-   - **Cách đơn giản**: Access trực tiếp controls của tab khác (cẩn thận null references)
-   - **Cách tốt hơn**: Tạo Bridge methods trong MainWindowSystemBridge.vb
-5. **No Circular Dependencies**: System files **KHÔNG** được gọi Tab files
-6. **Control Access**: Tab A có thể access controls của Tab B, nhưng **NÊN** tránh
+**Lỗi Tab**: Dùng Try-Catch-Finally cục bộ + toast của tab
+**Lỗi Hệ Thống**: Try-Catch + MessageBox cho lỗi nghiêm trọng
+**Lỗi Nghiêm Trọng**: Handler trung tâm trong `MainWindowSystemErrorHandler.vb`
 
-#### Cross-Tab Communication Patterns:
-
-**Pattern 1: Direct Access (Đơn giản, cho cases đơn giản)**
-```vb
-' Trong MainWindowTabTranslate.vb - cần data từ Tab Draft
-Private Sub BtnTranslate_Click(sender As Object, e As RoutedEventArgs)
-    ' Access trực tiếp control từ tab khác
-    Dim subtitleContent = TxtOriginal.Text ' Từ Tab Draft
-    ' ... xử lý
-End Sub
-```
-
-**Pattern 2: Bridge Methods (Tốt hơn, cho cases phức tạp)**
-```vb
-' Trong MainWindowSystemBridge.vb
-Partial Class MainWindow
-    Public Function GetCurrentSubtitleContent() As String
-        Return TxtOriginal?.Text ?? ""
-    End Function
-End Class
-
-' Trong MainWindowTabTranslate.vb
-Private Sub BtnTranslate_Click(sender As Object, e As RoutedEventArgs)
-    Dim content = GetCurrentSubtitleContent() ' Dùng bridge method
-    ' ... xử lý
-End Sub
-```
-
-**Pattern 3: Events (Tốt nhất, cho architecture phức tạp)**
-```vb
-' Trong MainWindow.xaml.vb hoặc System file
-Public Event SubtitleContentChanged(content As String)
-
-' Trong MainWindowTabDraft.vb
-Private Sub TxtOriginal_TextChanged(...)
-    ' ... logic
-    RaiseEvent SubtitleContentChanged(TxtOriginal.Text)
-End Sub
-
-' Trong MainWindowTabTranslate.vb
-Private Sub OnSubtitleContentChanged(content As String) Handles Me.SubtitleContentChanged
-    ' Auto-update translate tab
-    TxtTranslateInput.Text = content
-End Sub
-```
+**Checklist**: Có Finally? ✅ Thân thiện với user? ✅ Có log? ✅ Không crash khi input sai? ✅ Dispose resources?
 
 ---
 
-### Quy Trình Tách File
+## ⚡ Quy Tắc Hiệu Suất
 
-#### Khi thêm tính năng mới:
-1. Xác định tab/system nào quản lý tính năng này
-2. Mở file tương ứng `MainWindowTab*.vb` hoặc `MainWindowSystem*.vb`
-3. Thêm code vào Region phù hợp
-4. Nếu file vượt 500 dòng → tách Region thành file mới
-5. Build & test
-
-#### Khi sửa lỗi:
-1. Xác định tab chứa lỗi (dùng control names: `Txt*`, `Btn*`)
-2. Mở file `MainWindowTab*.vb` tương ứng
-3. Sửa lỗi và test
-4. Build để verify
-
-#### Migration Strategy (Từ code cũ sang mới):
-
-**Bước 1: Backup**
-```bash
-git commit -m "Backup before refactoring MainWindow.xaml.vb"
-```
-
-**Bước 2: Tạo file Tab mới**
-- Tạo file `MainWindowTabSubtitleDraft.vb`
-- Add template structure với Regions
-
-**Bước 3: Cut-Paste từng Region**
-```
-1. Copy Region "Subtitle Draft - Fields" từ MainWindow.xaml.vb
-2. Paste vào MainWindowTabSubtitleDraft.vb
-3. Build → Fix errors (nếu có)
-4. Test tab functionality
-5. Lặp lại cho các Regions khác
-```
-
-**Bước 4: Verify**
-- Build toàn bộ project
-- Test từng tab
-- Git commit sau khi hoàn thành
-
-**Lưu ý quan trọng:**
-- ✅ Build & test sau **MỖI** Region được chuyển
-- ✅ Giữ MainWindow.xaml.vb backup cho đến khi hoàn tất
-- ❌ KHÔNG chuyển hết rồi mới build/test
-
----
-
-### Build Order & Project Structure
-
-**VB.NET Auto-Include:**
-- Tất cả file `.vb` trong project được compile tự động
-- Không cần modify `.vbproj` khi thêm file mới trong cùng project
-- File phải nằm trong project root hoặc subfolders đã được include
-
-**Thứ tự compile:**
-- VB.NET compile theo alphabetical order (thứ tự ABC)
-- Không phụ thuộc vào thứ tự khai báo trong file
-- Partial Class được merge tự động
-
-**Tổ chức files trong Solution Explorer:**
-```
-Subtitle draft GMTPC
-├── MainWindow.xaml
-├── MainWindow.xaml.vb (Core - giữ lại minimal code)
-├── MainWindowTabSubtitleMerge.vb
-├── MainWindowTabSubtitleDraft.vb
-├── MainWindowTabDialogueOnly.vb
-├── MainWindowTabTranslate.vb
-├── MainWindowTabAssFontAdjust.vb
-├── MainWindowTabHardwareInfo.vb
-├── MainWindowTabZeroTime.vb
-├── MainWindowTabKaraokeVietnamese.vb
-├── MainWindowTabKaraokeEnglish.vb
-├── MainWindowTabKaraokeMerge.vb
-├── MainWindowTabKaraokeSync.vb
-├── MainWindowTabSearchFonts.vb
-├── MainWindowSystemSettings.vb
-├── MainWindowSystemGlobalEvents.vb
-├── MainWindowSystemHardware.vb
-├── MainWindowSystemFontHelpers.vb
-├── MainWindowSystemBridge.vb
-└── MainWindowSystemErrorHandler.vb
-```
-
----
-
-## 🛡️ Error Handling Guidelines
-
-### Error Handling Pattern
-
-**1. Local Errors (Tab-specific):**
-```vb
-Try
-    ' ... tab logic
-Catch ex As Exception
-    ShowToastMerge(String.Format("Lỗi: {0}", ex.Message)) ' Dùng toast của tab
-Finally
-    _isMergeUpdating = False
-End Try
-```
-
-**2. System Errors (Settings, Hardware, etc.):**
-```vb
-Try
-    ' ... system logic
-Catch ex As Exception
-    ' Log error + MessageBox cho critical errors
-    MessageBox.Show("Lỗi hệ thống: " & ex.Message, "Error", 
-                    MessageBoxButton.OK, MessageBoxImage.Error)
-End Try
-```
-
-**3. Critical Errors (App-crashing):**
-```vb
-' Trong MainWindowSystemErrorHandler.vb (sẽ tạo)
-Public Sub HandleCriticalError(ex As Exception, context As String)
-    ' Log to file
-    ' Show user-friendly message
-    ' Optionally: Send error report
-    ' Graceful shutdown nếu cần
-End Sub
-```
-
-### Error Handling Checklist:
-- [ ] Mọi Try-Catch đều có `Finally` block để cleanup?
-- [ ] User sees friendly message, not stack trace?
-- [ ] Errors logged for debugging?
-- [ ] App doesn't crash on invalid input?
-- [ ] Resources disposed in Finally block?
-
----
-
-## ⚡ Performance Guidelines (Concrete Rules)
-
-### 1. Event Handling
-- **TextChanged Events:** Debounce 100-200ms để tránh firing quá nhiều
-  ```vb
-  Private _debounceTimer As DispatcherTimer
-  
-  Private Sub TxtOriginal_TextChanged(...)
-      If _debounceTimer Is Nothing Then
-          _debounceTimer = New DispatcherTimer With {.Interval = TimeSpan.FromMilliseconds(150)}
-          AddHandler _debounceTimer.Tick, Sub()
-              _debounceTimer.Stop()
-              ProcessSubtitle() ' Actual logic
-          End Sub
-      End If
-      _debounceTimer.Stop()
-      _debounceTimer.Start()
-  End Sub
-  ```
-
-### 2. Large File Handling
-- ** KHÔNG** load files >10MB vào memory một lần
-- **NÊN** dùng streaming processing:
-  ```vb
-  Using reader = New StreamReader(filePath, Encoding.UTF8)
-      While Not reader.EndOfStream
-          Dim line = reader.ReadLine()
-          ' Process line by line
-      End While
-  End Using
-  ```
-
-### 3. UI Virtualization
-- Bật cho ListBox/ListView/DataGrid:
-  ```xml
-  <ListBox VirtualizingPanel.IsVirtualizing="True" 
-           VirtualizingPanel.VirtualizationMode="Recycling" />
-  ```
-
-### 4. Memory Management
-- **Clear collections** khi tab thay đổi hoặc không dùng:
-  ```vb
-  Private Sub ClearTabData()
-      _mergeLines?.Clear()
-      _timeCodeLines?.Clear()
-      GC.Collect() ' Chỉ khi cần thiết
-  End Sub
-  ```
-- **Dispose resources** đúng cách:
-  ```vb
-  Using stream = New FileStream(path, FileMode.Open)
-      ' ... use stream
-  End Using ' Auto-dispose
-  ```
-
-### 5. Async Operations
-- **Tất cả I/O phải là async:**
-  ```vb
-  Private Async Sub BtnLoadFile_Click(...)
-      Dim content = Await File.ReadAllTextAsync(filePath)
-      ' ... process
-  End Sub
-  ```
-- **Background tasks** cho heavy processing:
-  ```vb
-  Private Async Sub BtnProcess_Click(...)
-      Await Task.Run(Sub() HeavyProcessing())
-  End Sub
-  ```
-
-### 6. File Size Limits
-- **Target:** 300-500 dòng/file
-- **Hard limit:** 700 dòng (bắt buộc tách)
-- **Ưu tiên:** Tách theo logical boundaries, không chỉ đếm dòng
-
-### Performance Checklist:
-- [ ] TextChanged events có debounce?
-- [ ] File I/O là async?
-- [ ] Collections được clear khi không dùng?
-- [ ] UI virtualization enabled cho lists?
-- [ ] Không load toàn bộ file lớn vào memory?
-- [ ] Resources được dispose đúng cách?
+1. **Debounce TextChanged**: 100-200ms dùng DispatcherTimer
+2. **File lớn**: Xử lý streaming, KHÔNG load file >10MB vào memory
+3. **UI Virtualization**: Bật cho ListBox/ListView/DataGrid
+4. **Quản lý memory**: Clear collections khi đổi tab, dispose bằng `Using`
+5. **Async**: TẤT CẢ I/O phải là async (`Await File.ReadAllTextAsync`, `Task.Run` cho xử lý nặng)
+6. **Kích thước file**: Mục tiêu 300-500 dòng, tối đa 700 dòng
 
 ---
 
 ## Quy Ước Code
 
-### Phong Cách VB.NET
-- Dùng `PascalCase` cho các thành viên công khai, phương thức và thuộc tính
-- Dùng `camelCase` cho biến private/địa phương
-- Dùng `_prefix` cho tất cả private fields: `_mergeLines`, `_isUpdating`
-- Dùng tên có ý nghĩa: `GetSubtitleByTime()` thay vì `GetST()`
-- Ưu tiên hậu tố `Async` cho phương thức bất đồng bộ: `LoadSubtitlesAsync()`
-- Dùng `WithEvents` và `Handles` cho mô hình hướng sự kiện
-- **Region naming**: Dùng pattern `"Tab Name - Category"` (ví dụ: `"Subtitle Merge - Fields"`)
+**VB.NET**: `PascalCase` cho thành viên public, `camelCase` cho biến local, `_prefix` cho private fields, tên có ý nghĩa, hậu tố `Async` cho methods bất đồng bộ, `WithEvents`/`Handles` cho events
 
-### Quy Ước XAML
-- Dùng 4 dấu cách để thụt lề
-- Đặt tên phần tử có ý nghĩa: `<Button x:Name="btnLoadSubtitles">`
-- Dùng PascalCase cho khóa tài nguyên
-- Nhóm các thuộc tính liên quan một cách logic
-- Ưu tiên dùng binding expression thay vì code-behind khi có thể
+**Đặt tên Region**: `"Tên Tab - Danh mục"` (vd: `"Subtitle Merge - Fields"`)
 
-### Mô Hình WPF
-- Tuân theo mô hình MVVM-lite (không bắt buộc MVVM nghiêm ngặt)
-- Giữ code-behind ở mức tối thiểu
-- Dùng DataBinding để cập nhật giao diện
-- Xử lý ngoại lệ một cách nhẹ nhàng bằng Try-Catch
-- Giải phóng tài nguyên đúng cách (IDisposable)
+**WPF**: Pattern MVVM-lite, code-behind tối thiểu, ưu tiên DataBinding, dispose resources đúng cách
 
-## Xử Lý File
-
-### Xử Lý File Phụ Đề
-- Hỗ trợ các định dạng phổ biến: .srt, .vtt, .ass, .sub
-- Dùng StreamReader/StreamWriter cho I/O file
-- Luôn dùng encoding phù hợp (UTF-8 được ưu tiên)
-- Kiểm tra định dạng file trước khi xử lý
-
-### Quản Lý Tài Nguyên
-- Luôn đóng file handle (dùng khối Using trong VB.NET)
-- Xử lý file lớn bằng streaming, không load toàn bộ file vào bộ nhớ
-
-## Hướng Dẫn UI/UX
-
-### Quản Lý Cửa Sổ
-- Đặt kích thước cửa sổ phù hợp (tối thiểu 800x600 cho cửa sổ chính)
-- Dùng vị trí và kích thước cửa sổ hợp lý
-- Xử lý các thay đổi trạng thái cửa sổ (thu nhỏ, phóng to, khôi phục)
-- Triển khai phím tắt cho các thao tác thường dùng
-
-### Xử Lý Lỗi
-- Hiển thị thông báo lỗi thân thiện bằng MessageBox
-- Ghi log lỗi chi tiết ra file hoặc console
-- Không bao giờ crash khi input không hợp lệ
-- Kiểm tra input của người dùng trước khi xử lý
-
-### Dependencies
-- Giữ các DLL bên ngoài trong thư mục bin/
-- Cập nhật references trong .vbproj khi thêm/bớt dependencies
-
-### Build and push
-- Luôn luôn build sau khi code xong
-- Nếu build mà file đang chạy thì taskkill
-- Sau khi build nếu có error hoặc warning thì tự sửa lỗi đến khi build xong
-- Luôn luôn git push sau khi build xong
+**Encoding file**: Ưu tiên UTF-8, hỗ trợ định dạng .srt/.vtt/.ass/.sub
 
 ---
 
-## ⚠️ QUY TẮC BẮT BUỘC VỀ FILE CODE
+## ⚠️ QUY TẮC BẮT BUỘC VỀ FILE
 
-### 🚫 CẤM TUYỆT ĐỐI: MainWindow.xaml.vb
-- **KHÔNG BAO GIỜ** code vào `MainWindow.xaml.vb`
-- File này chỉ chứa imports và class declaration
-- Mọi thay đổi đều phải code vào file Tab hoặc System tương ứng
+### 🚫 KHÔNG BAO GIỜ code trong `MainWindow.xaml.vb` (chỉ để imports + class declaration)
 
-### 📌 Quy Tắc Nhận Diện Tab Từ User Input
-Khi user nhập lệnh với `@` kèm tên tab (ví dụ: `MainWindowTab*.vb` hoặc `@MainWindowTabDialogueOnly.vb`):
+### 📌 Nhận Diện Tab Từ Input User:
+- `@MainWindowTabDialogueOnly.vb` → Code vào file đó
+- "Tab Karaoke" → Tìm file `MainWindowTabKaraoke*.vb`
+- "Subtitle Merge" → `MainWindowTabSubtitleMerge.vb`
 
-**Nếu tab đã tồn tại:**
-→ Mở file tab đó và code trực tiếp vào file
+**Nếu tab tồn tại** → Mở và code | **Nếu chưa** → Tạo file mới + thêm vào `.vbproj`
 
-**Nếu tab chưa tồn tại:**
-→ Tạo file `MainWindowTab[TênTab].vb` mới
-→ Thêm file vào `.vbproj`
-→ Code vào file mới tạo
+---
 
-**Cách nhận diện tab cần code:**
-- User nói: "Trong tab @MainWindowTabDialogueOnly.vb" → Code vào `MainWindowTabDialogueOnly.vb`
-- User nói: "Tab Karaoke" → Tìm file `MainWindowTabKaraoke*.vb` phù hợp
-- User nói: "Subtitle Merge" → Code vào `MainWindowTabSubtitleMerge.vb`
-- User nói: "Translate" → Code vào `MainWindowTabTranslate.vb`
+## 📝 Quy Tắc Changelog (BẮT BUỘC)
 
-### 📝 Quy Tắc Changelog
-**BẮT BUỘC:** Sau mỗi lần code xong → Ghi changelog vào `changelog.cursorrules`
+**Sau MỖI lần code xong**: Cập nhật `changelog.cursorrules`
 
-**Format changelog:**
+**Định dạng**:
 ```
 ## [YYYY-MM-DD HH:MM:SS AM/PM DayOfWeek]
-
-### Changed
-- [Mô tả thay đổi 1]
-- [Mô tả thay đổi 2]
-
-### Fixed
-- [Bug fix 1]
+### Changed / Fixed
+- [Mô tả thay đổi]
 ```
 
-**Ví dụ:**
-```
-## [2026-04-07 06:00:00 PM Tuesday]
-
-### Changed
-- Sửa workflow rules
-
-## [2026-04-07 05:24:34 PM Tuesday]
-
-### Changed
-- Tách MainWindow.xaml.vb thành 14 files nhỏ
-```
-
-**Quy trình:**
-1. Code xong → Build → Push
-2. Mở `changelog.cursorrules`
-3. **Thêm entry mới ở ĐẦU file (TRÊN CÙNG)** - Ngay sau header
-4. Commit changelog cùng với code changes
-
-**⚠️ Lưu ý quan trọng:**
-- Entry MỚI NHẤT ở ĐẦU file (TRÊN CÙNG) ← Mới code xong
-- Entry CŨ NHẤT ở CUỐI file (DƯỚI CÙNG) ← Code từ lâu
-- LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header)
-- Thứ tự: Từ TRÊN xuống DƯỚI = từ MỚI đến CŨ
+**Quy tắc**:
+- Thêm entry MỚI ở ĐẦU file (sau header)
+- Thứ tự: MỚI nhất ở trên → CŨ nhất ở dưới
+- Commit changelog cùng với code
 
 ---
 
-## 📋 Quick Reference
+## 📋 Tham Khảo Nhanh
 
-### Common Tasks Checklist
+**Pattern đặt tên file**:
+- `MainWindowTab[Tên].vb` = Code tab | `MainWindowSystem[Tên].vb` = Code dùng chung
+- `_[tênTab][Data]` = Fields | `Update[TênTab]Display()` = Methods UI | `ShowToast[TênTab]()` = Notifications
 
-**Thêm Tab mới:**
-- [ ] Tạo file `MainWindowTab[Tên].vb`
-- [ ] Add template structure
-- [ ] Copy Regions từ MainWindow.xaml.vb (nếu có)
-- [ ] Build & test
-- [ ] Update documentation
-
-**Sửa lỗi:**
-- [ ] Xác định tab (nhìn control names)
-- [ ] Mở file tab tương ứng
-- [ ] Sửa lỗi
-- [ ] Build
-- [ ] Test tab đó
-- [ ] Git commit
-
-**Tách file:**
-- [ ] Identify Region cần tách
-- [ ] Tạo file mới
-- [ ] Cut-paste Region
-- [ ] Build
-- [ ] Test
-- [ ] Commit
-
-### File Naming Quick Reference
-
-| Pattern | Example | Purpose |
-|---------|---------|---------|
-| `MainWindowTab[Tên].vb` | `MainWindowTabTranslate.vb` | Tab-specific code |
-| `MainWindowSystem[Tên].vb` | `MainWindowSystemSettings.vb` | Shared system code |
-| `[Control]_[Event]` | `TxtOriginal_TextChanged` | Event handlers |
-| `_[tabName][Data]` | `_mergeLines`, `_isUpdating` | Private fields |
-| `Update[TabName]Display()` | `UpdateMergeDisplays()` | UI update methods |
-| `ShowToast[TabName]()` | `ShowToastMerge()` | Tab notifications |
+**Workflow**: Code → Build → Test → Changelog → Commit → Push
 
 ---
-
-*Workflow version: 2.0 - Optimized for performance and maintainability*
-*Last updated: 2026-04-07*
+*v2.0 | Cập nhật: 2026-04-07*

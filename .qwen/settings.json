@@ -1,12 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(move *)",
-      "Bash(dotnet *)",
-      "Bash(timeout *)",
+      "Bash(powershell *)",
+      "Bash(python *)",
       "Bash(git commit *)",
-      "Bash(findstr *)",
-      "Bash(\"c:\\program files\\microsoft visual studio\\2022\\community\\common7\\ide\\devenv.com\" *)"
+      "Bash(git push)"
     ]
   },
   "$version": 3

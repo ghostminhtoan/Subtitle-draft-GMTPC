@@ -35,6 +35,7 @@ Partial Class MainWindow
         LoadHardwareInfo()
         InitializeDefaultPrompts()
         LoadAllPrompts()
+        InitializeEffectDebounce()
     End Sub
 
 #End Region

@@ -34,7 +34,7 @@ Partial Class MainWindow
         End Try
     End Sub
 
-    Private Sub TxtPrompt_LostFocus(sender As Object, e As RoutedEventArgs) Handles TxtPrompt.LostFocus
+    Private Sub TxtPrompt_LostFocus(sender As Object, e As RoutedEventArgs)
         SaveSettings()
     End Sub
 
