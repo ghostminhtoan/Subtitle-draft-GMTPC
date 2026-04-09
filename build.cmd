@@ -51,4 +51,4 @@ start "" "bin\Debug\Subtitle draft GMTPC.exe"
 
 echo.
 echo Application launched.
-pause
+exit

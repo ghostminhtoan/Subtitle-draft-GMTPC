@@ -13,6 +13,7 @@ namespace Subtitle_draft_GMTPC.Services
     /// 3. Cuối câu: không có ký tự đặc biệt
     /// 4. Tiếng Việt: full word
     /// 5. Tiếng Anh: chia theo âm tiết (không có ∞/♫ giữa các âm tiết)
+    /// 6. Hỗ trợ quy tắc tách từ tùy chỉnh (vd: how/ling → how, ling)
     /// </summary>
     public class KaraokeVietnameseService
     {
@@ -21,7 +22,20 @@ namespace Subtitle_draft_GMTPC.Services
         /// </summary>
         public static string ProcessLyrics(string lyrics)
         {
+            return ProcessLyricsWithSplitRules(lyrics, null);
+        }
+
+        /// <summary>
+        /// Xử lý toàn bộ lời bài hát với quy tắc tách từ tùy chỉnh
+        /// </summary>
+        /// <param name="lyrics">Lời bài hát</param>
+        /// <param name="splitRules">Quy tắc tách từ, mỗi dòng format: word/part1/part2/... (vd: how/ling)</param>
+        public static string ProcessLyricsWithSplitRules(string lyrics, string splitRules)
+        {
             if (string.IsNullOrWhiteSpace(lyrics)) return string.Empty;
+
+            // Parse quy tắc tách từ
+            var customSyllableMap = ParseSplitRules(splitRules);
 
             var sb = new StringBuilder();
             var lines = lyrics.Split(new[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
@@ -31,7 +45,7 @@ namespace Subtitle_draft_GMTPC.Services
                 var line = lines[i].Trim();
                 if (string.IsNullOrEmpty(line)) continue;
 
-                var processedLine = ProcessSingleLine(line);
+                var processedLine = ProcessSingleLine(line, customSyllableMap);
                 sb.AppendLine(processedLine);
             }
 
@@ -39,11 +53,47 @@ namespace Subtitle_draft_GMTPC.Services
         }
 
         /// <summary>
+        /// Parse quy tắc tách từ từ input string
+        /// Format: mỗi dòng "word/part1/part2/..."
+        /// VD: "howling:how/ling" → Dictionary{"howling"} = ["how", "ling"]
+        /// </summary>
+        private static Dictionary<string, string[]> ParseSplitRules(string splitRules)
+        {
+            var result = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+
+            if (string.IsNullOrWhiteSpace(splitRules)) return result;
+
+            var lines = splitRules.Split(new[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var line in lines)
+            {
+                var trimmed = line.Trim();
+                if (string.IsNullOrWhiteSpace(trimmed)) continue;
+
+                // Tách theo dấu ':' để lấy từ gốc và phần tách
+                var colonIndex = trimmed.IndexOf(':');
+                if (colonIndex < 1) continue; // Phải có ít nhất 1 ký tự trước ':'
+
+                var originalWord = trimmed.Substring(0, colonIndex).Trim().ToLowerInvariant();
+                var splitPart = trimmed.Substring(colonIndex + 1).Trim();
+
+                if (string.IsNullOrEmpty(originalWord) || string.IsNullOrEmpty(splitPart)) continue;
+
+                var syllables = splitPart.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                if (syllables.Length < 1) continue;
+
+                result[originalWord] = syllables;
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Xử lý một dòng lời bài hát
         /// Mỗi từ/âm tiết xuống dòng riêng biệt
         /// Đầu mỗi dòng luôn có ∞
         /// </summary>
-        private static string ProcessSingleLine(string line)
+        private static string ProcessSingleLine(string line, Dictionary<string, string[]> customSyllableMap)
         {
             var sb = new StringBuilder();
 
@@ -79,8 +129,20 @@ namespace Subtitle_draft_GMTPC.Services
                 }
                 else
                 {
-                    // Tiếng Anh: chia theo âm tiết
-                    var syllables = SplitEnglishSyllables(word);
+                    // Tiếng Anh: kiểm tra quy tắc tùy chỉnh trước
+                    string[] syllables;
+                    var wordLower = word.ToLowerInvariant();
+
+                    if (customSyllableMap != null && customSyllableMap.TryGetValue(wordLower, out var customSyllables))
+                    {
+                        // Dùng quy tắc tùy chỉnh
+                        syllables = customSyllables;
+                    }
+                    else
+                    {
+                        // Tách theo âm tiết tự động
+                        syllables = SplitEnglishSyllables(word);
+                    }
 
                     for (int s = 0; s < syllables.Length; s++)
                     {

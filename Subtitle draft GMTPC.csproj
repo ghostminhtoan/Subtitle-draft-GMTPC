@@ -134,6 +134,7 @@
     <Compile Include="Services\HardwareInfoService.cs" />
     <Compile Include="Services\KaraokeVietnameseService.cs" />
     <Compile Include="Services\KaraokeMergeService.cs" />
+    <Compile Include="Helpers\SearchManager.cs" />
     <Compile Include="Models\SubtitleFormat.cs" />
     <Compile Include="Models\SubtitleLine.cs" />
     <Compile Include="Models\AssSubtitleLine.cs" />
@@ -157,6 +158,14 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  
+  <!-- Copy word rules folder to output directory -->
+  <ItemGroup>
+    <Content Include="english word rules karaoke\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  
   <ItemGroup>
     <Resource Include="subtitle ico.ico" />
   </ItemGroup>

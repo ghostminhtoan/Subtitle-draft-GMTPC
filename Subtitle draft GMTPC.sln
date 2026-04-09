@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.37027.9 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Subtitle draft GMTPC", "Subtitle draft GMTPC.vbproj", "{B8E9BEE9-F5DB-477A-A185-860710DD292B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subtitle draft GMTPC", "Subtitle draft GMTPC.csproj", "{B8E9BEE9-F5DB-477A-A185-860710DD292B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -400,34 +400,6 @@ namespace Subtitle_draft_GMTPC
 
         #endregion
 
-        #region Effect - Color & Alpha Handlers
-
-        private void BtnEffectPriColor_Click(object sender, RoutedEventArgs e)
-        {
-            ShowEffectConfig("\\1c - Mau loi chinh", Models.AssTagType.PrimaryColor,
-                new[] { Tuple.Create("Hex BGR:", "0000FF", "hex") });
-        }
-
-        private void BtnEffectBordColor_Click(object sender, RoutedEventArgs e)
-        {
-            ShowEffectConfig("\\3c - Mau vien", Models.AssTagType.BorderColor,
-                new[] { Tuple.Create("Hex BGR:", "00FF00", "hex") });
-        }
-
-        private void BtnEffectShadColor_Click(object sender, RoutedEventArgs e)
-        {
-            ShowEffectConfig("\\4c - Mau bong", Models.AssTagType.ShadowColor,
-                new[] { Tuple.Create("Hex BGR:", "000000", "hex") });
-        }
-
-        private void BtnEffectAlpha_Click(object sender, RoutedEventArgs e)
-        {
-            ShowEffectConfig("\\alpha - Do trong suot", Models.AssTagType.Alpha,
-                new[] { Tuple.Create("Alpha (00-FF):", "80", "hex") });
-        }
-
-        #endregion
-
         #region Effect - Fade & Karaoke Handlers
 
         private void BtnEffectFade_Click(object sender, RoutedEventArgs e)

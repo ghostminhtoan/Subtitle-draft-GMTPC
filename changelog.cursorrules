@@ -8,6 +8,49 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-09 12:00:00 PM Thursday]
+
+### Added - Global Search Functionality (Ctrl+F / F3)
+- Thêm chức năng tìm kiếm toàn cục cho TẤT CẢ các tab
+- **Ctrl+F**: Hiện/ẩn thanh tìm kiếm
+- **F3**: Tìm kết quả tiếp theo
+- **Enter**: Tìm kiếm nhanh từ thanh search
+- **Escape**: Đóng thanh tìm kiếm
+- Hỗ trợ tìm kiếm trong cả TextBox và ListBox
+- Case-insensitive search (không phân biệt hoa thường)
+
+### Added - Search Panel UI
+- Thanh tìm kiếm nằm ở trên cùng, ngay phía trên toolbar
+- Gồm: Ô nhập liệu + nút Prev/Next + nút đóng + hiển thị kết quả (ví dụ: "Kết quả: 2/5")
+- Tự động tìm kiếm khi nhập liệu (real-time search)
+- Navigation qua lại giữa các kết quả
+
+### Added - SearchManager Helper
+- `Helpers/SearchManager.cs`: Quản lý tìm kiếm riêng cho mỗi tab (13 SearchManagers)
+- `SearchInTextBox()`: Tìm kiếm và select text trong TextBox
+- `SearchInListBox()`: Tìm kiếm và select item trong ListBox
+- Tự động wrap-around (quay lại đầu khi hết kết quả)
+- Theo dõi vị trí hiện tại và tổng số kết quả
+
+### Changed - MainWindow.xaml
+- Thêm Grid.Row mới cho SearchPanel
+- SearchPanel visibility toggle bằng Ctrl+F
+- Controls: TxtSearchBox, BtnSearchPrev, BtnSearchNext, BtnSearchClose, TxtSearchStatus
+
+### Changed - MainWindowSystemGlobalEvents.cs
+- Thêm 13 SearchManager fields cho từng tab/sub-tab
+- `MainWindow_PreviewKeyDown()`: Global key handler cho Ctrl+F và F3
+- `ToggleSearchBox()`: Show/hide search panel
+- `FindNext()`: Tìm kết quả tiếp theo
+- `PerformSearch()`: Logic tìm kiếm thông minh theo tab hiện tại
+- Tự động xác định TextBox cần tìm dựa vào tab/sub-tab đang active
+- `GetSearchManagerForCurrentTab()`: Lấy SearchManager tương ứng
+
+### Changed - Project Structure
+- `Subtitle draft GMTPC.csproj`: Thêm `Helpers/SearchManager.cs`
+- Build: SUCCESS ✅ (0 errors, 2 warnings - unused fields)
+
+---
 ## [2026-04-08 03:00:00 PM Wednesday]
 
 ### Added - Full C# Project Conversion
