@@ -1345,13 +1345,30 @@
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
 
                                     <Label Grid.Row="0" Content="✂️ Word Split Rules"
                                            Style="{StaticResource SectionLabelStyle}" FontSize="12"/>
 
-                                    <TextBox x:Name="TxtKaraokeEngSplitRules" Grid.Row="1"
+                                    <!-- Buttons row -->
+                                    <WrapPanel Grid.Row="1" Margin="0,0,0,6" Orientation="Horizontal" HorizontalAlignment="Left">
+                                        <Button x:Name="BtnKaraokeEngRulesReset" Content="🔄 Reset"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                Padding="8,4" FontSize="10" Margin="0,0,4,0"
+                                                Click="BtnKaraokeEngRulesReset_Click"/>
+                                        <Button x:Name="BtnKaraokeEngRulesSave" Content="💾 Save"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                Padding="8,4" FontSize="10" Margin="0,0,4,0"
+                                                Click="BtnKaraokeEngRulesSave_Click"/>
+                                        <Button x:Name="BtnKaraokeEngRulesLoad" Content="📂 Load"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                Padding="8,4" FontSize="10" Margin="0,0,4,0"
+                                                Click="BtnKaraokeEngRulesLoad_Click"/>
+                                    </WrapPanel>
+
+                                    <TextBox x:Name="TxtKaraokeEngSplitRules" Grid.Row="2"
                                              Style="{StaticResource DarkTextBoxStyle}"
                                              FontFamily="Consolas" FontSize="13"
                                              AcceptsReturn="True" VerticalScrollBarVisibility="Auto"

@@ -220,6 +220,121 @@ namespace Subtitle_draft_GMTPC
 
         #endregion
 
+        #region Karaoke English - Word Split Rules Buttons
+
+        /// <summary>
+        /// Reset về rules mặc định từ folder
+        /// </summary>
+        private void BtnKaraokeEngRulesReset_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                LoadKaraokeEngSplitRules();
+                ShowToastKaraokeEng("🔄 Reset về rules mặc định!");
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi reset: " + ex.Message, "Lỗi", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Save rules vào file .txt
+        /// </summary>
+        private void BtnKaraokeEngRulesSave_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var saveDialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
+                    DefaultExt = "txt",
+                    FileName = "word-split-rules.txt",
+                    Title = "Lưu Word Split Rules"
+                };
+
+                if (saveDialog.ShowDialog() == true)
+                {
+                    File.WriteAllText(saveDialog.FileName, TxtKaraokeEngSplitRules.Text, System.Text.Encoding.UTF8);
+                    ShowToastKaraokeEng("💾 Đã lưu rules!");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi lưu: " + ex.Message, "Lỗi", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Load rules - Hiện menu chọn Load Default hoặc Load from File
+        /// </summary>
+        private void BtnKaraokeEngRulesLoad_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Tạo context menu với 2 lựa chọn
+                var contextMenu = new ContextMenu();
+
+                // Option 1: Load Default
+                var loadDefaultItem = new MenuItem { Header = "🔄 Load Default (từ thư mục app)" };
+                loadDefaultItem.Click += (s, args) =>
+                {
+                    try
+                    {
+                        LoadKaraokeEngSplitRules();
+                        ShowToastKaraokeEng("🔄 Đã load rules mặc định!");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Windows.MessageBox.Show("Lỗi load default: " + ex.Message, "Lỗi", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                    }
+                };
+                contextMenu.Items.Add(loadDefaultItem);
+
+                // Option 2: Load from File
+                var loadFileItem = new MenuItem { Header = "📂 Load from File (.txt)" };
+                loadFileItem.Click += (s, args) =>
+                {
+                    try
+                    {
+                        var openDialog = new Microsoft.Win32.OpenFileDialog
+                        {
+                            Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
+                            DefaultExt = "txt",
+                            Title = "Chọn file Word Split Rules"
+                        };
+
+                        if (openDialog.ShowDialog() == true)
+                        {
+                            var content = File.ReadAllText(openDialog.FileName, System.Text.Encoding.UTF8);
+                            _isKaraokeEngUpdating = true;
+                            TxtKaraokeEngSplitRules.Text = content;
+                            _isKaraokeEngUpdating = false;
+                            _pendingKaraokeEngRules = content;
+                            ProcessKaraokeEngInput();
+                            ShowToastKaraokeEng("📂 Đã load rules từ file!");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Windows.MessageBox.Show("Lỗi load file: " + ex.Message, "Lỗi", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                    }
+                };
+                contextMenu.Items.Add(loadFileItem);
+
+                // Hiển thị menu
+                contextMenu.IsOpen = true;
+                contextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+                contextMenu.PlacementTarget = BtnKaraokeEngRulesLoad;
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        #endregion
+
         #region Karaoke English - Copy Button
 
         private void BtnCopyKaraokeEng_Click(object sender, RoutedEventArgs e)

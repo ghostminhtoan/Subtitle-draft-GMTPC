@@ -8,6 +8,43 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-09 12:30:00 PM Thursday]
+
+### Fixed - Search Behavior
+- Bỏ real-time search khi TextChanged
+- Enter lần đầu: Tìm từ kết quả đầu tiên
+- Enter nhiều lần: Tiếp tục tìm kết quả tiếp theo, không bị reset
+- Tự động reset search khi text thay đổi
+- F3 vẫn hoạt động để tìm kết quả tiếp theo
+
+### Added - Word Split Rules Buttons (Karaoke English)
+- Thêm 3 nút trong panel Word Split Rules: 🔄 Reset, 💾 Save, 📂 Load
+- **Reset**: Load lại rules mặc định từ thư mục app
+- **Save**: Browse chọn nơi lưu file .txt
+- **Load**: Context menu với 2 tùy chọn:
+  - 🔄 Load Default: Từ thư mục app
+  - 📂 Load from File: Browse chọn file .txt
+- Toast notification cho mỗi thao tác
+
+### Changed - MainWindow.xaml
+- Thêm RowDefinition cho buttons row trong panel Word Split Rules
+- WrapPanel chứa 3 nút Reset/Save/Load
+
+### Changed - MainWindowTabKaraokeEnglish.cs
+- `BtnKaraokeEngRulesReset_Click`: Reset về rules mặc định
+- `BtnKaraokeEngRulesSave_Click`: SaveFileDialog lưu .txt
+- `BtnKaraokeEngRulesLoad_Click`: ContextMenu với Load Default/Load from File
+- Xử lý encoding UTF-8 khi save/load
+
+### Changed - MainWindowSystemGlobalEvents.cs
+- Thêm field `_lastSearchText` để track text thay đổi
+- `PerformSearch()`: Reset SearchManager khi text thay đổi
+- `TxtSearchBox_KeyDown()`: Enter luôn tìm tiếp, không reset
+
+### Build Result
+- **Build**: SUCCESS ✅ (0 errors, 0 warnings)
+
+---
 ## [2026-04-09 12:00:00 PM Thursday]
 
 ### Added - Global Search Functionality (Ctrl+F / F3)
