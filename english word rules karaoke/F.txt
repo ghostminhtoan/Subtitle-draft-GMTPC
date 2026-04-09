@@ -1213,7 +1213,7 @@ footnote:foot/no/te
 footpads:foot/pads
 footpath:foot/path
 footplate:footpl/ate
-footprint:footprint
+footprint:foot/print
 footrace:footra/ce
 footrest:footrest
 footsie:foot/sie

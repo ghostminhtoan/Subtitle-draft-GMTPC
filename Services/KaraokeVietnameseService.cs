@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -56,6 +57,7 @@ namespace Subtitle_draft_GMTPC.Services
         /// Parse quy tắc tách từ từ input string
         /// Format: mỗi dòng "word/part1/part2/..."
         /// VD: "howling:how/ling" → Dictionary{"howling"} = ["how", "ling"]
+        /// Lưu: key là lowercase để so khớp case-insensitive, nhưng syllables giữ nguyên case từ rule
         /// </summary>
         private static Dictionary<string, string[]> ParseSplitRules(string splitRules)
         {
@@ -74,7 +76,7 @@ namespace Subtitle_draft_GMTPC.Services
                 var colonIndex = trimmed.IndexOf(':');
                 if (colonIndex < 1) continue; // Phải có ít nhất 1 ký tự trước ':'
 
-                var originalWord = trimmed.Substring(0, colonIndex).Trim().ToLowerInvariant();
+                var originalWord = trimmed.Substring(0, colonIndex).Trim();
                 var splitPart = trimmed.Substring(colonIndex + 1).Trim();
 
                 if (string.IsNullOrEmpty(originalWord) || string.IsNullOrEmpty(splitPart)) continue;
@@ -82,7 +84,61 @@ namespace Subtitle_draft_GMTPC.Services
                 var syllables = splitPart.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
                 if (syllables.Length < 1) continue;
 
-                result[originalWord] = syllables;
+                // Lưu key là lowercase để so khớp case-insensitive
+                result[originalWord.ToLowerInvariant()] = syllables;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Điều chỉnh case của syllables theo case của input word
+        /// VD: input="HOWLING", rule="how/ling" → output="HOW/LING"
+        /// VD: input="Howling", rule="how/ling" → output="How/ling"
+        /// VD: input="howling", rule="HOW/LING" → output="how/ling"
+        /// </summary>
+        private static string[] AdjustSyllableCase(string[] syllables, string inputWord)
+        {
+            if (syllables == null || syllables.Length == 0) return syllables;
+
+            var result = new string[syllables.Length];
+
+            // Kiểm tra xem input word có phải ALL CAPS không
+            bool isAllUpper = inputWord.All(char.IsUpper) && inputWord.Any(char.IsLetter);
+            bool isAllLower = inputWord.All(char.IsLower) && inputWord.Any(char.IsLetter);
+            bool isTitleCase = char.IsUpper(inputWord[0]) && inputWord.Substring(1).All(c => !char.IsLetter(c) || char.IsLower(c));
+
+            for (int i = 0; i < syllables.Length; i++)
+            {
+                var syl = syllables[i];
+
+                if (isAllUpper)
+                {
+                    // Input ALL CAPS → syllables cũng ALL CAPS
+                    result[i] = syl.ToUpperInvariant();
+                }
+                else if (isAllLower)
+                {
+                    // Input lowercase → syllables cũng lowercase
+                    result[i] = syl.ToLowerInvariant();
+                }
+                else if (isTitleCase && i == 0)
+                {
+                    // Title Case → syllable đầu viết hoa
+                    if (syl.Length > 0)
+                    {
+                        result[i] = char.ToUpper(syl[0]) + syl.Substring(1).ToLowerInvariant();
+                    }
+                    else
+                    {
+                        result[i] = syl;
+                    }
+                }
+                else
+                {
+                    // Mixed case hoặc syllable không phải đầu → giữ nguyên từ rule
+                    result[i] = syl;
+                }
             }
 
             return result;
@@ -135,8 +191,8 @@ namespace Subtitle_draft_GMTPC.Services
 
                     if (customSyllableMap != null && customSyllableMap.TryGetValue(wordLower, out var customSyllables))
                     {
-                        // Dùng quy tắc tùy chỉnh
-                        syllables = customSyllables;
+                        // Dùng quy tắc tùy chỉnh - ADJUST CASE theo input word
+                        syllables = AdjustSyllableCase(customSyllables, word);
                     }
                     else
                     {
