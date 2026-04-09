@@ -218,17 +218,8 @@ namespace Subtitle_draft_GMTPC
     private void TxtSearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         _currentSearchText = TxtSearchBox.Text;
-        _currentSearchBox = null; // Reset để tìm kiếm mới
-        
-        // Tự động tìm khi có text
-        if (!string.IsNullOrWhiteSpace(_currentSearchText))
-        {
-            PerformSearch(findNext: false);
-        }
-        else
-        {
-            TxtSearchStatus.Text = "";
-        }
+        // Không tự động tìm, đợi Enter
+        TxtSearchStatus.Text = "";
     }
 
     /// <summary>
@@ -239,7 +230,14 @@ namespace Subtitle_draft_GMTPC
         if (e.Key == Key.Enter)
         {
             e.Handled = true;
-            PerformSearch(findNext: true);
+            _currentSearchText = TxtSearchBox.Text;
+            
+            // Nếu text thay đổi, tìm từ đầu; ngược lại tìm tiếp
+            var sm = GetSearchManagerForCurrentTab();
+            bool isNewSearch = (sm == null || sm.MatchCount == 0 || 
+                               _currentSearchText != GetLastSearchText());
+            
+            PerformSearch(findNext: !isNewSearch);
         }
         else if (e.Key == Key.Escape)
         {
@@ -247,6 +245,9 @@ namespace Subtitle_draft_GMTPC
             SearchPanel.Visibility = Visibility.Collapsed;
         }
     }
+
+    private string _lastSearchText = "";
+    private string GetLastSearchText() => _lastSearchText;
 
     /// <summary>
     /// Previous button click
@@ -504,6 +505,7 @@ namespace Subtitle_draft_GMTPC
             // Update status
             if (found)
             {
+                _lastSearchText = _currentSearchText;
                 var sm = GetSearchManagerForCurrentTab();
                 if (sm != null)
                 {
