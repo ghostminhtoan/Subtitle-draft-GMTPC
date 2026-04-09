@@ -322,10 +322,12 @@ namespace Subtitle_draft_GMTPC
                 };
                 contextMenu.Items.Add(loadFileItem);
 
-                // Hiển thị menu
-                contextMenu.IsOpen = true;
+                // Hiển thị menu ngay dưới nút Load
                 contextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
                 contextMenu.PlacementTarget = BtnKaraokeEngRulesLoad;
+                contextMenu.HorizontalOffset = 0;
+                contextMenu.VerticalOffset = 0;
+                contextMenu.IsOpen = true;
             }
             catch (Exception ex)
             {

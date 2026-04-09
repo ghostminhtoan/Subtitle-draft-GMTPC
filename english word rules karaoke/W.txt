@@ -660,7 +660,7 @@ whistler:whistl/er
 whistling:whistl/ing
 whit:whit
 whitaker:whi/tak/er
-white:whi/te
+white:white
 whitebait:whi/te/bait
 whiteboard:whi/te/board
 whitecap:whi/te/cap

@@ -8,6 +8,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-09 12:45:00 PM Thursday]
+
+### Fixed - Context Menu Placement
+- Sửa vị trí context menu Load xuất hiện ngay dưới nút Load
+- Thêm HorizontalOffset và VerticalOffset = 0
+- Không còn hiện xa tít mù khơi nữa 😄
+
+---
 ## [2026-04-09 12:30:00 PM Thursday]
 
 ### Fixed - Search Behavior
