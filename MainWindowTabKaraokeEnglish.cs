@@ -5,7 +5,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using Subtitle_draft_GMTPC.Models;
 using Subtitle_draft_GMTPC.Services;
 
@@ -17,7 +16,7 @@ namespace Subtitle_draft_GMTPC
 
         private bool _isKaraokeEngUpdating = false;
         private string _pendingKaraokeEngRules;
-        private string _karaokeEngRulesDirectory;
+        private string _wordListFilePath;
 
         #endregion
 
@@ -27,96 +26,13 @@ namespace Subtitle_draft_GMTPC
         {
             try
             {
-                _karaokeEngRulesDirectory = FindWordRulesDirectory();
-
-                if (_karaokeEngRulesDirectory == null || !Directory.Exists(_karaokeEngRulesDirectory))
-                {
-                    _pendingKaraokeEngRules = "";
-                    return;
-                }
-
-                var ruleFiles = new List<string>();
-                for (char c = 'A'; c <= 'Z'; c++)
-                {
-                    var fileName = $"{c}.txt";
-                    var filePath = Path.Combine(_karaokeEngRulesDirectory, fileName);
-                    if (File.Exists(filePath))
-                        ruleFiles.Add(filePath);
-                }
-
-                if (ruleFiles.Count == 0)
-                {
-                    _pendingKaraokeEngRules = "";
-                    return;
-                }
-
-                var allRules = new List<string>();
-                foreach (var file in ruleFiles)
-                {
-                    try
-                    {
-                        var content = File.ReadAllText(file);
-                        var rules = ExtractRulesFromParens(content);
-                        allRules.AddRange(rules);
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Lỗi đọc file {file}: {ex.Message}");
-                    }
-                }
-
-                _pendingKaraokeEngRules = string.Join(Environment.NewLine, allRules);
+                // Lấy rules từ hardcoded string
+                _pendingKaraokeEngRules = WordListRules.DefaultRules;
             }
             catch (Exception ex)
             {
                 _pendingKaraokeEngRules = "";
             }
-        }
-
-        private List<string> ExtractRulesFromParens(string content)
-        {
-            var rules = new List<string>();
-            var matches = System.Text.RegularExpressions.Regex.Matches(content, @"\(([^)]+)\)");
-            foreach (System.Text.RegularExpressions.Match match in matches)
-            {
-                rules.Add(match.Groups[1].Value);
-            }
-            return rules.Count > 0 ? rules : new List<string> { content };
-        }
-
-        private string FindWordRulesDirectory()
-        {
-            var folderName = "english word rules karaoke";
-
-            var appDir = AppDomain.CurrentDomain.BaseDirectory;
-            var candidateDir = Path.Combine(appDir, folderName);
-            if (Directory.Exists(candidateDir)) return candidateDir;
-
-            var currentPath = appDir.TrimEnd('\\', '/');
-            for (int i = 0; i < 5; i++)
-            {
-                var parentPath = Path.GetDirectoryName(currentPath);
-                if (string.IsNullOrEmpty(parentPath)) break;
-                candidateDir = Path.Combine(parentPath, folderName);
-                if (Directory.Exists(candidateDir)) return candidateDir;
-                currentPath = parentPath;
-            }
-
-            var workDir = Environment.CurrentDirectory;
-            candidateDir = Path.Combine(workDir, folderName);
-            if (Directory.Exists(candidateDir)) return candidateDir;
-
-            currentPath = workDir.TrimEnd('\\', '/');
-            for (int i = 0; i < 5; i++)
-            {
-                var parentPath = Path.GetDirectoryName(currentPath);
-                if (string.IsNullOrEmpty(parentPath)) break;
-                candidateDir = Path.Combine(parentPath, folderName);
-                if (Directory.Exists(candidateDir)) return candidateDir;
-                currentPath = parentPath;
-            }
-
-            return null;
         }
 
         #endregion
@@ -179,38 +95,46 @@ namespace Subtitle_draft_GMTPC
         #region Karaoke English - Open Word List
 
         /// <summary>
-        /// Mở thư mục chứa word split rules bằng Explorer
+        /// Export hardcoded rules to file và mở bằng Notepad
         /// </summary>
         private void BtnOpenWordList_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                if (_karaokeEngRulesDirectory == null || !Directory.Exists(_karaokeEngRulesDirectory))
-                {
-                    LoadKaraokeEngSplitRules();
-                    if (_karaokeEngRulesDirectory == null || !Directory.Exists(_karaokeEngRulesDirectory))
-                    {
-                        var exeDir = AppDomain.CurrentDomain.BaseDirectory;
-                        var expectedDir = Path.Combine(exeDir, "english word rules karaoke");
-                        
-                        System.Windows.MessageBox.Show(
-                            $"Không tìm thấy thư mục 'english word rules karaoke'.\n\n" +
-                            $"Vui lòng copy thư mục này vào cùng thư mục chứa file exe:\n" +
-                            $"Expected: {expectedDir}\n\n" +
-                            $"Thư mục này chứa file A-Z.txt với rules tách từ tiếng Anh.",
-                            "Thiếu Word List Rules",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Warning);
-                        return;
-                    }
-                }
+                // Tạo file tạm trong thư mục app
+                var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                _wordListFilePath = Path.Combine(appDir, "word list rules.txt");
 
-                Process.Start("explorer.exe", $"\"{_karaokeEngRulesDirectory}\"");
-                ShowToastKaraokeEng("📂 Đã mở thư mục Word List!");
+                // Export rules từ hardcoded string ra file
+                File.WriteAllText(_wordListFilePath, WordListRules.DefaultRules);
+
+                // Mở file bằng Notepad
+                Process.Start("notepad.exe", $"\"{_wordListFilePath}\"");
+                ShowToastKaraokeEng("📂 Đã mở Word List trong Notepad!");
             }
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Reload rules từ file đã chỉnh sửa
+        /// </summary>
+        private void ReloadWordListRules()
+        {
+            try
+            {
+                if (_wordListFilePath != null && File.Exists(_wordListFilePath))
+                {
+                    _pendingKaraokeEngRules = File.ReadAllText(_wordListFilePath);
+                    ProcessKaraokeEngInput();
+                    ShowToastKaraokeEng("🔄 Đã reload rules từ file!");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi reload: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

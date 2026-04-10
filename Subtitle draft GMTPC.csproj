@@ -134,6 +134,7 @@
     <Compile Include="Services\HardwareInfoService.cs" />
     <Compile Include="Services\KaraokeVietnameseService.cs" />
     <Compile Include="Services\KaraokeMergeService.cs" />
+    <Compile Include="Services\WordListRules.cs" />
     <Compile Include="Helpers\SearchManager.cs" />
     <Compile Include="Models\SubtitleFormat.cs" />
     <Compile Include="Models\SubtitleLine.cs" />
