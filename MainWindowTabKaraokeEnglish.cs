@@ -167,22 +167,6 @@ namespace Subtitle_draft_GMTPC
             // Lưu rules pending và debounce để xử lý
             _pendingKaraokeEngRules = TxtKaraokeEngSplitRules.Text;
 
-            // Nếu đang có search text, tìm lại với nội dung mới
-            if (!string.IsNullOrWhiteSpace(_rulesSearchText))
-            {
-                FindAllRuleSearchMatches();
-                if (_rulesSearchPositions.Count > 0)
-                {
-                    _rulesSearchIndex = 0;
-                    SelectRuleSearchMatch(0);
-                    ShowToastKaraokeEng($"🔍 {_rulesSearchPositions.Count} kết quả cho '{_rulesSearchText}'");
-                }
-                else
-                {
-                    ShowToastKaraokeEng($"❌ Không tìm thấy '{_rulesSearchText}'");
-                }
-            }
-
             if (_karaokeEngRulesDebounceTimer == null)
             {
                 _karaokeEngRulesDebounceTimer = new DispatcherTimer();
@@ -251,16 +235,47 @@ namespace Subtitle_draft_GMTPC
         #region Karaoke English - Word Split Rules Search
 
         /// <summary>
-        /// Search text changed - tự động tìm kiếm
+        /// Search text changed - KHÔNG auto-search, chỉ lưu text
         /// </summary>
         private void TxtKaraokeEngRulesSearch_TextChanged(object sender, TextChangedEventArgs e)
         {
             _rulesSearchText = TxtKaraokeEngRulesSearch.Text;
+            // Không auto-search, đợi Enter hoặc nút Prev/Next
+        }
+
+        /// <summary>
+        /// Search key down - Enter để tìm kiếm
+        /// </summary>
+        private void TxtKaraokeEngRulesSearch_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                PerformRuleSearch();
+            }
+            else if (e.Key == Key.Escape)
+            {
+                e.Handled = true;
+                TxtKaraokeEngRulesSearch.Text = "";
+                _rulesSearchText = "";
+                _rulesSearchPositions.Clear();
+                TxtKaraokeEngSplitRules.Focus();
+            }
+        }
+
+        /// <summary>
+        /// Thực hiện tìm kiếm
+        /// </summary>
+        private void PerformRuleSearch()
+        {
+            if (string.IsNullOrWhiteSpace(_rulesSearchText))
+            {
+                _rulesSearchPositions.Clear();
+                return;
+            }
+
             _rulesSearchIndex = -1;
             _rulesSearchPositions.Clear();
-
-            if (string.IsNullOrWhiteSpace(_rulesSearchText))
-                return;
 
             // Tìm tất cả vị trí
             FindAllRuleSearchMatches();
@@ -279,36 +294,16 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Search key down - Enter để tìm tiếp, Escape để xóa
-        /// </summary>
-        private void TxtKaraokeEngRulesSearch_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                e.Handled = true;
-                // Tìm kết quả tiếp theo
-                if (_rulesSearchPositions.Count > 0)
-                {
-                    _rulesSearchIndex++;
-                    if (_rulesSearchIndex >= _rulesSearchPositions.Count)
-                        _rulesSearchIndex = 0; // Wrap around
-                    SelectRuleSearchMatch(_rulesSearchIndex);
-                }
-            }
-            else if (e.Key == Key.Escape)
-            {
-                e.Handled = true;
-                TxtKaraokeEngRulesSearch.Text = "";
-                TxtKaraokeEngSplitRules.Focus();
-            }
-        }
-
-        /// <summary>
         /// Tìm previous match
         /// </summary>
         private void BtnKaraokeEngRulesSearchPrev_Click(object sender, RoutedEventArgs e)
         {
-            if (_rulesSearchPositions.Count == 0) return;
+            // Nếu chưa search, thực hiện search trước
+            if (_rulesSearchPositions.Count == 0)
+            {
+                PerformRuleSearch();
+                return;
+            }
 
             _rulesSearchIndex--;
             if (_rulesSearchIndex < 0)
@@ -322,7 +317,12 @@ namespace Subtitle_draft_GMTPC
         /// </summary>
         private void BtnKaraokeEngRulesSearchNext_Click(object sender, RoutedEventArgs e)
         {
-            if (_rulesSearchPositions.Count == 0) return;
+            // Nếu chưa search, thực hiện search trước
+            if (_rulesSearchPositions.Count == 0)
+            {
+                PerformRuleSearch();
+                return;
+            }
 
             _rulesSearchIndex++;
             if (_rulesSearchIndex >= _rulesSearchPositions.Count)
@@ -399,27 +399,14 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Tìm lại sau khi load/reset rules - Delay để đảm bảo TextBox đã update
+        /// Tìm lại sau khi load/reset rules - Đơn giản, không dùng Dispatcher
         /// </summary>
         private void ReapplySearchAfterLoad()
         {
             if (string.IsNullOrWhiteSpace(_rulesSearchText)) return;
 
-            // Delay 50ms để đảm bảo TextBox đã update xong
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                FindAllRuleSearchMatches();
-                if (_rulesSearchPositions.Count > 0)
-                {
-                    _rulesSearchIndex = 0;
-                    SelectRuleSearchMatch(0);
-                    ShowToastKaraokeEng($"🔍 {_rulesSearchPositions.Count} kết quả cho '{_rulesSearchText}'");
-                }
-                else
-                {
-                    ShowToastKaraokeEng($"❌ Không tìm thấy '{_rulesSearchText}'");
-                }
-            }), System.Windows.Threading.DispatcherPriority.Background);
+            // Reset và tìm lại
+            PerformRuleSearch();
         }
 
         #endregion
