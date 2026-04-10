@@ -246,6 +246,7 @@ namespace Subtitle_draft_GMTPC
             // Select kết quả đầu tiên
             if (_rulesSearchPositions.Count > 0)
             {
+                _rulesSearchIndex = 0;
                 SelectRuleSearchMatch(0);
             }
         }
@@ -326,14 +327,14 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Select và scroll đến match
+        /// Select và scroll đến match - KHÔNG focus để tránh nhảy cursor
         /// </summary>
         private void SelectRuleSearchMatch(int index)
         {
             if (index < 0 || index >= _rulesSearchPositions.Count) return;
 
             int pos = _rulesSearchPositions[index];
-            TxtKaraokeEngSplitRules.Focus();
+            // Chỉ select text, KHÔNG focus để tránh nhảy cursor
             TxtKaraokeEngSplitRules.Select(pos, _rulesSearchText.Length);
             TxtKaraokeEngSplitRules.ScrollToLine(GetLineFromPosition(TxtKaraokeEngSplitRules.Text, pos));
         }

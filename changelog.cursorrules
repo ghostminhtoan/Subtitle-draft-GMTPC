@@ -8,6 +8,15 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-09 01:30:00 PM Thursday]
+
+### Fixed - Word Split Rules Search Issues
+- **Không còn jump cursor**: Bỏ `Focus()` trong `SelectRuleSearchMatch()`
+- Chỉ `Select()` text để highlight, không focus TextBox rules
+- Cursor không bị nhảy lung tung khi search
+- Set `_rulesSearchIndex = 0` khi tìm thấy kết quả đầu tiên
+
+---
 ## [2026-04-09 01:15:00 PM Thursday]
 
 ### Added - Word Split Rules Search
