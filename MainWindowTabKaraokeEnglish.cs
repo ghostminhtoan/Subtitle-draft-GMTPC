@@ -13,7 +13,6 @@ namespace Subtitle_draft_GMTPC
 {
     public partial class MainWindow : Window
     {
-
         #region Karaoke English - Fields
 
         private bool _isKaraokeEngUpdating = false;
@@ -25,7 +24,6 @@ namespace Subtitle_draft_GMTPC
         private int _rulesSearchIndex = -1;
         private string _rulesSearchText = "";
         private List<int> _rulesSearchPositions = new List<int>();
-        private DispatcherTimer _rulesSearchDebounceTimer;
 
         #endregion
 
@@ -38,7 +36,6 @@ namespace Subtitle_draft_GMTPC
         {
             try
             {
-                // Tìm thư mục chứa word rules - thử nhiều vị trí khác nhau
                 _karaokeEngRulesDirectory = FindWordRulesDirectory();
 
                 if (_karaokeEngRulesDirectory == null || !Directory.Exists(_karaokeEngRulesDirectory))
@@ -47,16 +44,13 @@ namespace Subtitle_draft_GMTPC
                     return;
                 }
 
-                // Tìm tất cả file A-Z.txt
                 var ruleFiles = new List<string>();
                 for (char c = 'A'; c <= 'Z'; c++)
                 {
                     var fileName = $"{c}.txt";
                     var filePath = Path.Combine(_karaokeEngRulesDirectory, fileName);
                     if (File.Exists(filePath))
-                    {
                         ruleFiles.Add(filePath);
-                    }
                 }
 
                 if (ruleFiles.Count == 0)
@@ -65,18 +59,19 @@ namespace Subtitle_draft_GMTPC
                     return;
                 }
 
-                // Gộp nội dung tất cả file
                 var allRules = new List<string>();
                 foreach (var file in ruleFiles)
                 {
                     try
                     {
-                        var lines = File.ReadAllLines(file);
-                        allRules.AddRange(lines);
+                        var content = File.ReadAllText(file);
+                        // Format mới: (word:part1/part2), (word2:part1/part2)
+                        // Xóa (), và dấu phẩy, mỗi rule xuống dòng
+                        var rules = ExtractRulesFromParens(content);
+                        allRules.AddRange(rules);
                     }
                     catch (Exception ex)
                     {
-                        // Bỏ qua file không đọc được
                         System.Diagnostics.Debug.WriteLine($"Lỗi đọc file {file}: {ex.Message}");
                     }
                 }
@@ -85,11 +80,9 @@ namespace Subtitle_draft_GMTPC
                 TxtKaraokeEngSplitRules.Text = string.Join(Environment.NewLine, allRules);
                 _isKaraokeEngUpdating = false;
                 _pendingKaraokeEngRules = TxtKaraokeEngSplitRules.Text;
-                
-                // Thêm handler cho Ctrl+F và F3 trong rules TextBox
+
                 TxtKaraokeEngSplitRules.PreviewKeyDown += TxtKaraokeEngSplitRules_PreviewKeyDown;
-                
-                // Nếu đang có search text, tìm lại
+
                 ReapplySearchAfterLoad();
             }
             catch (Exception ex)
@@ -97,13 +90,26 @@ namespace Subtitle_draft_GMTPC
                 TxtKaraokeEngSplitRules.Text = $"// Lỗi load rules: {ex.Message}";
             }
         }
-        
+
+        /// <summary>
+        /// Trích xuất rules từ format: (word:part1/part2), (word2:part1/part2)
+        /// </summary>
+        private List<string> ExtractRulesFromParens(string content)
+        {
+            var rules = new List<string>();
+            var matches = System.Text.RegularExpressions.Regex.Matches(content, @"\(([^)]+)\)");
+            foreach (System.Text.RegularExpressions.Match match in matches)
+            {
+                rules.Add(match.Groups[1].Value);
+            }
+            return rules.Count > 0 ? rules : new List<string> { content };
+        }
+
         /// <summary>
         /// Handler cho Ctrl+F và F3 khi focus trong rules TextBox
         /// </summary>
         private void TxtKaraokeEngSplitRules_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            // Ctrl+F: focus vào search box
             if (e.Key == Key.F && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
             {
                 e.Handled = true;
@@ -111,19 +117,14 @@ namespace Subtitle_draft_GMTPC
                 TxtKaraokeEngRulesSearch.SelectAll();
                 return;
             }
-            
-            // F3: tìm tiếp
+
             if (e.Key == Key.F3)
             {
                 e.Handled = true;
                 if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
-                {
                     SearchPrev();
-                }
                 else
-                {
                     SearchNext();
-                }
                 return;
             }
         }
@@ -134,50 +135,32 @@ namespace Subtitle_draft_GMTPC
         private string FindWordRulesDirectory()
         {
             var folderName = "english word rules karaoke";
-            
-            // Cách 1: Tìm từ thư mục executable
+
             var appDir = AppDomain.CurrentDomain.BaseDirectory;
             var candidateDir = Path.Combine(appDir, folderName);
-            if (Directory.Exists(candidateDir))
-            {
-                return candidateDir;
-            }
+            if (Directory.Exists(candidateDir)) return candidateDir;
 
-            // Cách 2: Đi lên các thư mục cha từ executable (tối đa 5 cấp)
             var currentPath = appDir.TrimEnd('\\', '/');
             for (int i = 0; i < 5; i++)
             {
                 var parentPath = Path.GetDirectoryName(currentPath);
                 if (string.IsNullOrEmpty(parentPath)) break;
-                
                 candidateDir = Path.Combine(parentPath, folderName);
-                if (Directory.Exists(candidateDir))
-                {
-                    return candidateDir;
-                }
+                if (Directory.Exists(candidateDir)) return candidateDir;
                 currentPath = parentPath;
             }
 
-            // Cách 3: Tìm từ thư mục làm việc hiện tại
             var workDir = Environment.CurrentDirectory;
             candidateDir = Path.Combine(workDir, folderName);
-            if (Directory.Exists(candidateDir))
-            {
-                return candidateDir;
-            }
+            if (Directory.Exists(candidateDir)) return candidateDir;
 
-            // Cách 4: Đi lên các thư mục cha từ working directory
             currentPath = workDir.TrimEnd('\\', '/');
             for (int i = 0; i < 5; i++)
             {
                 var parentPath = Path.GetDirectoryName(currentPath);
                 if (string.IsNullOrEmpty(parentPath)) break;
-                
                 candidateDir = Path.Combine(parentPath, folderName);
-                if (Directory.Exists(candidateDir))
-                {
-                    return candidateDir;
-                }
+                if (Directory.Exists(candidateDir)) return candidateDir;
                 currentPath = parentPath;
             }
 
@@ -198,7 +181,6 @@ namespace Subtitle_draft_GMTPC
         {
             if (_isKaraokeEngUpdating) return;
 
-            // Lưu rules pending và debounce để xử lý
             _pendingKaraokeEngRules = TxtKaraokeEngSplitRules.Text;
 
             if (_karaokeEngRulesDebounceTimer == null)
@@ -236,7 +218,6 @@ namespace Subtitle_draft_GMTPC
                 var lines = content.Split(new[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                 TxtKaraokeEngCount.Text = string.Format("({0} lines)", lines.Length);
 
-                // Xử lý karaoke English với quy tắc tách từ tùy chỉnh
                 var splitRules = _pendingKaraokeEngRules ?? TxtKaraokeEngSplitRules.Text;
                 var karaokeResult = KaraokeVietnameseService.ProcessLyricsWithSplitRules(content, splitRules);
                 TxtKaraokeEngOutput.Text = karaokeResult;
@@ -268,78 +249,28 @@ namespace Subtitle_draft_GMTPC
 
         #region Karaoke English - Word Split Rules Search
 
-        /// <summary>
-        /// Search text changed - Debounce 300ms rồi auto-search
-        /// </summary>
         private void TxtKaraokeEngRulesSearch_TextChanged(object sender, TextChangedEventArgs e)
         {
             _rulesSearchText = TxtKaraokeEngRulesSearch.Text;
-            
-            // Stop timer cũ
-            if (_rulesSearchDebounceTimer != null)
-                _rulesSearchDebounceTimer.Stop();
-            
-            // Nếu trống, clear
-            if (string.IsNullOrWhiteSpace(_rulesSearchText))
-            {
-                _rulesSearchPositions.Clear();
-                _rulesSearchIndex = -1;
-                return;
-            }
-            
-            // Tạo timer mới nếu chưa có
-            if (_rulesSearchDebounceTimer == null)
-            {
-                _rulesSearchDebounceTimer = new DispatcherTimer
-                {
-                    Interval = TimeSpan.FromMilliseconds(300)
-                };
-                _rulesSearchDebounceTimer.Tick += RulesSearchTimer_Tick;
-            }
-            
-            // Start timer - sau 300ms sẽ search
-            _rulesSearchDebounceTimer.Start();
-        }
-        
-        /// <summary>
-        /// Timer tick - thực hiện search
-        /// </summary>
-        private void RulesSearchTimer_Tick(object sender, EventArgs e)
-        {
-            _rulesSearchDebounceTimer.Stop();
-            PerformRuleSearch();
         }
 
-        /// <summary>
-        /// Search key down - Enter/F3 tìm tới, Shift+Enter/Shift+F3 tìm ngược
-        /// </summary>
         private void TxtKaraokeEngRulesSearch_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
                 e.Handled = true;
                 if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
-                {
-                    // Shift+Enter: tìm ngược
                     SearchPrev();
-                }
                 else
-                {
-                    // Enter: tìm tới
-                    PerformRuleSearch();
-                }
+                    PerformRuleSearchAndHighlightAll();
             }
             else if (e.Key == Key.F3)
             {
                 e.Handled = true;
                 if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
-                {
                     SearchPrev();
-                }
                 else
-                {
                     SearchNext();
-                }
             }
             else if (e.Key == Key.Escape)
             {
@@ -348,49 +279,12 @@ namespace Subtitle_draft_GMTPC
                 _rulesSearchText = "";
                 _rulesSearchPositions.Clear();
                 _rulesSearchIndex = -1;
+                TxtKaraokeEngSplitRules.SelectionStart = 0;
+                TxtKaraokeEngSplitRules.SelectionLength = 0;
             }
-        }
-        
-        /// <summary>
-        /// Tìm match trước đó
-        /// </summary>
-        private void SearchPrev()
-        {
-            if (_rulesSearchPositions.Count == 0)
-            {
-                PerformRuleSearch();
-                return;
-            }
-            
-            _rulesSearchIndex--;
-            if (_rulesSearchIndex < 0)
-                _rulesSearchIndex = _rulesSearchPositions.Count - 1;
-            
-            SelectRuleSearchMatch(_rulesSearchIndex);
-        }
-        
-        /// <summary>
-        /// Tìm match tiếp theo
-        /// </summary>
-        private void SearchNext()
-        {
-            if (_rulesSearchPositions.Count == 0)
-            {
-                PerformRuleSearch();
-                return;
-            }
-            
-            _rulesSearchIndex++;
-            if (_rulesSearchIndex >= _rulesSearchPositions.Count)
-                _rulesSearchIndex = 0;
-            
-            SelectRuleSearchMatch(_rulesSearchIndex);
         }
 
-        /// <summary>
-        /// Thực hiện tìm kiếm
-        /// </summary>
-        private void PerformRuleSearch()
+        private void PerformRuleSearchAndHighlightAll()
         {
             if (string.IsNullOrWhiteSpace(_rulesSearchText) || TxtKaraokeEngSplitRules == null)
             {
@@ -398,7 +292,7 @@ namespace Subtitle_draft_GMTPC
                 _rulesSearchIndex = -1;
                 return;
             }
-            
+
             var content = TxtKaraokeEngSplitRules.Text;
             if (string.IsNullOrWhiteSpace(content))
             {
@@ -407,7 +301,6 @@ namespace Subtitle_draft_GMTPC
                 return;
             }
 
-            // Tìm tất cả vị trí
             _rulesSearchPositions.Clear();
             var lowerContent = content.ToLowerInvariant();
             var lowerSearch = _rulesSearchText.ToLowerInvariant();
@@ -419,7 +312,6 @@ namespace Subtitle_draft_GMTPC
                 startIndex += _rulesSearchText.Length;
             }
 
-            // Chọn match đầu tiên
             if (_rulesSearchPositions.Count > 0)
             {
                 _rulesSearchIndex = 0;
@@ -433,71 +325,52 @@ namespace Subtitle_draft_GMTPC
             }
         }
 
-        /// <summary>
-        /// Tìm previous match
-        /// </summary>
-        private void BtnKaraokeEngRulesSearchPrev_Click(object sender, RoutedEventArgs e)
+        private void SearchPrev()
         {
-            SearchPrev();
+            if (_rulesSearchPositions.Count == 0) { PerformRuleSearchAndHighlightAll(); return; }
+            _rulesSearchIndex--;
+            if (_rulesSearchIndex < 0) _rulesSearchIndex = _rulesSearchPositions.Count - 1;
+            SelectRuleSearchMatch(_rulesSearchIndex);
         }
 
-        /// <summary>
-        /// Tìm next match
-        /// </summary>
-        private void BtnKaraokeEngRulesSearchNext_Click(object sender, RoutedEventArgs e)
+        private void SearchNext()
         {
-            SearchNext();
+            if (_rulesSearchPositions.Count == 0) { PerformRuleSearchAndHighlightAll(); return; }
+            _rulesSearchIndex++;
+            if (_rulesSearchIndex >= _rulesSearchPositions.Count) _rulesSearchIndex = 0;
+            SelectRuleSearchMatch(_rulesSearchIndex);
         }
 
-        /// <summary>
-        /// Select và scroll đến match - KHÔNG focus rules TextBox
-        /// </summary>
+        private void BtnKaraokeEngRulesSearchPrev_Click(object sender, RoutedEventArgs e) => SearchPrev();
+        private void BtnKaraokeEngRulesSearchNext_Click(object sender, RoutedEventArgs e) => SearchNext();
+
         private void SelectRuleSearchMatch(int index)
         {
             if (index < 0 || index >= _rulesSearchPositions.Count) return;
-
             int pos = _rulesSearchPositions[index];
-            
-            // Select text trong rules TextBox - KHÔNG focus
             TxtKaraokeEngSplitRules.SelectionStart = pos;
             TxtKaraokeEngSplitRules.SelectionLength = _rulesSearchText.Length;
-            
-            // Scroll đến dòng chứa match
-            int line = GetLineFromPosition(TxtKaraokeEngSplitRules.Text, pos);
-            TxtKaraokeEngSplitRules.ScrollToLine(line);
-            
-            // GIỮ focus ở search box - không nhảy cursor
+            TxtKaraokeEngSplitRules.ScrollToLine(GetLineFromPosition(TxtKaraokeEngSplitRules.Text, pos));
         }
 
-        /// <summary>
-        /// Tính số dòng từ vị trí character
-        /// </summary>
         private int GetLineFromPosition(string text, int position)
         {
             int line = 0;
             for (int i = 0; i < position && i < text.Length; i++)
-            {
                 if (text[i] == '\n') line++;
-            }
             return line;
         }
 
-        /// <summary>
-        /// Tìm lại sau khi load/reset rules
-        /// </summary>
         private void ReapplySearchAfterLoad()
         {
             if (string.IsNullOrWhiteSpace(_rulesSearchText)) return;
-            PerformRuleSearch();
+            PerformRuleSearchAndHighlightAll();
         }
 
         #endregion
 
         #region Karaoke English - Word Split Rules Buttons
 
-        /// <summary>
-        /// Reset về rules mặc định từ folder
-        /// </summary>
         private void BtnKaraokeEngRulesReset_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -511,9 +384,6 @@ namespace Subtitle_draft_GMTPC
             }
         }
 
-        /// <summary>
-        /// Save rules vào file .txt
-        /// </summary>
         private void BtnKaraokeEngRulesSave_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -538,17 +408,12 @@ namespace Subtitle_draft_GMTPC
             }
         }
 
-        /// <summary>
-        /// Load rules - Hiện menu chọn Load Default hoặc Load from File
-        /// </summary>
         private void BtnKaraokeEngRulesLoad_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // Tạo context menu với 2 lựa chọn
                 var contextMenu = new ContextMenu();
 
-                // Option 1: Load Default
                 var loadDefaultItem = new MenuItem { Header = "🔄 Load Default (từ thư mục app)" };
                 loadDefaultItem.Click += (s, args) =>
                 {
@@ -564,7 +429,6 @@ namespace Subtitle_draft_GMTPC
                 };
                 contextMenu.Items.Add(loadDefaultItem);
 
-                // Option 2: Load from File
                 var loadFileItem = new MenuItem { Header = "📂 Load from File (.txt)" };
                 loadFileItem.Click += (s, args) =>
                 {
@@ -580,15 +444,13 @@ namespace Subtitle_draft_GMTPC
                         if (openDialog.ShowDialog() == true)
                         {
                             var content = File.ReadAllText(openDialog.FileName, System.Text.Encoding.UTF8);
+                            var rules = ExtractRulesFromParens(content);
                             _isKaraokeEngUpdating = true;
-                            TxtKaraokeEngSplitRules.Text = content;
+                            TxtKaraokeEngSplitRules.Text = string.Join(Environment.NewLine, rules);
                             _isKaraokeEngUpdating = false;
-                            _pendingKaraokeEngRules = content;
+                            _pendingKaraokeEngRules = TxtKaraokeEngSplitRules.Text;
                             ProcessKaraokeEngInput();
-                            
-                            // Tìm lại nếu có search text
                             ReapplySearchAfterLoad();
-                            
                             ShowToastKaraokeEng("📂 Đã load rules từ file!");
                         }
                     }
@@ -599,7 +461,6 @@ namespace Subtitle_draft_GMTPC
                 };
                 contextMenu.Items.Add(loadFileItem);
 
-                // Hiển thị menu ngay dưới nút Load
                 contextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
                 contextMenu.PlacementTarget = BtnKaraokeEngRulesLoad;
                 contextMenu.HorizontalOffset = 0;
