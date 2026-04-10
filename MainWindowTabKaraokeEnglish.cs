@@ -243,11 +243,16 @@ namespace Subtitle_draft_GMTPC
             // Tìm tất cả vị trí
             FindAllRuleSearchMatches();
 
-            // Select kết quả đầu tiên
+            // Hiển thị kết quả
             if (_rulesSearchPositions.Count > 0)
             {
                 _rulesSearchIndex = 0;
                 SelectRuleSearchMatch(0);
+                ShowToastKaraokeEng($"🔍 {_rulesSearchPositions.Count} kết quả cho '{_rulesSearchText}'");
+            }
+            else
+            {
+                ShowToastKaraokeEng($"❌ Không tìm thấy '{_rulesSearchText}'");
             }
         }
 
@@ -327,16 +332,30 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Select và scroll đến match - KHÔNG focus để tránh nhảy cursor
+        /// Select và scroll đến match - Highlight bằng cách focus tạm thời
         /// </summary>
         private void SelectRuleSearchMatch(int index)
         {
             if (index < 0 || index >= _rulesSearchPositions.Count) return;
 
             int pos = _rulesSearchPositions[index];
-            // Chỉ select text, KHÔNG focus để tránh nhảy cursor
+            
+            // Focus để highlight, scroll đến dòng
+            TxtKaraokeEngSplitRules.Focus();
             TxtKaraokeEngSplitRules.Select(pos, _rulesSearchText.Length);
             TxtKaraokeEngSplitRules.ScrollToLine(GetLineFromPosition(TxtKaraokeEngSplitRules.Text, pos));
+            
+            // Focus lại search box sau 100ms để người dùng tiếp tục search
+            System.Windows.Threading.DispatcherTimer restoreFocusTimer = new System.Windows.Threading.DispatcherTimer();
+            restoreFocusTimer.Interval = TimeSpan.FromMilliseconds(100);
+            restoreFocusTimer.Tick += (s, e) =>
+            {
+                restoreFocusTimer.Stop();
+                TxtKaraokeEngRulesSearch.Focus();
+                // Đặt cursor ở cuối text trong search box
+                TxtKaraokeEngRulesSearch.CaretIndex = TxtKaraokeEngRulesSearch.Text.Length;
+            };
+            restoreFocusTimer.Start();
         }
 
         /// <summary>
