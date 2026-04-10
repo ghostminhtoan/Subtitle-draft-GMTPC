@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Subtitle_draft_GMTPC.Models;
@@ -19,6 +20,11 @@ namespace Subtitle_draft_GMTPC
         private DispatcherTimer _karaokeEngRulesDebounceTimer;
         private string _pendingKaraokeEngRules;
         private string _karaokeEngRulesDirectory;
+
+        // Search fields cho Word Split Rules
+        private int _rulesSearchIndex = -1;
+        private string _rulesSearchText = "";
+        private List<int> _rulesSearchPositions = new List<int>();
 
         #endregion
 
@@ -216,6 +222,133 @@ namespace Subtitle_draft_GMTPC
             ToastBorderKaraokeEng.Visibility = Visibility.Visible;
             await Task.Delay(2000);
             ToastBorderKaraokeEng.Visibility = Visibility.Collapsed;
+        }
+
+        #endregion
+
+        #region Karaoke English - Word Split Rules Search
+
+        /// <summary>
+        /// Search text changed - tự động tìm kiếm
+        /// </summary>
+        private void TxtKaraokeEngRulesSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _rulesSearchText = TxtKaraokeEngRulesSearch.Text;
+            _rulesSearchIndex = -1;
+            _rulesSearchPositions.Clear();
+
+            if (string.IsNullOrWhiteSpace(_rulesSearchText))
+                return;
+
+            // Tìm tất cả vị trí
+            FindAllRuleSearchMatches();
+
+            // Select kết quả đầu tiên
+            if (_rulesSearchPositions.Count > 0)
+            {
+                SelectRuleSearchMatch(0);
+            }
+        }
+
+        /// <summary>
+        /// Search key down - Enter để tìm tiếp, Escape để xóa
+        /// </summary>
+        private void TxtKaraokeEngRulesSearch_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                // Tìm kết quả tiếp theo
+                if (_rulesSearchPositions.Count > 0)
+                {
+                    _rulesSearchIndex++;
+                    if (_rulesSearchIndex >= _rulesSearchPositions.Count)
+                        _rulesSearchIndex = 0; // Wrap around
+                    SelectRuleSearchMatch(_rulesSearchIndex);
+                }
+            }
+            else if (e.Key == Key.Escape)
+            {
+                e.Handled = true;
+                TxtKaraokeEngRulesSearch.Text = "";
+                TxtKaraokeEngSplitRules.Focus();
+            }
+        }
+
+        /// <summary>
+        /// Tìm previous match
+        /// </summary>
+        private void BtnKaraokeEngRulesSearchPrev_Click(object sender, RoutedEventArgs e)
+        {
+            if (_rulesSearchPositions.Count == 0) return;
+
+            _rulesSearchIndex--;
+            if (_rulesSearchIndex < 0)
+                _rulesSearchIndex = _rulesSearchPositions.Count - 1;
+
+            SelectRuleSearchMatch(_rulesSearchIndex);
+        }
+
+        /// <summary>
+        /// Tìm next match
+        /// </summary>
+        private void BtnKaraokeEngRulesSearchNext_Click(object sender, RoutedEventArgs e)
+        {
+            if (_rulesSearchPositions.Count == 0) return;
+
+            _rulesSearchIndex++;
+            if (_rulesSearchIndex >= _rulesSearchPositions.Count)
+                _rulesSearchIndex = 0;
+
+            SelectRuleSearchMatch(_rulesSearchIndex);
+        }
+
+        /// <summary>
+        /// Tìm tất cả vị trí xuất hiện của search text
+        /// </summary>
+        private void FindAllRuleSearchMatches()
+        {
+            if (string.IsNullOrWhiteSpace(_rulesSearchText) || TxtKaraokeEngSplitRules == null)
+                return;
+
+            var content = TxtKaraokeEngSplitRules.Text ?? "";
+            var lowerContent = content.ToLower();
+            var lowerSearch = _rulesSearchText.ToLower();
+
+            _rulesSearchPositions.Clear();
+            int startIndex = 0;
+
+            while ((startIndex = lowerContent.IndexOf(lowerSearch, startIndex)) != -1)
+            {
+                _rulesSearchPositions.Add(startIndex);
+                startIndex += _rulesSearchText.Length;
+            }
+        }
+
+        /// <summary>
+        /// Select và scroll đến match
+        /// </summary>
+        private void SelectRuleSearchMatch(int index)
+        {
+            if (index < 0 || index >= _rulesSearchPositions.Count) return;
+
+            int pos = _rulesSearchPositions[index];
+            TxtKaraokeEngSplitRules.Focus();
+            TxtKaraokeEngSplitRules.Select(pos, _rulesSearchText.Length);
+            TxtKaraokeEngSplitRules.ScrollToLine(GetLineFromPosition(TxtKaraokeEngSplitRules.Text, pos));
+        }
+
+        /// <summary>
+        /// Tính số dòng từ vị trí character
+        /// </summary>
+        private int GetLineFromPosition(string text, int position)
+        {
+            int line = 0;
+            for (int i = 0; i < position && i < text.Length; i++)
+            {
+                if (text[i] == '\n') line++;
+            }
+            return line;
         }
 
         #endregion

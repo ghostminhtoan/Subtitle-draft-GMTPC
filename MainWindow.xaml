@@ -1346,6 +1346,7 @@
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
 
@@ -1353,7 +1354,7 @@
                                            Style="{StaticResource SectionLabelStyle}" FontSize="12"/>
 
                                     <!-- Buttons row -->
-                                    <WrapPanel Grid.Row="1" Margin="0,0,0,6" Orientation="Horizontal" HorizontalAlignment="Left">
+                                    <WrapPanel Grid.Row="1" Margin="0,0,0,4" Orientation="Horizontal" HorizontalAlignment="Left">
                                         <Button x:Name="BtnKaraokeEngRulesReset" Content="🔄 Reset"
                                                 Style="{StaticResource AccentButtonStyle}"
                                                 Padding="8,4" FontSize="10" Margin="0,0,4,0"
@@ -1368,7 +1369,29 @@
                                                 Click="BtnKaraokeEngRulesLoad_Click"/>
                                     </WrapPanel>
 
-                                    <TextBox x:Name="TxtKaraokeEngSplitRules" Grid.Row="2"
+                                    <!-- Search row -->
+                                    <Grid Grid.Row="2" Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="TxtKaraokeEngRulesSearch" Grid.Column="0"
+                                                 Background="#2D2D2D" Foreground="#E0E0E0" BorderBrush="#404040"
+                                                 BorderThickness="1" Padding="4,2" FontSize="11" FontFamily="Consolas"
+                                                 TextChanged="TxtKaraokeEngRulesSearch_TextChanged"
+                                                 KeyDown="TxtKaraokeEngRulesSearch_KeyDown"/>
+                                        <Button x:Name="BtnKaraokeEngRulesSearchPrev" Grid.Column="1" Content="◀"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                Padding="6,2" FontSize="10" Margin="4,0,0,0"
+                                                Click="BtnKaraokeEngRulesSearchPrev_Click"/>
+                                        <Button x:Name="BtnKaraokeEngRulesSearchNext" Grid.Column="2" Content="▶"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                Padding="6,2" FontSize="10" Margin="4,0,0,0"
+                                                Click="BtnKaraokeEngRulesSearchNext_Click"/>
+                                    </Grid>
+
+                                    <TextBox x:Name="TxtKaraokeEngSplitRules" Grid.Row="3"
                                              Style="{StaticResource DarkTextBoxStyle}"
                                              FontFamily="Consolas" FontSize="13"
                                              AcceptsReturn="True" VerticalScrollBarVisibility="Auto"

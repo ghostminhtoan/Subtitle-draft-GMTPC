@@ -8,6 +8,35 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-09 01:15:00 PM Thursday]
+
+### Added - Word Split Rules Search
+- Thêm ô tìm kiếm trong panel Word Split Rules
+- TextBox search + 2 nút ◀ Prev / ▶ Next
+- **Auto-search**: Tìm ngay khi nhập liệu
+- **Enter**: Tìm kết quả tiếp theo (wrap-around)
+- **Escape**: Xóa search text và focus về TextBox rules
+- Case-insensitive search
+- Auto-select và scroll đến kết quả
+
+### Changed - MainWindow.xaml
+- Thêm RowDefinition cho search row trong Word Split Rules panel
+- Grid chứa: TxtKaraokeEngRulesSearch + BtnSearchPrev + BtnSearchNext
+
+### Changed - MainWindowTabKaraokeEnglish.cs
+- Thêm search fields: `_rulesSearchIndex`, `_rulesSearchText`, `_rulesSearchPositions`
+- `TxtKaraokeEngRulesSearch_TextChanged`: Auto-search khi nhập
+- `TxtKaraokeEngRulesSearch_KeyDown`: Enter/Escape handling
+- `BtnKaraokeEngRulesSearchPrev/Next_Click`: Navigation
+- `FindAllRuleSearchMatches()`: Tìm tất cả vị trí
+- `SelectRuleSearchMatch()`: Select và scroll đến match
+- `GetLineFromPosition()`: Tính số dòng từ character position
+- Thêm `using System.Windows.Input;`
+
+### Build Result
+- **Build**: SUCCESS ✅ (0 errors, 2 warnings - unused fields)
+
+---
 ## [2026-04-09 01:00:00 PM Thursday]
 
 ### Fixed - Word Split Rules Case Sensitivity
