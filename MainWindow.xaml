@@ -1277,7 +1277,6 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
                             <!-- PANEL 1: Input Lyrics -->
@@ -1322,85 +1321,32 @@
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="*"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
                                     <Label Grid.Row="0" Content="✏️ Editable (Modify)" Style="{StaticResource SectionLabelStyle}"/>
 
-                                    <TextBox x:Name="TxtKaraokeEngEditable" Grid.Row="1"
+                                    <Button x:Name="BtnOpenWordList" Grid.Row="1" Content="📂 Open Word List (Edit in Notepad)"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            HorizontalAlignment="Left" Margin="0,0,0,8" Padding="12,6" FontSize="11"
+                                            Click="BtnOpenWordList_Click"/>
+
+                                    <TextBox x:Name="TxtKaraokeEngEditable" Grid.Row="2"
                                              Style="{StaticResource DarkTextBoxStyle}"
                                              FontSize="14"
                                              PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
-                                    <Button x:Name="BtnCopyKaraokeEng" Grid.Row="2" Content="📋 Copy Karaoke"
+                                    <Button x:Name="BtnCopyKaraokeEng" Grid.Row="3" Content="📋 Copy Karaoke"
                                             Style="{StaticResource AccentButtonStyle}"
                                             HorizontalAlignment="Right" Margin="0,8,0,0"
                                             Click="BtnCopyKaraokeEng_Click"/>
                                 </Grid>
                             </Border>
 
-                            <!-- PANEL 4: Word Split Rules -->
-                            <Border Grid.Row="0" Grid.Column="3" Style="{StaticResource PanelBorderStyle}">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-
-                                    <Label Grid.Row="0" Content="✂️ Word Split Rules"
-                                           Style="{StaticResource SectionLabelStyle}" FontSize="12"/>
-
-                                    <!-- Buttons row -->
-                                    <WrapPanel Grid.Row="1" Margin="0,0,0,4" Orientation="Horizontal" HorizontalAlignment="Left">
-                                        <Button x:Name="BtnKaraokeEngRulesReset" Content="🔄 Reset"
-                                                Style="{StaticResource AccentButtonStyle}"
-                                                Padding="8,4" FontSize="10" Margin="0,0,4,0"
-                                                Click="BtnKaraokeEngRulesReset_Click"/>
-                                        <Button x:Name="BtnKaraokeEngRulesSave" Content="💾 Save"
-                                                Style="{StaticResource AccentButtonStyle}"
-                                                Padding="8,4" FontSize="10" Margin="0,0,4,0"
-                                                Click="BtnKaraokeEngRulesSave_Click"/>
-                                        <Button x:Name="BtnKaraokeEngRulesLoad" Content="📂 Load"
-                                                Style="{StaticResource AccentButtonStyle}"
-                                                Padding="8,4" FontSize="10" Margin="0,0,4,0"
-                                                Click="BtnKaraokeEngRulesLoad_Click"/>
-                                    </WrapPanel>
-
-                                    <!-- Search row -->
-                                    <Grid Grid.Row="2" Margin="0,0,0,4">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBox x:Name="TxtKaraokeEngRulesSearch" Grid.Column="0"
-                                                 Background="#2D2D2D" Foreground="#E0E0E0" BorderBrush="#404040"
-                                                 BorderThickness="1" Padding="4,2" FontSize="11" FontFamily="Consolas"
-                                                 TextChanged="TxtKaraokeEngRulesSearch_TextChanged"
-                                                 KeyDown="TxtKaraokeEngRulesSearch_KeyDown"/>
-                                        <Button x:Name="BtnKaraokeEngRulesSearchPrev" Grid.Column="1" Content="◀"
-                                                Style="{StaticResource AccentButtonStyle}"
-                                                Padding="6,2" FontSize="10" Margin="4,0,0,0"
-                                                Click="BtnKaraokeEngRulesSearchPrev_Click"/>
-                                        <Button x:Name="BtnKaraokeEngRulesSearchNext" Grid.Column="2" Content="▶"
-                                                Style="{StaticResource AccentButtonStyle}"
-                                                Padding="6,2" FontSize="10" Margin="4,0,0,0"
-                                                Click="BtnKaraokeEngRulesSearchNext_Click"/>
-                                    </Grid>
-
-                                    <TextBox x:Name="TxtKaraokeEngSplitRules" Grid.Row="3"
-                                             Style="{StaticResource DarkTextBoxStyle}"
-                                             FontFamily="Consolas" FontSize="13"
-                                             AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
-                                             TextChanged="TxtKaraokeEngSplitRules_TextChanged"/>
-                                </Grid>
-                            </Border>
-
                             <!-- Footer: Author info - Karaoke English -->
-                            <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4"
+                            <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
                                     Background="#1A1A1A" BorderBrush="#3E3E42" BorderThickness="0,1,0,0"
                                     Padding="12,8">
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -1412,7 +1358,7 @@
                             </Border>
 
                             <!-- Toast Notification -->
-                            <Border x:Name="ToastBorderKaraokeEng" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4"
+                            <Border x:Name="ToastBorderKaraokeEng" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
                                     HorizontalAlignment="Center" VerticalAlignment="Top"
                                     Visibility="Collapsed" Style="{StaticResource ToastBorderStyle}"
                                     Margin="0,20,0,0" MinWidth="300" MaxWidth="500">
