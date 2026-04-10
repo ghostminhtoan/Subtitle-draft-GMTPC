@@ -17,6 +17,7 @@ namespace Subtitle_draft_GMTPC
         private bool _isKaraokeEngUpdating = false;
         private string _pendingKaraokeEngRules;
         private string _wordListFilePath;
+        private FileSystemWatcher _wordListWatcher;
 
         #endregion
 
@@ -26,13 +27,60 @@ namespace Subtitle_draft_GMTPC
         {
             try
             {
-                // Lấy rules từ hardcoded string
                 _pendingKaraokeEngRules = WordListRules.DefaultRules;
+                
+                // Setup file watcher cho word list rules
+                SetupWordListWatcher();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 _pendingKaraokeEngRules = "";
             }
+        }
+
+        /// <summary>
+        /// Theo dõi file word list rules để tự động reload khi có thay đổi
+        /// </summary>
+        private void SetupWordListWatcher()
+        {
+            try
+            {
+                var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                _wordListFilePath = Path.Combine(appDir, "word list rules.txt");
+
+                var dir = Path.GetDirectoryName(_wordListFilePath);
+                var file = Path.GetFileName(_wordListFilePath);
+
+                if (Directory.Exists(dir))
+                {
+                    _wordListWatcher = new FileSystemWatcher(dir, file);
+                    _wordListWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size;
+                    _wordListWatcher.Changed += WordListFile_Changed;
+                    _wordListWatcher.EnableRaisingEvents = true;
+                }
+            }
+            catch
+            {
+                // Bỏ qua nếu không setup được watcher
+            }
+        }
+
+        private void WordListFile_Changed(object sender, FileSystemEventArgs e)
+        {
+            // Reload rules từ file khi có thay đổi
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                try
+                {
+                    if (File.Exists(_wordListFilePath))
+                    {
+                        _pendingKaraokeEngRules = File.ReadAllText(_wordListFilePath);
+                        ProcessKaraokeEngInput();
+                        ShowToastKaraokeEng("🔄 Auto-reloaded rules từ file!");
+                    }
+                }
+                catch { }
+            }));
         }
 
         #endregion
@@ -92,20 +140,19 @@ namespace Subtitle_draft_GMTPC
 
         #endregion
 
-        #region Karaoke English - Open Word List
+        #region Karaoke English - Word List Buttons
 
         /// <summary>
-        /// Export hardcoded rules to file và mở bằng Notepad
+        /// Open: Export rules ra file và mở bằng Notepad
         /// </summary>
         private void BtnOpenWordList_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // Tạo file tạm trong thư mục app
                 var appDir = AppDomain.CurrentDomain.BaseDirectory;
                 _wordListFilePath = Path.Combine(appDir, "word list rules.txt");
 
-                // Export rules từ hardcoded string ra file
+                // Export rules ra file
                 File.WriteAllText(_wordListFilePath, WordListRules.DefaultRules);
 
                 // Mở file bằng Notepad
@@ -119,22 +166,91 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Reload rules từ file đã chỉnh sửa
+        /// Edit: Mở file word list rules.txt đã tồn tại
         /// </summary>
-        private void ReloadWordListRules()
+        private void BtnEditWordList_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                if (_wordListFilePath != null && File.Exists(_wordListFilePath))
+                var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                _wordListFilePath = Path.Combine(appDir, "word list rules.txt");
+
+                if (!File.Exists(_wordListFilePath))
                 {
-                    _pendingKaraokeEngRules = File.ReadAllText(_wordListFilePath);
-                    ProcessKaraokeEngInput();
-                    ShowToastKaraokeEng("🔄 Đã reload rules từ file!");
+                    // Nếu chưa có file, tạo mới từ embedded rules
+                    File.WriteAllText(_wordListFilePath, WordListRules.DefaultRules);
+                    ShowToastKaraokeEng("📄 Đã tạo file Word List mới!");
+                }
+
+                // Mở file bằng Notepad
+                Process.Start("notepad.exe", $"\"{_wordListFilePath}\"");
+                ShowToastKaraokeEng("✏️ Đang mở Word List để chỉnh sửa!");
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Save: Lưu rules hiện tại vào file do user chọn
+        /// </summary>
+        private void BtnSaveWordList_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var saveDialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
+                    DefaultExt = "txt",
+                    FileName = "word list rules.txt",
+                    Title = "Lưu Word List Rules"
+                };
+
+                if (saveDialog.ShowDialog() == true)
+                {
+                    var rulesToSave = _pendingKaraokeEngRules ?? WordListRules.DefaultRules;
+                    File.WriteAllText(saveDialog.FileName, rulesToSave);
+                    ShowToastKaraokeEng("💾 Đã lưu rules!");
                 }
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show("Lỗi reload: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show("Lỗi lưu: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Load: Load rules từ file do user chọn
+        /// </summary>
+        private void BtnLoadWordList_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var openDialog = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
+                    DefaultExt = "txt",
+                    Title = "Chọn file Word List Rules"
+                };
+
+                if (openDialog.ShowDialog() == true)
+                {
+                    var content = File.ReadAllText(openDialog.FileName);
+                    _pendingKaraokeEngRules = content;
+                    
+                    // Lưu vào file word list rules.txt để watcher theo dõi
+                    var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                    _wordListFilePath = Path.Combine(appDir, "word list rules.txt");
+                    File.WriteAllText(_wordListFilePath, content);
+                    
+                    ProcessKaraokeEngInput();
+                    ShowToastKaraokeEng("📂 Đã load rules từ file!");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi load: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

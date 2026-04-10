@@ -1328,10 +1328,25 @@
 
                                     <Label Grid.Row="0" Content="✏️ Editable (Modify)" Style="{StaticResource SectionLabelStyle}"/>
 
-                                    <Button x:Name="BtnOpenWordList" Grid.Row="1" Content="📂 Open Word List (Edit in Notepad)"
-                                            Style="{StaticResource AccentButtonStyle}"
-                                            HorizontalAlignment="Left" Margin="0,0,0,8" Padding="12,6" FontSize="11"
-                                            Click="BtnOpenWordList_Click"/>
+                                    <!-- Buttons row -->
+                                    <WrapPanel Grid.Row="1" Margin="0,0,0,8" Orientation="Horizontal" HorizontalAlignment="Left">
+                                        <Button x:Name="BtnOpenWordList" Content="📂 Open Word List"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                Padding="10,5" FontSize="10" Margin="0,0,4,0"
+                                                Click="BtnOpenWordList_Click"/>
+                                        <Button x:Name="BtnEditWordList" Content="✏️ Edit Word List"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                Padding="10,5" FontSize="10" Margin="0,0,4,0"
+                                                Click="BtnEditWordList_Click"/>
+                                        <Button x:Name="BtnSaveWordList" Content="💾 Save"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                Padding="10,5" FontSize="10" Margin="0,0,4,0"
+                                                Click="BtnSaveWordList_Click"/>
+                                        <Button x:Name="BtnLoadWordList" Content="📂 Load"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                Padding="10,5" FontSize="10" Margin="0,0,4,0"
+                                                Click="BtnLoadWordList_Click"/>
+                                    </WrapPanel>
 
                                     <TextBox x:Name="TxtKaraokeEngEditable" Grid.Row="2"
                                              Style="{StaticResource DarkTextBoxStyle}"
