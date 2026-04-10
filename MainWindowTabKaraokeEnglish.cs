@@ -332,14 +332,19 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Tìm tất cả vị trí xuất hiện của search text
+        /// Tìm tất cả vị trí xuất hiện của search text - Luôn dùng content mới nhất từ TextBox
         /// </summary>
         private void FindAllRuleSearchMatches()
         {
-            if (string.IsNullOrWhiteSpace(_rulesSearchText) || TxtKaraokeEngSplitRules == null)
-                return;
-
-            var content = TxtKaraokeEngSplitRules.Text ?? "";
+            if (string.IsNullOrWhiteSpace(_rulesSearchText)) return;
+            
+            // Đảm bảo TextBox có dữ liệu
+            if (TxtKaraokeEngSplitRules == null) return;
+            
+            // Force lấy text mới nhất từ TextBox
+            var content = TxtKaraokeEngSplitRules.Text;
+            if (string.IsNullOrWhiteSpace(content)) return;
+            
             var lowerContent = content.ToLower();
             var lowerSearch = _rulesSearchText.ToLower();
 
@@ -394,23 +399,27 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Tìm lại sau khi load/reset rules
+        /// Tìm lại sau khi load/reset rules - Delay để đảm bảo TextBox đã update
         /// </summary>
         private void ReapplySearchAfterLoad()
         {
             if (string.IsNullOrWhiteSpace(_rulesSearchText)) return;
 
-            FindAllRuleSearchMatches();
-            if (_rulesSearchPositions.Count > 0)
+            // Delay 50ms để đảm bảo TextBox đã update xong
+            Dispatcher.BeginInvoke(new Action(() =>
             {
-                _rulesSearchIndex = 0;
-                SelectRuleSearchMatch(0);
-                ShowToastKaraokeEng($"🔍 {_rulesSearchPositions.Count} kết quả cho '{_rulesSearchText}'");
-            }
-            else
-            {
-                ShowToastKaraokeEng($"❌ Không tìm thấy '{_rulesSearchText}'");
-            }
+                FindAllRuleSearchMatches();
+                if (_rulesSearchPositions.Count > 0)
+                {
+                    _rulesSearchIndex = 0;
+                    SelectRuleSearchMatch(0);
+                    ShowToastKaraokeEng($"🔍 {_rulesSearchPositions.Count} kết quả cho '{_rulesSearchText}'");
+                }
+                else
+                {
+                    ShowToastKaraokeEng($"❌ Không tìm thấy '{_rulesSearchText}'");
+                }
+            }), System.Windows.Threading.DispatcherPriority.Background);
         }
 
         #endregion
