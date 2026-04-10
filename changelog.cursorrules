@@ -8,6 +8,16 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-09 02:00:00 PM Thursday]
+
+### Fixed - Word Split Rules Search Reapply
+- **Search tự động reaply** khi rules thay đổi (TextChanged event)
+- **Search hoạt động sau Load/Reset**: Thêm `ReapplySearchAfterLoad()`
+- Load file .txt xong → tự động tìm lại với search text hiện tại
+- Reset rules → tự động tìm lại
+- LoadKaraokeEngSplitRules: Set `_isKaraokeEngUpdating = true` để tránh trigger TextChanged loop
+
+---
 ## [2026-04-09 01:45:00 PM Thursday]
 
 ### Fixed - Word Split Rules Search Highlight

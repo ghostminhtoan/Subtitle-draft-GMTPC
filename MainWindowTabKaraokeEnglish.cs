@@ -39,7 +39,7 @@ namespace Subtitle_draft_GMTPC
             {
                 // Tìm thư mục chứa word rules - thử nhiều vị trí khác nhau
                 _karaokeEngRulesDirectory = FindWordRulesDirectory();
-                
+
                 if (_karaokeEngRulesDirectory == null || !Directory.Exists(_karaokeEngRulesDirectory))
                 {
                     TxtKaraokeEngSplitRules.Text = "// Không tìm thấy thư mục 'english word rules karaoke'\n// Vui lòng đảm bảo folder này tồn tại trong thư mục ứng dụng";
@@ -80,7 +80,13 @@ namespace Subtitle_draft_GMTPC
                     }
                 }
 
+                _isKaraokeEngUpdating = true;
                 TxtKaraokeEngSplitRules.Text = string.Join(Environment.NewLine, allRules);
+                _isKaraokeEngUpdating = false;
+                _pendingKaraokeEngRules = TxtKaraokeEngSplitRules.Text;
+                
+                // Nếu đang có search text, tìm lại
+                ReapplySearchAfterLoad();
             }
             catch (Exception ex)
             {
@@ -160,6 +166,22 @@ namespace Subtitle_draft_GMTPC
 
             // Lưu rules pending và debounce để xử lý
             _pendingKaraokeEngRules = TxtKaraokeEngSplitRules.Text;
+
+            // Nếu đang có search text, tìm lại với nội dung mới
+            if (!string.IsNullOrWhiteSpace(_rulesSearchText))
+            {
+                FindAllRuleSearchMatches();
+                if (_rulesSearchPositions.Count > 0)
+                {
+                    _rulesSearchIndex = 0;
+                    SelectRuleSearchMatch(0);
+                    ShowToastKaraokeEng($"🔍 {_rulesSearchPositions.Count} kết quả cho '{_rulesSearchText}'");
+                }
+                else
+                {
+                    ShowToastKaraokeEng($"❌ Không tìm thấy '{_rulesSearchText}'");
+                }
+            }
 
             if (_karaokeEngRulesDebounceTimer == null)
             {
@@ -371,6 +393,26 @@ namespace Subtitle_draft_GMTPC
             return line;
         }
 
+        /// <summary>
+        /// Tìm lại sau khi load/reset rules
+        /// </summary>
+        private void ReapplySearchAfterLoad()
+        {
+            if (string.IsNullOrWhiteSpace(_rulesSearchText)) return;
+
+            FindAllRuleSearchMatches();
+            if (_rulesSearchPositions.Count > 0)
+            {
+                _rulesSearchIndex = 0;
+                SelectRuleSearchMatch(0);
+                ShowToastKaraokeEng($"🔍 {_rulesSearchPositions.Count} kết quả cho '{_rulesSearchText}'");
+            }
+            else
+            {
+                ShowToastKaraokeEng($"❌ Không tìm thấy '{_rulesSearchText}'");
+            }
+        }
+
         #endregion
 
         #region Karaoke English - Word Split Rules Buttons
@@ -465,6 +507,10 @@ namespace Subtitle_draft_GMTPC
                             _isKaraokeEngUpdating = false;
                             _pendingKaraokeEngRules = content;
                             ProcessKaraokeEngInput();
+                            
+                            // Tìm lại nếu có search text
+                            ReapplySearchAfterLoad();
+                            
                             ShowToastKaraokeEng("📂 Đã load rules từ file!");
                         }
                     }
