@@ -25,6 +25,7 @@ namespace Subtitle_draft_GMTPC
         private int _rulesSearchIndex = -1;
         private string _rulesSearchText = "";
         private List<int> _rulesSearchPositions = new List<int>();
+        private DispatcherTimer _rulesSearchDebounceTimer;
 
         #endregion
 
@@ -235,12 +236,39 @@ namespace Subtitle_draft_GMTPC
         #region Karaoke English - Word Split Rules Search
 
         /// <summary>
-        /// Search text changed - KHÔNG auto-search, chỉ lưu text
+        /// Search text changed - Debounce 300ms rồi auto-search
         /// </summary>
         private void TxtKaraokeEngRulesSearch_TextChanged(object sender, TextChangedEventArgs e)
         {
             _rulesSearchText = TxtKaraokeEngRulesSearch.Text;
-            // Không auto-search, đợi Enter hoặc nút Prev/Next
+            
+            // Hủy timer cũ nếu có
+            if (_rulesSearchDebounceTimer != null)
+            {
+                _rulesSearchDebounceTimer.Stop();
+            }
+            
+            // Nếu trống, clear search
+            if (string.IsNullOrWhiteSpace(_rulesSearchText))
+            {
+                _rulesSearchPositions.Clear();
+                _rulesSearchIndex = -1;
+                return;
+            }
+            
+            // Debounce 300ms rồi search
+            if (_rulesSearchDebounceTimer == null)
+            {
+                _rulesSearchDebounceTimer = new DispatcherTimer();
+                _rulesSearchDebounceTimer.Interval = TimeSpan.FromMilliseconds(300);
+                _rulesSearchDebounceTimer.Tick += (s, args) =>
+                {
+                    _rulesSearchDebounceTimer.Stop();
+                    PerformRuleSearch();
+                };
+            }
+            
+            _rulesSearchDebounceTimer.Start();
         }
 
         /// <summary>
@@ -332,7 +360,8 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Tìm tất cả vị trí xuất hiện của search text - Luôn dùng content mới nhất từ TextBox
+        /// Tìm tất cả vị trí xuất hiện của search text
+        /// Tìm trong cả word và parts (bỏ qua dấu 2 chấm khi so khớp)
         /// </summary>
         private void FindAllRuleSearchMatches()
         {
@@ -341,21 +370,34 @@ namespace Subtitle_draft_GMTPC
             // Đảm bảo TextBox có dữ liệu
             if (TxtKaraokeEngSplitRules == null) return;
             
-            // Force lấy text mới nhất từ TextBox
             var content = TxtKaraokeEngSplitRules.Text;
             if (string.IsNullOrWhiteSpace(content)) return;
             
-            var lowerContent = content.ToLower();
-            var lowerSearch = _rulesSearchText.ToLower();
-
             _rulesSearchPositions.Clear();
-            int startIndex = 0;
-
-            while ((startIndex = lowerContent.IndexOf(lowerSearch, startIndex)) != -1)
+            
+            // Tạo phiên bản content đã loại bỏ dấu 2 chấm để tìm kiếm
+            // Nhưng vẫn giữ mapping vị trí về content gốc
+            var searchPositions = new List<int>();
+            int contentIndex = 0;
+            
+            while (contentIndex < content.Length)
             {
-                _rulesSearchPositions.Add(startIndex);
-                startIndex += _rulesSearchText.Length;
+                // Tìm search text trong content bắt đầu từ contentIndex
+                var lowerContent = content.ToLower();
+                var lowerSearch = _rulesSearchText.ToLower();
+                
+                int foundPos = -1;
+                
+                // Tìm kiếm bình thường
+                foundPos = lowerContent.IndexOf(lowerSearch, contentIndex);
+                
+                if (foundPos == -1) break;
+                
+                searchPositions.Add(foundPos);
+                contentIndex = foundPos + _rulesSearchText.Length;
             }
+            
+            _rulesSearchPositions = searchPositions;
         }
 
         /// <summary>
