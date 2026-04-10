@@ -381,7 +381,7 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Select và scroll đến match
+        /// Select và scroll đến match - Sync, không dùng Dispatcher
         /// </summary>
         private void SelectRuleSearchMatch(int index)
         {
@@ -391,21 +391,14 @@ namespace Subtitle_draft_GMTPC
             
             // Focus TextBox để highlight hoạt động
             TxtKaraokeEngSplitRules.Focus();
-            TxtKaraokeEngSplitRules.Select(pos, _rulesSearchText.Length);
+            
+            // Select text
+            TxtKaraokeEngSplitRules.SelectionStart = pos;
+            TxtKaraokeEngSplitRules.SelectionLength = _rulesSearchText.Length;
             
             // Scroll đến dòng chứa match
             int line = GetLineFromPosition(TxtKaraokeEngSplitRules.Text, pos);
             TxtKaraokeEngSplitRules.ScrollToLine(line);
-            
-            // Focus lại search box sau 150ms
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
-            timer.Tick += (s, e) =>
-            {
-                timer.Stop();
-                TxtKaraokeEngRulesSearch.Focus();
-                TxtKaraokeEngRulesSearch.CaretIndex = TxtKaraokeEngRulesSearch.Text.Length;
-            };
-            timer.Start();
         }
 
         /// <summary>

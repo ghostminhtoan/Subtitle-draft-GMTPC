@@ -55,9 +55,8 @@ namespace Subtitle_draft_GMTPC.Services
 
         /// <summary>
         /// Parse quy tắc tách từ từ input string
-        /// Format: mỗi dòng "word/part1/part2/..."
-        /// VD: "howling:how/ling" → Dictionary{"howling"} = ["how", "ling"]
-        /// Lưu: key là lowercase để so khớp case-insensitive, nhưng syllables giữ nguyên case từ rule
+        /// Format mới: (word:part1/part2), (word2:part1/part2) - 50 rules/dòng
+        /// Format cũ vẫn hỗ trợ: word:part1/part2 (1 rule/dòng)
         /// </summary>
         private static Dictionary<string, string[]> ParseSplitRules(string splitRules)
         {
@@ -72,23 +71,45 @@ namespace Subtitle_draft_GMTPC.Services
                 var trimmed = line.Trim();
                 if (string.IsNullOrWhiteSpace(trimmed)) continue;
 
-                // Tách theo dấu ':' để lấy từ gốc và phần tách
-                var colonIndex = trimmed.IndexOf(':');
-                if (colonIndex < 1) continue; // Phải có ít nhất 1 ký tự trước ':'
-
-                var originalWord = trimmed.Substring(0, colonIndex).Trim();
-                var splitPart = trimmed.Substring(colonIndex + 1).Trim();
-
-                if (string.IsNullOrEmpty(originalWord) || string.IsNullOrEmpty(splitPart)) continue;
-
-                var syllables = splitPart.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-                if (syllables.Length < 1) continue;
-
-                // Lưu key là lowercase để so khớp case-insensitive
-                result[originalWord.ToLowerInvariant()] = syllables;
+                // Tìm tất cả rules trong format: (word:part1/part2), (word2:part1/part2)
+                var matches = System.Text.RegularExpressions.Regex.Matches(trimmed, @"\(([^)]+)\)");
+                
+                if (matches.Count > 0)
+                {
+                    // Format mới: có ngoặc
+                    foreach (System.Text.RegularExpressions.Match match in matches)
+                    {
+                        var rule = match.Groups[1].Value; // "aback:a/back"
+                        ParseSingleRule(rule, result);
+                    }
+                }
+                else
+                {
+                    // Format cũ: không có ngoặc, 1 rule/dòng
+                    ParseSingleRule(trimmed, result);
+                }
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Parse một rule đơn: "word:part1/part2"
+        /// </summary>
+        private static void ParseSingleRule(string rule, Dictionary<string, string[]> result)
+        {
+            var colonIndex = rule.IndexOf(':');
+            if (colonIndex < 1) return;
+
+            var originalWord = rule.Substring(0, colonIndex).Trim();
+            var splitPart = rule.Substring(colonIndex + 1).Trim();
+
+            if (string.IsNullOrEmpty(originalWord) || string.IsNullOrEmpty(splitPart)) return;
+
+            var syllables = splitPart.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            if (syllables.Length < 1) return;
+
+            result[originalWord.ToLowerInvariant()] = syllables;
         }
 
         /// <summary>
