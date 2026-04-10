@@ -179,7 +179,7 @@ namespace Subtitle_draft_GMTPC
         #region Karaoke English - Open Word List
 
         /// <summary>
-        /// Mở thư mục chứa word split rules bằng Notepad
+        /// Mở thư mục chứa word split rules bằng Explorer
         /// </summary>
         private void BtnOpenWordList_Click(object sender, RoutedEventArgs e)
         {
@@ -190,12 +190,21 @@ namespace Subtitle_draft_GMTPC
                     LoadKaraokeEngSplitRules();
                     if (_karaokeEngRulesDirectory == null || !Directory.Exists(_karaokeEngRulesDirectory))
                     {
-                        System.Windows.MessageBox.Show("Không tìm thấy thư mục 'english word rules karaoke'.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        var exeDir = AppDomain.CurrentDomain.BaseDirectory;
+                        var expectedDir = Path.Combine(exeDir, "english word rules karaoke");
+                        
+                        System.Windows.MessageBox.Show(
+                            $"Không tìm thấy thư mục 'english word rules karaoke'.\n\n" +
+                            $"Vui lòng copy thư mục này vào cùng thư mục chứa file exe:\n" +
+                            $"Expected: {expectedDir}\n\n" +
+                            $"Thư mục này chứa file A-Z.txt với rules tách từ tiếng Anh.",
+                            "Thiếu Word List Rules",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning);
                         return;
                     }
                 }
 
-                // Mở thư mục chứa file
                 Process.Start("explorer.exe", $"\"{_karaokeEngRulesDirectory}\"");
                 ShowToastKaraokeEng("📂 Đã mở thư mục Word List!");
             }
