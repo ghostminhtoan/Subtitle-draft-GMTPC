@@ -19,7 +19,7 @@ namespace Subtitle_draft_GMTPC
         private ListBox _activeListBox;
 
         /// <summary>
-        /// Thực hiện tìm kiếm trong TextBox
+        /// Thực hiện tìm kiếm trong TextBox - KHÔNG focus để tránh nhảy cursor
         /// </summary>
         public bool SearchInTextBox(TextBox textBox, string searchText, bool findNext = false)
         {
@@ -53,10 +53,10 @@ namespace Subtitle_draft_GMTPC
                 _currentSearchIndex = 0;
             }
 
-            // Select text tại vị trí tìm thấy
+            // Select text tại vị trí tìm thấy - KHÔNG focus
             int pos = _matchPositions[_currentSearchIndex];
-            textBox.Select(pos, searchText.Length);
-            textBox.Focus();
+            textBox.SelectionStart = pos;
+            textBox.SelectionLength = searchText.Length;
 
             return true;
         }

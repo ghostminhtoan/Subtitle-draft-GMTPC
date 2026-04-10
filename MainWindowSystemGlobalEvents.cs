@@ -86,11 +86,12 @@ namespace Subtitle_draft_GMTPC
             return;
         }
 
-        // F3 - Find next
+        // F3 - Find next/prev
         if (e.Key == Key.F3)
         {
             e.Handled = true;
-            FindNext();
+            bool reverse = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+            FindNext(reverse);
             return;
         }
     }
@@ -200,9 +201,9 @@ namespace Subtitle_draft_GMTPC
     }
 
     /// <summary>
-    /// Find next occurrence
+    /// Find next/previous occurrence
     /// </summary>
-    private void FindNext()
+    private void FindNext(bool reverse = false)
     {
         if (string.IsNullOrWhiteSpace(_currentSearchText))
         {
@@ -210,7 +211,7 @@ namespace Subtitle_draft_GMTPC
             return;
         }
 
-        PerformSearch(findNext: true);
+        PerformSearch(findNext: !reverse);
     }
 
     /// <summary>
@@ -224,7 +225,7 @@ namespace Subtitle_draft_GMTPC
     }
 
     /// <summary>
-    /// Search box key down (Enter for next, Escape to close)
+    /// Search box key down (Enter for next, Shift+Enter for prev, Escape to close)
     /// </summary>
     private void TxtSearchBox_KeyDown(object sender, KeyEventArgs e)
     {
@@ -239,8 +240,9 @@ namespace Subtitle_draft_GMTPC
                 return;
             }
             
-            // Luôn tìm kết quả tiếp theo
-            PerformSearch(findNext: true);
+            // Shift+Enter = reverse, Enter = forward
+            bool reverse = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+            PerformSearch(findNext: !reverse);
         }
         else if (e.Key == Key.Escape)
         {

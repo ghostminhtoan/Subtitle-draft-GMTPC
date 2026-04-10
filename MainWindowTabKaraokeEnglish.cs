@@ -86,12 +86,45 @@ namespace Subtitle_draft_GMTPC
                 _isKaraokeEngUpdating = false;
                 _pendingKaraokeEngRules = TxtKaraokeEngSplitRules.Text;
                 
+                // Thêm handler cho Ctrl+F và F3 trong rules TextBox
+                TxtKaraokeEngSplitRules.PreviewKeyDown += TxtKaraokeEngSplitRules_PreviewKeyDown;
+                
                 // Nếu đang có search text, tìm lại
                 ReapplySearchAfterLoad();
             }
             catch (Exception ex)
             {
                 TxtKaraokeEngSplitRules.Text = $"// Lỗi load rules: {ex.Message}";
+            }
+        }
+        
+        /// <summary>
+        /// Handler cho Ctrl+F và F3 khi focus trong rules TextBox
+        /// </summary>
+        private void TxtKaraokeEngSplitRules_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            // Ctrl+F: focus vào search box
+            if (e.Key == Key.F && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+            {
+                e.Handled = true;
+                TxtKaraokeEngRulesSearch.Focus();
+                TxtKaraokeEngRulesSearch.SelectAll();
+                return;
+            }
+            
+            // F3: tìm tiếp
+            if (e.Key == Key.F3)
+            {
+                e.Handled = true;
+                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+                {
+                    SearchPrev();
+                }
+                else
+                {
+                    SearchNext();
+                }
+                return;
             }
         }
 
@@ -278,14 +311,35 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Search key down
+        /// Search key down - Enter/F3 tìm tới, Shift+Enter/Shift+F3 tìm ngược
         /// </summary>
         private void TxtKaraokeEngRulesSearch_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
                 e.Handled = true;
-                PerformRuleSearch();
+                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+                {
+                    // Shift+Enter: tìm ngược
+                    SearchPrev();
+                }
+                else
+                {
+                    // Enter: tìm tới
+                    PerformRuleSearch();
+                }
+            }
+            else if (e.Key == Key.F3)
+            {
+                e.Handled = true;
+                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+                {
+                    SearchPrev();
+                }
+                else
+                {
+                    SearchNext();
+                }
             }
             else if (e.Key == Key.Escape)
             {
@@ -294,8 +348,43 @@ namespace Subtitle_draft_GMTPC
                 _rulesSearchText = "";
                 _rulesSearchPositions.Clear();
                 _rulesSearchIndex = -1;
-                TxtKaraokeEngSplitRules.Focus();
             }
+        }
+        
+        /// <summary>
+        /// Tìm match trước đó
+        /// </summary>
+        private void SearchPrev()
+        {
+            if (_rulesSearchPositions.Count == 0)
+            {
+                PerformRuleSearch();
+                return;
+            }
+            
+            _rulesSearchIndex--;
+            if (_rulesSearchIndex < 0)
+                _rulesSearchIndex = _rulesSearchPositions.Count - 1;
+            
+            SelectRuleSearchMatch(_rulesSearchIndex);
+        }
+        
+        /// <summary>
+        /// Tìm match tiếp theo
+        /// </summary>
+        private void SearchNext()
+        {
+            if (_rulesSearchPositions.Count == 0)
+            {
+                PerformRuleSearch();
+                return;
+            }
+            
+            _rulesSearchIndex++;
+            if (_rulesSearchIndex >= _rulesSearchPositions.Count)
+                _rulesSearchIndex = 0;
+            
+            SelectRuleSearchMatch(_rulesSearchIndex);
         }
 
         /// <summary>
@@ -349,17 +438,7 @@ namespace Subtitle_draft_GMTPC
         /// </summary>
         private void BtnKaraokeEngRulesSearchPrev_Click(object sender, RoutedEventArgs e)
         {
-            if (_rulesSearchPositions.Count == 0)
-            {
-                PerformRuleSearch();
-                return;
-            }
-
-            _rulesSearchIndex--;
-            if (_rulesSearchIndex < 0)
-                _rulesSearchIndex = _rulesSearchPositions.Count - 1;
-
-            SelectRuleSearchMatch(_rulesSearchIndex);
+            SearchPrev();
         }
 
         /// <summary>
@@ -367,21 +446,11 @@ namespace Subtitle_draft_GMTPC
         /// </summary>
         private void BtnKaraokeEngRulesSearchNext_Click(object sender, RoutedEventArgs e)
         {
-            if (_rulesSearchPositions.Count == 0)
-            {
-                PerformRuleSearch();
-                return;
-            }
-
-            _rulesSearchIndex++;
-            if (_rulesSearchIndex >= _rulesSearchPositions.Count)
-                _rulesSearchIndex = 0;
-
-            SelectRuleSearchMatch(_rulesSearchIndex);
+            SearchNext();
         }
 
         /// <summary>
-        /// Select và scroll đến match - Sync, không dùng Dispatcher
+        /// Select và scroll đến match - KHÔNG focus rules TextBox
         /// </summary>
         private void SelectRuleSearchMatch(int index)
         {
@@ -389,16 +458,15 @@ namespace Subtitle_draft_GMTPC
 
             int pos = _rulesSearchPositions[index];
             
-            // Focus TextBox để highlight hoạt động
-            TxtKaraokeEngSplitRules.Focus();
-            
-            // Select text
+            // Select text trong rules TextBox - KHÔNG focus
             TxtKaraokeEngSplitRules.SelectionStart = pos;
             TxtKaraokeEngSplitRules.SelectionLength = _rulesSearchText.Length;
             
             // Scroll đến dòng chứa match
             int line = GetLineFromPosition(TxtKaraokeEngSplitRules.Text, pos);
             TxtKaraokeEngSplitRules.ScrollToLine(line);
+            
+            // GIỮ focus ở search box - không nhảy cursor
         }
 
         /// <summary>
