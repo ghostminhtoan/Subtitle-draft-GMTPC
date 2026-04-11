@@ -154,5 +154,41 @@ namespace Subtitle_draft_GMTPC.Properties {
                 this["PromptContent5"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("500")]
+        public int TextToSubMaxChars {
+            get {
+                return ((int)(this["TextToSubMaxChars"]));
+            }
+            set {
+                this["TextToSubMaxChars"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("17")]
+        public double TextToSubCps {
+            get {
+                return ((double)(this["TextToSubCps"]));
+            }
+            set {
+                this["TextToSubCps"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("200")]
+        public int TextToSubGap {
+            get {
+                return ((int)(this["TextToSubGap"]));
+            }
+            set {
+                this["TextToSubGap"] = value;
+            }
+        }
     }
 }

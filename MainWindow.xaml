@@ -187,6 +187,120 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Style cho ComboBox dark theme -->
+        <Style x:Key="DarkComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="#2D2D2D"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="BorderBrush" Value="#404040"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="4,3"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Background" Value="#2D2D2D"/>
+                        <Setter Property="Foreground" Value="#E0E0E0"/>
+                        <Setter Property="Padding" Value="4,3"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter Property="Background" Value="#0078D4"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#0078D4"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ToggleButton Grid.Column="0" Grid.ColumnSpan="2"
+                                          Focusable="false"
+                                          IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="Border"
+                                                Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="4">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="20"/>
+                                                </Grid.ColumnDefinitions>
+                                                <ContentPresenter Grid.Column="0"
+                                                                  Margin="6,3,0,3"
+                                                                  Content="{TemplateBinding Tag}"
+                                                                  VerticalAlignment="Center"
+                                                                  HorizontalAlignment="Left"/>
+                                                <Path Grid.Column="1"
+                                                      x:Name="Arrow"
+                                                      Fill="#E0E0E0"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      Data="M 0 0 L 4 4 L 8 0 Z"/>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Border" Property="BorderBrush" Value="#0078D4"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter Grid.Column="0"
+                                              x:Name="ContentSite"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              Margin="8,3,20,3"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              TextElement.Foreground="#E0E0E0"/>
+                            <Popup x:Name="Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide">
+                                <Grid x:Name="DropDown"
+                                      SnapsToDevicePixels="True"
+                                      MinWidth="{TemplateBinding ActualWidth}"
+                                      MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border x:Name="DropDownBorder"
+                                            Background="#2D2D2D"
+                                            BorderBrush="#404040"
+                                            BorderThickness="1"
+                                            CornerRadius="4"/>
+                                    <ScrollViewer Margin="4" SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True"
+                                                    KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="#0078D4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -1330,10 +1444,10 @@
 
                                     <!-- Buttons row -->
                                     <WrapPanel Grid.Row="1" Margin="0,0,0,8" Orientation="Horizontal" HorizontalAlignment="Left">
-                                        <Button x:Name="BtnOpenWordList" Content="📂 Open Word List"
+                                        <Button x:Name="BtnLoadDefaultWordList" Content="🔄 Load Default"
                                                 Style="{StaticResource AccentButtonStyle}"
                                                 Padding="10,5" FontSize="10" Margin="0,0,4,0"
-                                                Click="BtnOpenWordList_Click"/>
+                                                Click="BtnLoadDefaultWordList_Click"/>
                                         <Button x:Name="BtnEditWordList" Content="✏️ Edit Word List"
                                                 Style="{StaticResource AccentButtonStyle}"
                                                 Padding="10,5" FontSize="10" Margin="0,0,4,0"
@@ -1926,6 +2040,155 @@
                             </Border>
                         </Grid>
                     </TabItem>
+
+            <!-- Tab: Text to Subtitle -->
+            <TabItem Header="✂️ Text to Subtitle">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- PANEL 1: Input Full Text -->
+                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Content="📄 Full Text Input (Nhập văn bản cần chia phụ đề)" Foreground="#B0B0B0" FontSize="14" FontWeight="SemiBold" Padding="8,4"/>
+
+                            <TextBox x:Name="TxtTextToSubInput" Grid.Row="1"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     TextChanged="TxtTextToSubInput_TextChanged"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- PANEL 2: Settings + Output -->
+                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Content="⚙️ Settings" Foreground="#B0B0B0" FontSize="14" FontWeight="SemiBold" Padding="8,4"/>
+
+                            <!-- Settings Grid -->
+                            <Grid Grid.Row="1" Margin="0,0,0,12">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Max Characters -->
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="📏 Max Chars:"
+                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                           Margin="0,4,6,4"/>
+                                <TextBox x:Name="TxtTextToSubMaxChars" Grid.Row="0" Grid.Column="1"
+                                         Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
+                                         BorderThickness="1" Padding="4,3" FontSize="12" Text="500"
+                                         TextChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"/>
+
+                                <!-- CPS -->
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="⏱️ Max CPS:"
+                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                           Margin="0,4,6,4"/>
+                                <TextBox x:Name="TxtTextToSubCps" Grid.Row="1" Grid.Column="1"
+                                         Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
+                                         BorderThickness="1" Padding="4,3" FontSize="12" Text="17.0"
+                                         TextChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"/>
+
+                                <!-- Punctuation -->
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="🔤 Punctuation:"
+                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                           Margin="0,4,6,4"/>
+                                <ComboBox x:Name="CmbTextToSubPunctuation" Grid.Row="2" Grid.Column="1"
+                                          Style="{StaticResource DarkComboBoxStyle}"
+                                          SelectionChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"
+                                          SelectedIndex="1">
+                                    <ComboBoxItem><TextBlock Text="Count all characters" Foreground="#E0E0E0"/></ComboBoxItem>
+                                    <ComboBoxItem><TextBlock Text="Ignore punctuation" Foreground="#E0E0E0"/></ComboBoxItem>
+                                </ComboBox>
+
+                                <!-- Gap -->
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="⏸️ Gap (ms):"
+                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                           Margin="0,4,6,4"/>
+                                <TextBox x:Name="TxtTextToSubGap" Grid.Row="3" Grid.Column="1"
+                                         Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
+                                         BorderThickness="1" Padding="4,3" FontSize="12" Text="200"
+                                         TextChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"/>
+                            </Grid>
+
+                            <!-- Output Label -->
+                            <Label Grid.Row="2" Content="📝 Output (ASS Format)" Foreground="#B0B0B0" FontSize="14" FontWeight="SemiBold" Padding="8,4"
+                                   Margin="0,8,0,4"/>
+
+                            <!-- Output TextBox -->
+                            <TextBox x:Name="TxtTextToSubOutput" Grid.Row="2"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     IsReadOnly="True" FontSize="13"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel" Margin="0,39,0,26" Grid.RowSpan="2"/>
+
+                            <!-- Stats -->
+                            <TextBlock x:Name="TxtTextToSubStats" Grid.Row="3"
+                                       Text="" Foreground="#808080" FontSize="11"
+                                       TextWrapping="Wrap" Margin="0,8,0,4"/>
+
+                            <!-- Buttons -->
+                            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,0,0">
+                                <Button x:Name="BtnTextToSubConvert" Content="🔄 Convert"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Padding="14,5" FontSize="12" Margin="0,0,8,0"
+                                        Click="BtnTextToSubConvert_Click"/>
+                                <Button x:Name="BtnTextToSubCopy" Content="📋 Copy"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Padding="14,5" FontSize="12"
+                                        Click="BtnTextToSubCopy_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Footer: Author info -->
+                    <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                            Background="#1A1A1A" BorderBrush="#3E3E42" BorderThickness="0,1,0,0"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="Tác giả: " Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="Ma Minh Toàn 1993" Foreground="#0078D4" FontSize="12" FontWeight="SemiBold"/>
+                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                            <TextBlock Text="Text to Subtitle GMTPC" Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                            <TextBlock Text="Chia văn bản thành phụ đề ASS tự động" Foreground="#808080" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Toast Notification -->
+                    <Border x:Name="ToastBorderTextToSub" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center" VerticalAlignment="Top"
+                            Visibility="Collapsed" Style="{StaticResource ToastBorderStyle}"
+                            Margin="0,20,0,0" MinWidth="300" MaxWidth="500">
+                        <TextBlock x:Name="ToastTextTextToSub" Text="" Foreground="#FFFFFF" FontSize="14"
+                                   TextAlignment="Center" TextWrapping="Wrap"/>
+                    </Border>
+                </Grid>
+            </TabItem>
                 </TabControl>
             </TabItem>
         </TabControl>

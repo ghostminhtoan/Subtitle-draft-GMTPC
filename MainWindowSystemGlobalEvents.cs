@@ -30,6 +30,7 @@ namespace Subtitle_draft_GMTPC
         private SearchManager _searchKaraokeMerge = new SearchManager();
         private SearchManager _searchKaraokeSync = new SearchManager();
         private SearchManager _searchEffect = new SearchManager();
+        private SearchManager _searchTextToSub = new SearchManager();
 
         // Search TextBox hiện tại
         private TextBox _currentSearchBox = null;
@@ -67,8 +68,10 @@ namespace Subtitle_draft_GMTPC
         InitializeDefaultPrompts();
         LoadAllPrompts();
         InitializeEffectDebounce();
+        InitializeTextToSubtitleDebounce();
         LoadKaraokeEngSplitRules();
-        
+        LoadTextToSubSettings();
+
         // Register global key events for search
         this.PreviewKeyDown += MainWindow_PreviewKeyDown;
     }
@@ -510,6 +513,19 @@ namespace Subtitle_draft_GMTPC
                     }
                 }
             }
+            // Tab Text to Subtitle
+            else if (header.Contains("Text to Subtitle"))
+            {
+                TextBox[] textboxes = new[] { TxtTextToSubInput, TxtTextToSubOutput };
+                foreach (var tb in textboxes)
+                {
+                    if (tb != null)
+                    {
+                        found = _searchTextToSub.SearchInTextBox(tb, _currentSearchText, findNext);
+                        if (found) break;
+                    }
+                }
+            }
 
             // Update status
             if (found)
@@ -566,6 +582,9 @@ namespace Subtitle_draft_GMTPC
                 if (subHeader.Contains("Effect")) return _searchEffect;
             }
         }
+
+        // Tab level chính: Text to Subtitle
+        if (header.Contains("Text to Subtitle")) return _searchTextToSub;
 
         return null;
     }

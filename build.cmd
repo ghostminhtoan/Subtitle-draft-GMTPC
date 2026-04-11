@@ -45,6 +45,16 @@ echo Build successful!
 echo ========================================
 echo.
 
+:: Copy exe to root folder
+echo Copying exe to root folder...
+copy /Y "bin\Debug\Subtitle draft GMTPC.exe" "Subtitle draft GMTPC.exe" >nul
+if %ERRORLEVEL% NEQ 0 (
+    echo [WARNING] Failed to copy exe to root folder.
+) else (
+    echo [OK] Exe copied to root: Subtitle draft GMTPC.exe
+)
+echo.
+
 :: Run the executable
 echo Starting application...
 start "" "bin\Debug\Subtitle draft GMTPC.exe"

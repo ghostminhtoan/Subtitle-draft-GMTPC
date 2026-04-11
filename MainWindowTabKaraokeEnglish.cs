@@ -143,21 +143,21 @@ namespace Subtitle_draft_GMTPC
         #region Karaoke English - Word List Buttons
 
         /// <summary>
-        /// Open: Export rules ra file và mở bằng Notepad
+        /// Load Default: Reset về rules mặc định từ embedded string
         /// </summary>
-        private void BtnOpenWordList_Click(object sender, RoutedEventArgs e)
+        private void BtnLoadDefaultWordList_Click(object sender, RoutedEventArgs e)
         {
             try
             {
+                _pendingKaraokeEngRules = WordListRules.DefaultRules;
+                
+                // Ghi đè lên file word list rules.txt
                 var appDir = AppDomain.CurrentDomain.BaseDirectory;
                 _wordListFilePath = Path.Combine(appDir, "word list rules.txt");
-
-                // Export rules ra file
                 File.WriteAllText(_wordListFilePath, WordListRules.DefaultRules);
-
-                // Mở file bằng Notepad
-                Process.Start("notepad.exe", $"\"{_wordListFilePath}\"");
-                ShowToastKaraokeEng("📂 Đã mở Word List trong Notepad!");
+                
+                ProcessKaraokeEngInput();
+                ShowToastKaraokeEng("🔄 Đã reset về rules mặc định!");
             }
             catch (Exception ex)
             {
@@ -166,7 +166,7 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Edit: Mở file word list rules.txt đã tồn tại
+        /// Edit: Mở file word list rules.txt để chỉnh sửa
         /// </summary>
         private void BtnEditWordList_Click(object sender, RoutedEventArgs e)
         {

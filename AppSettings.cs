@@ -75,6 +75,24 @@ namespace Subtitle_draft_GMTPC
             set { Settings.PromptContent5 = value; }
         }
 
+        public static int TextToSubMaxChars
+        {
+            get => Settings.TextToSubMaxChars;
+            set { Settings.TextToSubMaxChars = value; }
+        }
+
+        public static double TextToSubCps
+        {
+            get => Settings.TextToSubCps;
+            set { Settings.TextToSubCps = value; }
+        }
+
+        public static int TextToSubGap
+        {
+            get => Settings.TextToSubGap;
+            set { Settings.TextToSubGap = value; }
+        }
+
         public static void Save()
         {
             try

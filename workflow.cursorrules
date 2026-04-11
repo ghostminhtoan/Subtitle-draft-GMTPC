@@ -159,6 +159,9 @@ Code dùng chung giữa nhiều tab (GlobalEvents, Settings)
 
 ---
 
+## 📝 Quy Tắc EMOJI (BẮT BUỘC)
+Luôn luôn dùng emoji để phản hồi chat. Emoji phải thật phong phú, mỗi một lần emoji là phải có 2 emoji liên tục kế bên nhau.
+
 ## 📝 Quy Tắc Changelog (BẮT BUỘC)
 
 **⚠️ SAU MỖI LẦN BUILD THÀNH CÔNG**: BẮT BUỘC update `changelog.cursorrules`
@@ -178,6 +181,47 @@ Code dùng chung giữa nhiều tab (GlobalEvents, Settings)
 
 ---
 
+## 📊 Định Nghĩa Subtitle Metrics
+
+### CPS (Characters Per Second) - Số ký tự mỗi giây
+```
+CPS = Tổng số ký tự / Thời lượng (giây)
+```
+
+**⚠️ QUAN TRỌNG - Bỏ qua Punctuation (Dấu câu)**: Khi tính CPS, KHÔNG đếm các ký tự punctuation:
+- Punctuation bỏ qua: `()[]-:;,.!?'"`
+- Ví dụ: `Ray chỉ có trạng thái như Rem bị ăn mất cả tên lẫn ký ức.`
+  - **KHÔNG bỏ punctuation**: 57 ký tự
+  - **BỎ punctuation**: 42 ký tự (chỉ đếm chữ cái, số, space)
+- Mục đích: CPS phản ánh tốc độ đọc THỰC TẾ, không bị ảnh hưởng bởi dấu câu
+
+**Các chế độ đếm ký tự** (tham chiếu từ Aegisub):
+- `Count all characters` - Đếm tất cả
+- `Count all except space, CPS only` - Bỏ space (chỉ dùng cho CPS)
+- `Count all except space` - Bỏ space
+- `CJK 1, Latin 0.5` - CJK=1, Latin=0.5
+- `CJK 1, Latin 0.5, space 0` - CJK=1, Latin=0.5, bỏ space
+- `No space or punctuation` - Bỏ space + punctuation (khuyến nghị cho CPS)
+- `No space or punctuation, CPS only` - Bỏ space + punctuation (chỉ dùng cho CPS)
+
+### CPL (Characters Per Line) - Số ký tự mỗi dòng
+```
+CPL = Tổng số ký tự trong một dòng subtitle
+```
+- Giới hạn thường dùng: 35-42 ký tự/dòng (tiếng Việt/Latin)
+- Mục đích: Đảm bảo subtitle dễ đọc, không quá dài trên một dòng
+
+### Gap (Khoảng cách thời gian) - Thời gian giữa các dòng
+```
+Gap = StartTime(dòng dưới) - EndTime(dòng trên)
+```
+- Đơn vị: mili giây (ms)
+- Ví dụ: Dòng 1 kết thúc lúc `0:01:05.33`, dòng 2 bắt đầu lúc `0:01:06.00` → Gap = 670ms
+- **Min gap**: Thời gian nghỉ tối thiểu giữa 2 dòng (thường 100-200ms)
+- Mục đích: Tạo khoảng nghỉ cho người đọc, tránh subtitle chồng lấn
+
+---
+
 ## 📋 Tham Khảo Nhanh
 
 **Pattern đặt tên file**:
@@ -187,10 +231,10 @@ Code dùng chung giữa nhiều tab (GlobalEvents, Settings)
 **Build**:
 - **Build qua Visual Studio Code** (task build hoặc terminal)
 - `build.cmd` là file build thủ công dự phòng - **KHÔNG ĐỤNG VÀO**
-- Sau khi build ra `.exe` → **BẮT BUỘC mở folder chứa file exe** (`bin\Debug\` hoặc `bin\Release\`)
+- Sau khi build ra `.exe` → **BẮT BUỘC mở folder chứa file exe
 - Sau build → Update changelog → Mở folder exe → Commit → Push
 
 **Workflow**: Code → Build (VS Code) → Update changelog → Mở folder exe → Commit → Push
 
 ---
-*v3.0 | Cập nhật: 2026-04-08 | Chuyển đổi từ VB.NET sang C#
+

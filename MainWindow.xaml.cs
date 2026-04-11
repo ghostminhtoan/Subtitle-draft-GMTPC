@@ -24,6 +24,7 @@ using System.Windows.Media;
 /// - MainWindowTabKaraokeMerge.cs: Tab Karaoke Merge
 /// - MainWindowTabKaraokeSync.cs: Tab Karaoke Sync
 /// - MainWindowTabEffect.cs: Tab Effect
+/// - MainWindowTabTextToSubtitle.cs: Tab Text to Subtitle
 /// </summary>
 namespace Subtitle_draft_GMTPC
 {
