@@ -5,6 +5,72 @@ Chia từ vựng tiếng Anh thành các âm tiết (syllables) đơn giản, ph
 
 ---
 
+## 0. Quy tắc đặc biệt - Từ viết tắt & Sở hữu (Apostrophe Rules)
+
+### 0.1. Từ có dấu nháy đơn (') - KHÔNG BỊ TÁCH
+Các từ chứa dấu `'` (apostrophe) như từ sở hữu, viết tắt **KHÔNG được tách** - giữ nguyên làm 1 phần:
+
+```
+✅ One's      → One's       (KHÔNG tách thành One/'s)
+✅ I've       → I've        (KHÔNG tách thành I/'ve)
+✅ You're     → You're      (KHÔNG tách thành You/'re)
+✅ It's       → It's
+✅ Don't      → Don't
+✅ Can't      → Can't
+✅ Won't      → Won't
+✅ She's      → She's
+✅ He's       → He's
+✅ We're      → We're
+✅ They're    → They're
+✅ I'm        → I'm
+✅ You've     → You've
+✅ We've      → We've
+✅ They've    → They've
+✅ I'll       → I'll
+✅ You'll     → You'll
+✅ He'll      → He'll
+✅ She'll     → She'll
+✅ We'll      → We'll
+✅ They'll    → They'll
+✅ I'd        → I'd
+✅ You'd      → You'd
+✅ He'd       → He'd
+✅ She'd      → She'd
+✅ We'd       → We'd
+✅ They'd     → They'd
+```
+
+**Lý do:** Trong karaoke, các từ viết tắt/sở hữu nên được hiển thị như một khối thống nhất để người xem dễ đọc và hát theo.
+
+### 0.2. Ngoại lệ - Từ sở hữu với 's sau danh từ
+Các từ sở hữu dạng `danh từ + 's` vẫn được tách theo quy tắc thông thường:
+```
+✅ John's     → John's      (tên riêng - giữ nguyên)
+✅ Teacher's  → Teach/er's  (tách theo âm tiết, giữ 's ở cuối)
+```
+
+### 0.3. Các từ đặc biệt - fire và các từ ghép với fire
+Từ `fire` và các từ ghép với `fire` được tách thành `fi/re`:
+```
+✅ fire        → fi/re
+✅ firefighter → fi/re/figh/ter
+✅ firelighter → fi/re/ligh/ter
+✅ firescreen  → fi/rescreen
+✅ firewater   → fi/re/wa/ter
+```
+
+### 0.4. Các từ đặc biệt khác
+Một số từ có quy tắc tách đặc biệt:
+```
+✅ space       → space       (giữ nguyên)
+✅ stat        → stat        (giữ nguyên)
+✅ like        → like        (giữ nguyên)
+✅ bite        → bite        (giữ nguyên)
+✅ style       → style       (giữ nguyên)
+```
+
+---
+
 ## 1. Tiền tố (Prefixes)
 
 ### 1.1. Tiền tố `ab-`

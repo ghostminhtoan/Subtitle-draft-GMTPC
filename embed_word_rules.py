@@ -13,29 +13,54 @@ def escape_csharp_string(s):
 def main():
     rules_dir = r'R:\HDD R\ZC SYMLINK\USERS\source\repos\ghostminhtoan\Subtitle draft GMTPC CS\english word rules karaoke'
     output_file = r'R:\HDD R\ZC SYMLINK\USERS\source\repos\ghostminhtoan\Subtitle draft GMTPC CS\Services\WordListRules.cs'
-    
+
     if not os.path.exists(rules_dir):
         print(f"Không tìm thấy: {rules_dir}")
         return
-    
+
     all_rules = []
-    
-    for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
-        filepath = os.path.join(rules_dir, f'{letter}.txt')
-        if os.path.exists(filepath):
-            with open(filepath, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
-            # Trích xuất rules từ format: (word:part1/part2)
-            matches = re.findall(r'\(([^)]+)\)', content)
-            if matches:
-                all_rules.extend(matches)
-            else:
-                # Fallback: mỗi dòng là 1 rule
-                for line in content.split('\n'):
-                    line = line.strip()
-                    if line:
-                        all_rules.append(line)
+
+    # Kiểm tra định dạng file: A-G.txt, H-P.txt, Q-Z.txt hoặc A.txt đến Z.txt
+    merged_files = ['A-G.txt', 'H-P.txt', 'Q-Z.txt']
+    has_merged = any(os.path.exists(os.path.join(rules_dir, f)) for f in merged_files)
+
+    if has_merged:
+        # Đọc từ file gộp
+        for filename in merged_files:
+            filepath = os.path.join(rules_dir, filename)
+            if os.path.exists(filepath):
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                matches = re.findall(r'\(([^)]+)\)', content)
+                if matches:
+                    # Filter rule hợp lệ: không chứa '//'
+                    valid_rules = [m for m in matches if '//' not in m]
+                    all_rules.extend(valid_rules)
+                else:
+                    for line in content.split('\n'):
+                        line = line.strip()
+                        if line and '//' not in line:
+                            all_rules.append(line)
+    else:
+        # Đọc từ file riêng lẻ A.txt đến Z.txt
+        for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+            filepath = os.path.join(rules_dir, f'{letter}.txt')
+            if os.path.exists(filepath):
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                # Trích xuất rules từ format: (word:part1/part2)
+                matches = re.findall(r'\(([^)]+)\)', content)
+                if matches:
+                    # Filter rule hợp lệ: không chứa '//'
+                    valid_rules = [m for m in matches if '//' not in m]
+                    all_rules.extend(valid_rules)
+                else:
+                    # Fallback: mỗi dòng là 1 rule
+                    for line in content.split('\n'):
+                        line = line.strip()
+                        if line and '//' not in line:
+                            all_rules.append(line)
     
     # Tạo C# file với hardcoded string
     rules_text = '\n'.join(all_rules)

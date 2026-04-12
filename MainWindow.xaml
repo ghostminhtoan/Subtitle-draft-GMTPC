@@ -395,23 +395,27 @@
                     <!-- PANEL 2: CPU -->
                     <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
                         <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="263*"/>
+                                <ColumnDefinition Width="200*"/>
+                            </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <Label Grid.Row="0" Content="🔧 CPU" Style="{StaticResource SectionLabelStyle}"/>
+                            <Label Grid.Row="0" Content="🔧 CPU" Style="{StaticResource SectionLabelStyle}" Grid.ColumnSpan="2"/>
 
                             <TextBox x:Name="TxtCpuInfo" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
                                      IsReadOnly="True" FontSize="14"
-                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel" Grid.ColumnSpan="2" Margin="0,0,0,39" Grid.RowSpan="2"/>
 
                             <Button x:Name="BtnCopyCpu" Grid.Row="2" Content="📋 Copy CPU"
                                     Style="{StaticResource AccentButtonStyle}"
                                     HorizontalAlignment="Right" Margin="0,8,0,0"
-                                    Click="BtnCopyCpu_Click"/>
+                                    Click="BtnCopyCpu_Click" Grid.Column="1"/>
                         </Grid>
                     </Border>
 
@@ -1200,7 +1204,160 @@
                 </Grid>
             </TabItem>
 
-            <!-- Tab 8: Karaoke -->
+            <!-- Tab 8: Text to Subtitle -->
+            <TabItem Header="✂️ Text to Subtitle">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- PANEL 1: Input Full Text -->
+                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Content="📄 Full Text Input (Nhập văn bản cần chia phụ đề)" Foreground="#B0B0B0" FontSize="14" FontWeight="SemiBold" Padding="8,4"/>
+
+                            <TextBox x:Name="TxtTextToSubInput" Grid.Row="1"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     TextChanged="TxtTextToSubInput_TextChanged"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- PANEL 2: Settings + Output -->
+                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Content="⚙️ Settings" Foreground="#B0B0B0" FontSize="14" FontWeight="SemiBold" Padding="8,4"/>
+
+                            <!-- Settings Grid -->
+                            <Grid Grid.Row="1" Margin="0,0,0,12">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Max Characters -->
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="📏 Max Chars:"
+                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                           Margin="0,4,6,4"/>
+                                <TextBox x:Name="TxtTextToSubMaxChars" Grid.Row="0" Grid.Column="1"
+                                         Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
+                                         BorderThickness="1" Padding="4,3" FontSize="12" Text="500"
+                                         TextChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"/>
+
+                                <!-- CPS -->
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="⏱️ Max CPS:"
+                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                           Margin="0,4,6,4"/>
+                                <TextBox x:Name="TxtTextToSubCps" Grid.Row="1" Grid.Column="1"
+                                         Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
+                                         BorderThickness="1" Padding="4,3" FontSize="12" Text="17.0"
+                                         TextChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"/>
+
+                                <!-- Punctuation -->
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="🔤 Punctuation:"
+                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                           Margin="0,4,6,4"/>
+                                <ComboBox x:Name="CmbTextToSubPunctuation" Grid.Row="2" Grid.Column="1"
+                                          Style="{StaticResource DarkComboBoxStyle}"
+                                          SelectionChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"
+                                          SelectedIndex="1">
+                                    <ComboBoxItem>
+                                        <TextBlock Text="Count all characters" Foreground="Red"/>
+                                    </ComboBoxItem>
+                                    <ComboBoxItem>
+                                        <TextBlock Text="Ignore punctuation" Foreground="blue"/>
+                                    </ComboBoxItem>
+                                </ComboBox>
+
+                                <!-- Gap -->
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="⏸️ Gap (ms):"
+                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                           Margin="0,4,6,4"/>
+                                <TextBox x:Name="TxtTextToSubGap" Grid.Row="3" Grid.Column="1"
+                                         Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
+                                         BorderThickness="1" Padding="4,3" FontSize="12" Text="200"
+                                         TextChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"/>
+                            </Grid>
+
+                            <!-- Output Label -->
+                            <Label Grid.Row="2" Content="📝 Output (ASS Format)" Foreground="#B0B0B0" FontSize="14" FontWeight="SemiBold" Padding="8,4"
+                                   Margin="0,8,0,4"/>
+
+                            <!-- Output TextBox -->
+                            <TextBox x:Name="TxtTextToSubOutput" Grid.Row="2"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     IsReadOnly="True" FontSize="13"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel" Margin="0,39,0,26" Grid.RowSpan="2"/>
+
+                            <!-- Stats -->
+                            <TextBlock x:Name="TxtTextToSubStats" Grid.Row="3"
+                                       Text="" Foreground="#808080" FontSize="11"
+                                       TextWrapping="Wrap" Margin="0,8,0,4"/>
+
+                            <!-- Buttons -->
+                            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,0,0">
+                                <Button x:Name="BtnTextToSubConvert" Content="🔄 Convert"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Padding="14,5" FontSize="12" Margin="0,0,8,0"
+                                        Click="BtnTextToSubConvert_Click"/>
+                                <Button x:Name="BtnTextToSubCopy" Content="📋 Copy"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Padding="14,5" FontSize="12"
+                                        Click="BtnTextToSubCopy_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Footer: Author info -->
+                    <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                            Background="#1A1A1A" BorderBrush="#3E3E42" BorderThickness="0,1,0,0"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="Tác giả: " Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="Ma Minh Toàn 1993" Foreground="#0078D4" FontSize="12" FontWeight="SemiBold"/>
+                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                            <TextBlock Text="Text to Subtitle GMTPC" Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                            <TextBlock Text="Chia văn bản thành phụ đề ASS tự động" Foreground="#808080" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Toast Notification -->
+                    <Border x:Name="ToastBorderTextToSub" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center" VerticalAlignment="Top"
+                            Visibility="Collapsed" Style="{StaticResource ToastBorderStyle}"
+                            Margin="0,20,0,0" MinWidth="300" MaxWidth="500">
+                        <TextBlock x:Name="ToastTextTextToSub" Text="" Foreground="#FFFFFF" FontSize="14"
+                                   TextAlignment="Center" TextWrapping="Wrap"/>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab 9: Karaoke -->
             <TabItem Header="🎤 Karaoke">
                 <TabControl x:Name="KaraokeTabControl" Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="1">
                     <!-- Sub-tab: Zero Time -->
@@ -1595,20 +1752,20 @@
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <Label Content="⏰ Desired Start Time:" Style="{StaticResource SectionLabelStyle}" 
                                            Padding="0,0,8,0" Margin="0,0,0,0"/>
-                                    
+
                                     <!-- Single time input textbox -->
                                     <TextBox x:Name="TxtSyncTimeInput" Width="140" FontSize="16" 
                                              Style="{StaticResource DarkTextBoxStyle}" 
                                              Text="00:00:00.000" TextAlignment="Center" 
                                              Margin="0,0,16,0" FontFamily="Consolas, Courier New"
                                              TextChanged="TxtSyncTimeInput_TextChanged"/>
-                                    
+
                                     <!-- Sync Button -->
                                     <Button x:Name="BtnSyncTime" Content="🔄 Sync Time"
                                             Style="{StaticResource AccentButtonStyle}"
                                             Padding="16,6" FontSize="14"
                                             Click="BtnSyncTime_Click" Margin="0,0,8,0"/>
-                                    
+
                                     <!-- Copy Button -->
                                     <Button x:Name="BtnCopySync" Content="📋 Copy Result"
                                             Style="{StaticResource AccentButtonStyle}"
@@ -2040,155 +2197,6 @@
                             </Border>
                         </Grid>
                     </TabItem>
-
-            <!-- Tab: Text to Subtitle -->
-            <TabItem Header="✂️ Text to Subtitle">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- PANEL 1: Input Full Text -->
-                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-
-                            <Label Grid.Row="0" Content="📄 Full Text Input (Nhập văn bản cần chia phụ đề)" Foreground="#B0B0B0" FontSize="14" FontWeight="SemiBold" Padding="8,4"/>
-
-                            <TextBox x:Name="TxtTextToSubInput" Grid.Row="1"
-                                     Style="{StaticResource DarkTextBoxStyle}"
-                                     TextChanged="TxtTextToSubInput_TextChanged"
-                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
-                        </Grid>
-                    </Border>
-
-                    <!-- PANEL 2: Settings + Output -->
-                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <Label Grid.Row="0" Content="⚙️ Settings" Foreground="#B0B0B0" FontSize="14" FontWeight="SemiBold" Padding="8,4"/>
-
-                            <!-- Settings Grid -->
-                            <Grid Grid.Row="1" Margin="0,0,0,12">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <!-- Max Characters -->
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="📏 Max Chars:"
-                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
-                                           Margin="0,4,6,4"/>
-                                <TextBox x:Name="TxtTextToSubMaxChars" Grid.Row="0" Grid.Column="1"
-                                         Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
-                                         BorderThickness="1" Padding="4,3" FontSize="12" Text="500"
-                                         TextChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"/>
-
-                                <!-- CPS -->
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="⏱️ Max CPS:"
-                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
-                                           Margin="0,4,6,4"/>
-                                <TextBox x:Name="TxtTextToSubCps" Grid.Row="1" Grid.Column="1"
-                                         Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
-                                         BorderThickness="1" Padding="4,3" FontSize="12" Text="17.0"
-                                         TextChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"/>
-
-                                <!-- Punctuation -->
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="🔤 Punctuation:"
-                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
-                                           Margin="0,4,6,4"/>
-                                <ComboBox x:Name="CmbTextToSubPunctuation" Grid.Row="2" Grid.Column="1"
-                                          Style="{StaticResource DarkComboBoxStyle}"
-                                          SelectionChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"
-                                          SelectedIndex="1">
-                                    <ComboBoxItem><TextBlock Text="Count all characters" Foreground="#E0E0E0"/></ComboBoxItem>
-                                    <ComboBoxItem><TextBlock Text="Ignore punctuation" Foreground="#E0E0E0"/></ComboBoxItem>
-                                </ComboBox>
-
-                                <!-- Gap -->
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="⏸️ Gap (ms):"
-                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
-                                           Margin="0,4,6,4"/>
-                                <TextBox x:Name="TxtTextToSubGap" Grid.Row="3" Grid.Column="1"
-                                         Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
-                                         BorderThickness="1" Padding="4,3" FontSize="12" Text="200"
-                                         TextChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"/>
-                            </Grid>
-
-                            <!-- Output Label -->
-                            <Label Grid.Row="2" Content="📝 Output (ASS Format)" Foreground="#B0B0B0" FontSize="14" FontWeight="SemiBold" Padding="8,4"
-                                   Margin="0,8,0,4"/>
-
-                            <!-- Output TextBox -->
-                            <TextBox x:Name="TxtTextToSubOutput" Grid.Row="2"
-                                     Style="{StaticResource DarkTextBoxStyle}"
-                                     IsReadOnly="True" FontSize="13"
-                                     PreviewMouseWheel="TextBox_PreviewMouseWheel" Margin="0,39,0,26" Grid.RowSpan="2"/>
-
-                            <!-- Stats -->
-                            <TextBlock x:Name="TxtTextToSubStats" Grid.Row="3"
-                                       Text="" Foreground="#808080" FontSize="11"
-                                       TextWrapping="Wrap" Margin="0,8,0,4"/>
-
-                            <!-- Buttons -->
-                            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,0,0">
-                                <Button x:Name="BtnTextToSubConvert" Content="🔄 Convert"
-                                        Style="{StaticResource AccentButtonStyle}"
-                                        Padding="14,5" FontSize="12" Margin="0,0,8,0"
-                                        Click="BtnTextToSubConvert_Click"/>
-                                <Button x:Name="BtnTextToSubCopy" Content="📋 Copy"
-                                        Style="{StaticResource AccentButtonStyle}"
-                                        Padding="14,5" FontSize="12"
-                                        Click="BtnTextToSubCopy_Click"/>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <!-- Footer: Author info -->
-                    <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
-                            Background="#1A1A1A" BorderBrush="#3E3E42" BorderThickness="0,1,0,0"
-                            Padding="12,8">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <TextBlock Text="Tác giả: " Foreground="#808080" FontSize="12"/>
-                            <TextBlock Text="Ma Minh Toàn 1993" Foreground="#0078D4" FontSize="12" FontWeight="SemiBold"/>
-                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
-                            <TextBlock Text="Text to Subtitle GMTPC" Foreground="#808080" FontSize="12"/>
-                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
-                            <TextBlock Text="Chia văn bản thành phụ đề ASS tự động" Foreground="#808080" FontSize="12"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Toast Notification -->
-                    <Border x:Name="ToastBorderTextToSub" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
-                            HorizontalAlignment="Center" VerticalAlignment="Top"
-                            Visibility="Collapsed" Style="{StaticResource ToastBorderStyle}"
-                            Margin="0,20,0,0" MinWidth="300" MaxWidth="500">
-                        <TextBlock x:Name="ToastTextTextToSub" Text="" Foreground="#FFFFFF" FontSize="14"
-                                   TextAlignment="Center" TextWrapping="Wrap"/>
-                    </Border>
-                </Grid>
-            </TabItem>
                 </TabControl>
             </TabItem>
         </TabControl>

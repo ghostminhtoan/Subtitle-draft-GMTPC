@@ -210,7 +210,13 @@ namespace Subtitle_draft_GMTPC.Services
                     string[] syllables;
                     var wordLower = word.ToLowerInvariant();
 
-                    if (customSyllableMap != null && customSyllableMap.TryGetValue(wordLower, out var customSyllables))
+                    // QUY TẮC ĐẶC BIỆT: Từ có dấu nháy đơn (') - giữ nguyên, không tách
+                    // Ví dụ: One's, I've, You're, Don't, Can't...
+                    if (ContainsApostrophe(word))
+                    {
+                        syllables = new[] { word };
+                    }
+                    else if (customSyllableMap != null && customSyllableMap.TryGetValue(wordLower, out var customSyllables))
                     {
                         // Dùng quy tắc tùy chỉnh - ADJUST CASE theo input word
                         syllables = AdjustSyllableCase(customSyllables, word);
@@ -271,6 +277,17 @@ namespace Subtitle_draft_GMTPC.Services
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Kiểm tra từ có chứa dấu nháy đơn (') - từ viết tắt/sở hữu
+        /// Các từ này không nên tách, giữ nguyên làm 1 phần
+        /// Ví dụ: One's, I've, You're, Don't, Can't...
+        /// </summary>
+        private static bool ContainsApostrophe(string word)
+        {
+            if (string.IsNullOrEmpty(word)) return false;
+            return word.Contains("'");
         }
 
         /// <summary>
