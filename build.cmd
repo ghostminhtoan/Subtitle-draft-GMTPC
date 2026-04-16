@@ -55,10 +55,32 @@ if %ERRORLEVEL% NEQ 0 (
 )
 echo.
 
+:: Push changes to git repository
+echo.
+echo Pushing changes to git repository...
+echo Adding changes...
+git add .
+echo Added.
+set /p COMMIT_MSG="Enter commit message: "
+echo Committing with message: "%COMMIT_MSG%"
+git commit -m "%COMMIT_MSG%" --allow-empty
+if %ERRORLEVEL% EQU 0 (
+    echo Commit successful, pushing...
+    git push
+    if %ERRORLEVEL% EQU 0 (
+        echo Push successful.
+    ) else (
+        echo Push failed.
+    )
+) else (
+    echo Commit failed, skipping push.
+)
+
 :: Run the executable
 echo Starting application...
-start "" "bin\Debug\Subtitle draft GMTPC.exe"
+start "" "Subtitle draft GMTPC.exe"
 
 echo.
 echo Application launched.
-exit
+
+pause
