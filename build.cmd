@@ -47,7 +47,7 @@ echo.
 
 :: Copy exe to root folder
 echo Copying exe to root folder...
-copy /Y "bin\Debug\Subtitle draft GMTPC.exe" "Subtitle draft GMTPC.exe" >nul
+copy /Y "bin\Debug\net48\Subtitle draft GMTPC.exe" "Subtitle draft GMTPC.exe" >nul
 if %ERRORLEVEL% NEQ 0 (
     echo [WARNING] Failed to copy exe to root folder.
 ) else (
