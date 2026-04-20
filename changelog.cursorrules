@@ -8,16 +8,15 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
-## [2026-04-20 05:40:00 PM Sunday]
+## [2026-04-20 05:53:00 PM Sunday]
 
-### Added - ASS Font Adjust: Change Font for All Styles
-- **Nút mới**: "🔄 Change Font for All Styles" kế bên controls font size
-- **Chức năng**: Nhập tên font → tự động update font name cho TẤT CẢ styles trong ASS file
-- **Input dialog**: Sử dụng Microsoft.VisualBasic.Interaction.InputBox để nhập font name
-- **Toast notification**: Hiện thông báo "Đã thay đổi font thành: [font_name]"
-- **Logic**: Parse ASS styles, thay đổi field Fontname (parts[1]), giữ nguyên font size adjustments
-- **UI**: Button nằm giữa font size controls và output textbox
-- **Validation**: Bỏ qua nếu user cancel hoặc nhập empty string
+### Changed - ASS Font Adjust: Font Input Control
+- **Thay đổi UI**: Từ button dialog → TextBox input + button Apply nhỏ
+- **TextBox**: Ô nhập tên font (width 120px) kế bên label "🔄 Font Name:"
+- **Button Apply**: Nút nhỏ "Apply" (padding 8,4, font 12px) để áp dụng thay đổi
+- **Logic**: Đọc trực tiếp từ TxtFontName.Text thay vì InputBox dialog
+- **Validation**: Toast warning nếu TextBox trống, tự động focus vào TextBox
+- **UX**: Nhanh hơn, trực quan hơn - nhập font ngay trong UI
 
 ---
 ## [2026-04-11 04:30:00 PM Saturday]

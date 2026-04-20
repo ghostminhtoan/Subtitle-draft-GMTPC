@@ -904,11 +904,15 @@
                                         Margin="6,0,0,0" Click="BtnFontPlus_Click"/>
                             </StackPanel>
 
-                            <!-- Change Font Button -->
-                            <Button x:Name="BtnChangeFont" Grid.Row="1" Content="🔄 Change Font for All Styles"
-                                    Style="{StaticResource AccentButtonStyle}"
-                                    HorizontalAlignment="Center" Margin="0,0,0,8"
-                                    Click="BtnChangeFont_Click"/>
+                            <!-- Change Font Controls -->
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
+                                <Label Content="🔄 Font Name:" Style="{StaticResource SectionLabelStyle}" Padding="0" Margin="0,0,8,0"/>
+                                <TextBox x:Name="TxtFontName" Width="120" FontSize="13" Padding="4"
+                                         VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <Button x:Name="BtnApplyFont" Content="Apply"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="8,4" FontSize="12"
+                                        Click="BtnApplyFont_Click"/>
+                            </StackPanel>
 
                             <!-- Output -->
                             <TextBox x:Name="TxtStylesOutput" Grid.Row="2"

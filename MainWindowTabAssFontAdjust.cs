@@ -76,19 +76,19 @@ namespace Subtitle_draft_GMTPC
     }
 
     /// <summary>
-    /// Button - Change Font for All Styles
+    /// Button - Apply Font Change for All Styles
     /// </summary>
-    private void BtnChangeFont_Click(object sender, RoutedEventArgs e)
+    private void BtnApplyFont_Click(object sender, RoutedEventArgs e)
     {
         try
         {
-            var newFontName = Microsoft.VisualBasic.Interaction.InputBox(
-                "Nhập tên font mới:",
-                "Change Font for All Styles",
-                "",
-                -1, -1);
-
-            if (string.IsNullOrWhiteSpace(newFontName)) return;
+            var newFontName = TxtFontName.Text?.Trim();
+            if (string.IsNullOrWhiteSpace(newFontName))
+            {
+                ShowToastStyles("⚠️ Vui lòng nhập tên font!");
+                TxtFontName.Focus();
+                return;
+            }
 
             UpdateStylesOutputWithFontChange(newFontName);
             ShowToastStyles("\ud83d\udd04 Đã thay đổi font thành: " + newFontName);
