@@ -222,6 +222,26 @@ Gap = StartTime(dòng dưới) - EndTime(dòng trên)
 
 ---
 
+## 🤖 Quy Tắc Workflow Tự Động (BẮT BUỘC)
+
+### 🔄 Trigger Build & Commit Khi Tag @workflow subtitle.cursorrules
+**Khi nào**: Bất kỳ khi nào tag `@workflow subtitle.cursorrules` trong chat
+**Workflow tự động**:
+1. **Auto Build**: Chạy `dotnet build` → tạo file `.exe` trong `bin/Debug/net48/`
+2. **Copy exe to root**: Copy file `Subtitle draft GMTPC.exe` từ `bin/Debug/net48/` → root project
+3. **Force commit exe**: Commit BẮT BUỘC file exe cùng với code changes
+   - Message: `"Build & update exe: [timestamp]"`
+   - **KHÔNG BAO GIỜ** commit code mà không có exe file
+4. **Push**: Auto push sau khi commit thành công
+
+**Quy tắc**:
+- Tag `@workflow subtitle.cursorrules` = trigger full workflow
+- **KHÔNG** manual build nữa - chỉ dùng tag để trigger
+- File exe PHẢI có trong repo để đảm bảo version consistency
+- Nếu build fail → **DỪNG LẠI** → fix error → tag lại
+
+---
+
 ## 📋 Tham Khảo Nhanh
 
 **Pattern đặt tên file**:

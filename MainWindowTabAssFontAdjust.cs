@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Threading.Tasks;
 using System.Text;
 using System.Collections.Generic;
+using Microsoft.VisualBasic;
 using Subtitle_draft_GMTPC.Models;
 using Subtitle_draft_GMTPC.Services;
 
@@ -72,6 +73,30 @@ namespace Subtitle_draft_GMTPC
     private void CmbFontSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         UpdateStylesOutput();
+    }
+
+    /// <summary>
+    /// Button - Change Font for All Styles
+    /// </summary>
+    private void BtnChangeFont_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var newFontName = Microsoft.VisualBasic.Interaction.InputBox(
+                "Nhập tên font mới:",
+                "Change Font for All Styles",
+                "",
+                -1, -1);
+
+            if (string.IsNullOrWhiteSpace(newFontName)) return;
+
+            UpdateStylesOutputWithFontChange(newFontName);
+            ShowToastStyles("\ud83d\udd04 Đã thay đổi font thành: " + newFontName);
+        }
+        catch (Exception ex)
+        {
+            System.Windows.MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+        }
     }
 
     /// <summary>
@@ -161,6 +186,67 @@ namespace Subtitle_draft_GMTPC
 
         TxtStylesOutput.Text = sb.ToString().TrimEnd();
         TxtStylesCount.Text = string.Format("({0} styles, +{1}px)", styleCount, fontSizeDelta);
+    }
+
+    /// <summary>
+    /// Cập nhật output styles với font name mới
+    /// </summary>
+    private void UpdateStylesOutputWithFontChange(string newFontName)
+    {
+        var inputText = TxtStylesInput.Text;
+        if (string.IsNullOrWhiteSpace(inputText)) return;
+
+        // Lấy giá trị font size tăng thêm từ ComboBox (để giữ nguyên khi thay đổi font)
+        int fontSizeDelta = 0;
+        if (CmbFontSize.SelectedIndex >= 0)
+        {
+            fontSizeDelta = CmbFontSize.SelectedIndex + 1;
+        }
+
+        // Parse và xử lý từng dòng Style
+        var lines = inputText.Split(new[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.None);
+        var sb = new StringBuilder();
+        int styleCount = 0;
+
+        foreach (var line in lines)
+        {
+            var trimmed = line.Trim();
+            if (trimmed.StartsWith("Style:") || trimmed.StartsWith("Style :"))
+            {
+                // Format: Style: Name,Fontname,Fontsize,...
+                var parts = trimmed.Split(',');
+                if (parts.Length >= 3)
+                {
+                    // parts(0) = "Style: Name" hoặc "Style : Name"
+                    // parts(1) = Fontname ← Thay đổi field này
+                    // parts(2) = Fontsize
+                    parts[1] = newFontName;
+
+                    // Áp dụng font size delta nếu có
+                    int currentFontSize = 0;
+                    if (int.TryParse(parts[2].Trim(), out currentFontSize))
+                    {
+                        var newFontSize = currentFontSize + fontSizeDelta;
+                        if (newFontSize < 1) newFontSize = 1;
+                        parts[2] = newFontSize.ToString();
+                    }
+
+                    styleCount += 1;
+                }
+                sb.AppendLine(string.Join(",", parts));
+            }
+            else
+            {
+                // Dòng không phải Style → giữ nguyên
+                if (!string.IsNullOrWhiteSpace(trimmed))
+                {
+                    sb.AppendLine(trimmed);
+                }
+            }
+        }
+
+        TxtStylesOutput.Text = sb.ToString().TrimEnd();
+        TxtStylesCount.Text = string.Format("({0} styles, font: {1})", styleCount, newFontName);
     }
 
 #endregion
