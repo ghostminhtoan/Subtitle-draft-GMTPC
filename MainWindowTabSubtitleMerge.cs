@@ -19,6 +19,7 @@ namespace Subtitle_draft_GMTPC
     private bool _isMergeUpdating = false;
     private bool _mergeNotesEnabled = false;
     private bool _isMergeNoteToggleSyncing = false;
+    private const int MergeBlankNoteLineCount = 5;
 
 #endregion
 
@@ -161,9 +162,17 @@ namespace Subtitle_draft_GMTPC
         var result = new List<SubtitleLine>();
         if (lines == null || lines.Count == 0) return result;
 
-        if (_mergeNotesEnabled && !HasMergeNote(lines, noteText))
+        if (_mergeNotesEnabled && !HasCompleteMergeNoteBlock(lines, noteText))
         {
-            result.Add(CreateMergeNoteLine(noteText));
+            for (int i = 0; i < MergeBlankNoteLineCount; i++)
+            {
+                result.Add(CreateMergeNoteLine(""));
+            }
+
+            if (!HasMergeNoteAtStart(lines, noteText))
+            {
+                result.Add(CreateMergeNoteLine(noteText));
+            }
         }
 
         foreach (var line in lines)
@@ -231,16 +240,56 @@ namespace Subtitle_draft_GMTPC
     {
         if (lines == null || lines.Count == 0) return false;
 
-        var firstLine = lines[0];
-        if (firstLine == null || firstLine.StartTime != TimeSpan.Zero) return false;
+        return HasMergeNoteAtStart(lines, noteText) || HasCompleteMergeNoteBlock(lines, noteText);
+    }
 
-        var assLine = firstLine as AssSubtitleLine;
+    private bool HasMergeNoteAtStart(List<SubtitleLine> lines, string noteText)
+    {
+        return lines != null && lines.Count > 0 && IsMergeNoteLine(lines[0], noteText);
+    }
+
+    private bool HasCompleteMergeNoteBlock(List<SubtitleLine> lines, string noteText)
+    {
+        if (lines == null || lines.Count == 0) return false;
+
+        var noteIndex = FindMergeNoteIndex(lines, noteText);
+        if (noteIndex != MergeBlankNoteLineCount) return false;
+
+        for (int i = 0; i < noteIndex; i++)
+        {
+            if (!IsBlankMergeNoteLine(lines[i])) return false;
+        }
+
+        return true;
+    }
+
+    private int FindMergeNoteIndex(List<SubtitleLine> lines, string noteText)
+    {
+        var searchCount = Math.Min(lines.Count, MergeBlankNoteLineCount + 1);
+        for (int i = 0; i < searchCount; i++)
+        {
+            if (IsMergeNoteLine(lines[i], noteText)) return i;
+        }
+
+        return -1;
+    }
+
+    private bool IsBlankMergeNoteLine(SubtitleLine line)
+    {
+        return IsMergeNoteLine(line, "");
+    }
+
+    private bool IsMergeNoteLine(SubtitleLine line, string noteText)
+    {
+        if (line == null || line.StartTime != TimeSpan.Zero || line.EndTime != TimeSpan.Zero) return false;
+
+        var assLine = line as AssSubtitleLine;
         if (assLine != null)
         {
             return string.Equals((assLine.DialogText ?? "").Trim(), noteText, StringComparison.OrdinalIgnoreCase);
         }
 
-        var srtLine = firstLine as SrtSubtitleLine;
+        var srtLine = line as SrtSubtitleLine;
         if (srtLine != null)
         {
             return string.Equals((srtLine.Text ?? "").Trim(), noteText, StringComparison.OrdinalIgnoreCase);

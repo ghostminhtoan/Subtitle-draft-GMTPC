@@ -8,6 +8,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-21 01:06:18 PM Tuesday]
+
+### Changed - Subtitle Merge Note Padding
+- Khi bật `note engsub - vietsub`, mỗi note `Engsub`/`Vietsub` được chèn sau 5 dòng subtitle trống ở time `0:00:00`.
+- Nếu input đã có note ở đầu nhưng thiếu 5 dòng trống, output tự thêm 5 dòng trống phía trên note mà không duplicate note.
+- Auto-detect vẫn nhận biết cả note cũ ở đầu và block note đầy đủ 5 dòng trống.
+
+---
 ## [2026-04-21 12:52:53 PM Tuesday]
 
 ### Changed - Subtitle Draft Zero-Time Protection
