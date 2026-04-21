@@ -20,6 +20,7 @@ namespace Subtitle_draft_GMTPC
     private bool _mergeNotesEnabled = false;
     private bool _isMergeNoteToggleSyncing = false;
     private const int MergeBlankNoteLineCount = 5;
+    private string _mergeStylePreset = "";
 
 #endregion
 
@@ -129,6 +130,25 @@ namespace Subtitle_draft_GMTPC
         UpdateMergeDisplays();
     }
 
+    private void BtnMergeChangeStyle_Click(object sender, RoutedEventArgs e)
+    {
+        BtnMergeChangeStyle.ContextMenu.PlacementTarget = BtnMergeChangeStyle;
+        BtnMergeChangeStyle.ContextMenu.IsOpen = true;
+    }
+
+    private void MenuMergeStyle_Click(object sender, RoutedEventArgs e)
+    {
+        var menuItem = sender as MenuItem;
+        if (menuItem == null) return;
+
+        _mergeStylePreset = (menuItem.Tag ?? "").ToString();
+        UpdateMergeStyleButtonDisplay();
+        UpdateMergeDisplays();
+
+        var status = string.IsNullOrWhiteSpace(_mergeStylePreset) ? "Default" : _mergeStylePreset + "p";
+        ShowToastMerge("\ud83c\udfa8 Style: " + status);
+    }
+
 #endregion
 
 #region "Subtitle Merge - Display Methods"
@@ -143,6 +163,8 @@ namespace Subtitle_draft_GMTPC
 
             var engLines = GetMergeLinesWithOptionalNote(_engLines, "Engsub");
             var vietLines = GetMergeLinesWithOptionalNote(_vietLines, "Vietsub");
+            ApplyMergeStylePreset(engLines, "Engsub");
+            ApplyMergeStylePreset(vietLines, "Vietsub");
 
             var mergedLines = MergeService.MergeSubtitles(engLines, vietLines, _mergeFormat);
             TxtMerge.Text = (mergedLines != null && mergedLines.Count > 0) ? SubtitleParser.ToText(mergedLines, _mergeFormat) : "";
@@ -177,10 +199,36 @@ namespace Subtitle_draft_GMTPC
 
         foreach (var line in lines)
         {
-            result.Add(line);
+            result.Add(line.Clone());
         }
 
         return result;
+    }
+
+    private void ApplyMergeStylePreset(List<SubtitleLine> lines, string stylePrefix)
+    {
+        if (lines == null || lines.Count == 0) return;
+        if (_mergeFormat != SubtitleFormat.Ass) return;
+        if (string.IsNullOrWhiteSpace(_mergeStylePreset)) return;
+
+        var styleName = stylePrefix + " " + _mergeStylePreset;
+        foreach (var line in lines)
+        {
+            var assLine = line as AssSubtitleLine;
+            if (assLine == null) continue;
+
+            assLine.Style = styleName;
+            assLine.Content = assLine.RebuildLine();
+        }
+    }
+
+    private void UpdateMergeStyleButtonDisplay()
+    {
+        if (BtnMergeChangeStyle == null) return;
+
+        BtnMergeChangeStyle.Content = string.IsNullOrWhiteSpace(_mergeStylePreset)
+            ? "\ud83c\udfa8 Change Style"
+            : "\ud83c\udfa8 Style " + _mergeStylePreset + "p";
     }
 
     private SubtitleLine CreateMergeNoteLine(string noteText)

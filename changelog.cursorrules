@@ -8,6 +8,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-21 01:51:10 PM Tuesday]
+
+### Added - Subtitle Merge Change Style Menu
+- Thêm nút `Change Style` trong tab Subtitle Merge với preset 480p, 720p, 1080p và Default.
+- Khi chọn preset, output ASS tự đổi style dialogue Engsub/Vietsub sang `Engsub [preset]` và `Vietsub [preset]`.
+- Preset tương ứng các cấu hình font Times New Roman size 35/50/70 đã định sẵn.
+
+---
 ## [2026-04-21 01:06:18 PM Tuesday]
 
 ### Changed - Subtitle Merge Note Padding
