@@ -23,6 +23,12 @@ namespace Subtitle_draft_GMTPC.Services
             {
                 var cloned = line.Clone();
 
+                if (IsZeroTimeLine(cloned))
+                {
+                    result.Add(cloned);
+                    continue;
+                }
+
                 // Shift start time
                 var newStartMs = SubtitleLine.ToMilliseconds(cloned.StartTime) + milliseconds;
                 if (newStartMs < 0) newStartMs = 0;
@@ -66,6 +72,11 @@ namespace Subtitle_draft_GMTPC.Services
                 var currentLine = result[i];
                 var nextLine = result[i + 1];
 
+                if (IsZeroTimeLine(currentLine) || IsZeroTimeLine(nextLine))
+                {
+                    continue;
+                }
+
                 // Tính gap = Start dòng dưới - End dòng trên
                 var currentEndMs = SubtitleLine.ToMilliseconds(currentLine.EndTime);
                 var nextStartMs = SubtitleLine.ToMilliseconds(nextLine.StartTime);
@@ -80,6 +91,11 @@ namespace Subtitle_draft_GMTPC.Services
             }
 
             return result;
+        }
+
+        private static bool IsZeroTimeLine(SubtitleLine line)
+        {
+            return line != null && line.StartTime == TimeSpan.Zero && line.EndTime == TimeSpan.Zero;
         }
     }
 }

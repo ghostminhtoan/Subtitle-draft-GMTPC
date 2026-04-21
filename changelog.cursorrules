@@ -8,6 +8,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-21 12:52:53 PM Tuesday]
+
+### Changed - Subtitle Draft Zero-Time Protection
+- Đổi thứ tự nút Time Code thành `-200ms` trước `+200ms`.
+- Shift time bỏ qua mọi dòng có StartTime và EndTime đều bằng `0:00:00`.
+- Connect Gap không chỉnh các dòng zero-time và không nối gap qua dòng zero-time.
+
+---
 ## [2026-04-21 11:32:42 AM Tuesday]
 
 ### Added - Subtitle Merge Note Toggle

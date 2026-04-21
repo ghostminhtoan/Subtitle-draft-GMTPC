@@ -1185,12 +1185,12 @@
                                      PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
-                                <Button x:Name="BtnTimePlus200" Content="+200ms"
-                                        Style="{StaticResource AccentButtonStyle}"
-                                        Margin="0,0,6,0" Click="BtnTimePlus200_Click"/>
                                 <Button x:Name="BtnTimeMinus200" Content="-200ms"
                                         Style="{StaticResource AccentButtonStyle}"
                                         Margin="0,0,6,0" Click="BtnTimeMinus200_Click"/>
+                                <Button x:Name="BtnTimePlus200" Content="+200ms"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Margin="0,0,6,0" Click="BtnTimePlus200_Click"/>
                                 <Button x:Name="BtnCopyTimeCode" Content="📋 Copy"
                                         Style="{StaticResource AccentButtonStyle}"
                                         Click="BtnCopyTimeCode_Click"/>
