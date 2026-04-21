@@ -8,6 +8,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-21 10:57:00 AM Tuesday]
+
+### Added - Translate Prompt 3: Anime One Word
+- Thêm default Prompt 3 tên `Anime One Word` cho tab Translate.
+- Prompt 3 hướng dẫn AI ngoài tự gom phụ đề một-từ theo ngữ cảnh, dịch theo vibe anime, tự kiểm CPL và rollback gom ít dòng hơn nếu vi phạm luật.
+- Không thêm logic gom từ vào project; app chỉ lưu/load prompt như workflow hiện tại.
+
+---
 ## [2026-04-20 05:53:00 PM Sunday]
 
 ### Changed - ASS Font Adjust: Font Input Control

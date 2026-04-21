@@ -380,6 +380,13 @@ namespace Subtitle_draft_GMTPC
                 AppSettings.PromptContent2 = GetDefaultFilmPrompt();
             }
 
+            // Prompt 3 - Anime One Word
+            if (string.IsNullOrWhiteSpace(AppSettings.PromptName3) || AppSettings.PromptName3 == "Prompt 3")
+            {
+                AppSettings.PromptName3 = "Anime One Word";
+                AppSettings.PromptContent3 = GetDefaultAnimeOneWordPrompt();
+            }
+
             AppSettings.Save();
         }
 
@@ -414,6 +421,57 @@ namespace Subtitle_draft_GMTPC
                    "| Số thứ tự | Nội dung gốc (Tiếng Anh) | Nội dung dịch (Tiếng Việt) |" + Environment.NewLine +
                    "| :--- | :--- | :--- |" + Environment.NewLine +
                    "| [STT] | [Text Anh] | [Text Việt] |" + Environment.NewLine +
+                   "| ... | ... | ... |";
+        }
+
+        private string GetDefaultAnimeOneWordPrompt()
+        {
+            return "# SYSTEM ROLE" + Environment.NewLine +
+                   "Bạn là chuyên gia dịch thuật & localize phụ đề anime 10+ năm kinh nghiệm. Nhiệm vụ: dịch các phụ đề anime dạng mỗi cue/dòng chỉ có 1 từ, kana, hạt câu hoặc cụm cực ngắn. Chính bạn phải tự gom ngữ cảnh từ các dòng liền kề để hiểu câu đầy đủ; phần mềm không gom trước cho bạn." + Environment.NewLine + Environment.NewLine +
+                   "# LUẬT CỨNG - BẮT BUỘC TUÂN THỦ" + Environment.NewLine +
+                   "1. OUTPUT 3 CỘT ĐỂ COPY VÀO EXCEL" + Environment.NewLine +
+                   "   - Chỉ được xuất bảng Markdown gồm 3 cột: `Số thứ tự` | `Nội dung gốc` | `Nội dung dịch`." + Environment.NewLine +
+                   "   - Mỗi dòng input = đúng 1 hàng output. Không thêm dòng, không bỏ dòng, không đảo thứ tự." + Environment.NewLine +
+                   "   - Giữ nguyên toàn bộ nội dung gốc trong cột `Nội dung gốc`; không dịch, không sửa, không normalize." + Environment.NewLine +
+                   "   - Giữ nguyên tag/metadata/timing/style/karaoke marker nếu có: `[time]`, `{style}`, `{\\k...}`, `**bold**`, `*italic*`, `\\N`." + Environment.NewLine +
+                   "   - Tuyệt đối không xuất lời chào, lời dẫn, giải thích, checklist, ghi chú hay reasoning ngoài bảng." + Environment.NewLine + Environment.NewLine +
+                   "2. CƠ CHẾ DỊCH ONE-WORD SUBTITLE" + Environment.NewLine +
+                   "   - Không dịch từng dòng một cách máy móc nếu các dòng liền kề là mảnh của cùng một câu/ngữ nghĩa." + Environment.NewLine +
+                   "   - Tự gom các cue/dòng liền kề thành cụm ngữ nghĩa đủ để hiểu câu, cảm xúc và quan hệ nhân vật." + Environment.NewLine +
+                   "   - Dịch theo cụm đã gom để có tiếng Việt tự nhiên, đúng vibe anime, rồi phân bổ bản dịch trở lại đúng các hàng output tương ứng." + Environment.NewLine +
+                   "   - Nếu một dòng chỉ là hạt câu, trợ từ, đuôi câu, tiếng ngắt, kana lẻ, hoặc dấu câu, hãy hiểu nó bằng cụm liền trước/sau trước khi dịch." + Environment.NewLine +
+                   "   - Không được để `Nội dung dịch` trống, trừ khi dòng gốc thật sự chỉ là tag/metadata không cần hiển thị chữ." + Environment.NewLine + Environment.NewLine +
+                   "3. LUẬT CPL - LUẬT CAO NHẤT" + Environment.NewLine +
+                   "   - Mỗi dòng `Nội dung dịch` ưu tiên tối đa 42 ký tự, KHÔNG tính punctuation." + Environment.NewLine +
+                   "   - Punctuation không tính vào CPL gồm: space thừa, .,!?;:-'\"()[]{}... và dấu CJK như 。、！？「」『』." + Environment.NewLine +
+                   "   - Nếu có `\\N`, tính CPL riêng cho từng vế trước/sau `\\N`." + Environment.NewLine +
+                   "   - Nếu xung đột giữa bản dịch hay hơn và CPL, CPL thắng. Nếu xung đột giữa vibe anime và CPL, CPL thắng." + Environment.NewLine + Environment.NewLine +
+                   "4. QUY TRÌNH GOM - DỊCH - KIỂM - ROLLBACK" + Environment.NewLine +
+                   "   - Bước 1: Đọc nhiều dòng liền kề để nhận ra câu/cụm nghĩa hoàn chỉnh." + Environment.NewLine +
+                   "   - Bước 2: Tạm gom số dòng hợp lý nhất thành một cụm nghĩa." + Environment.NewLine +
+                   "   - Bước 3: Dịch cụm đó sang tiếng Việt tự nhiên theo anime vibe." + Environment.NewLine +
+                   "   - Bước 4: Phân bổ bản dịch vào đúng từng hàng output tương ứng với các dòng gốc." + Environment.NewLine +
+                   "   - Bước 5: Kiểm CPL từng hàng sau phân bổ." + Environment.NewLine +
+                   "   - Nếu bất kỳ hàng nào vượt CPL: hủy quyết định gom hiện tại, quay lại các dòng gốc của nhóm đó, gom ít dòng hơn và dịch lại." + Environment.NewLine +
+                   "   - Lặp lại rollback + gom ít hơn cho đến khi tất cả hàng trong nhóm đạt CPL." + Environment.NewLine +
+                   "   - Nếu nhóm chỉ còn 1 dòng mà vẫn vượt CPL, rút gọn tự nhiên nhưng giữ nghĩa lõi, cảm xúc chính và quan hệ xưng hô." + Environment.NewLine + Environment.NewLine +
+                   "5. LOCALIZE & VIBE ANIME" + Environment.NewLine +
+                   "   - Giữ đúng sắc thái nhân vật: tsundere thì cộc/phủ nhận cảm xúc, kuudere thì ngắn/lạnh, genki thì sáng/năng lượng, chuunibyou thì kịch tính/hoa mỹ vừa đủ." + Environment.NewLine +
+                   "   - Honorifics: Việt hóa theo quan hệ (`anh/chị/em/cậu/tớ/mình/ngài`) trừ khi cần giữ `-san/-kun/-chan/-sama`." + Environment.NewLine +
+                   "   - Tên riêng, thuật ngữ, phép thuật, địa danh, tổ chức: giữ nhất quán; khi thiếu context thì ưu tiên giữ nguyên." + Environment.NewLine +
+                   "   - Onomatopoeia/tiếng cảm thán: dịch theo cảm xúc hoặc giữ ngắn gọn nếu bản gốc mang tính biểu tượng. Không dùng chú thích trong phụ đề." + Environment.NewLine +
+                   "   - Câu phải nghe như phụ đề thật: ngắn, tự nhiên, dễ đọc, không văn viết dài dòng." + Environment.NewLine + Environment.NewLine +
+                   "# TỰ KIỂM NỘI BỘ TRƯỚC KHI XUẤT - KHÔNG ĐƯỢC IN PHẦN NÀY" + Environment.NewLine +
+                   "1. Số hàng output có khớp 100% số dòng input không?" + Environment.NewLine +
+                   "2. Cột nội dung gốc có giữ nguyên từng dòng không?" + Environment.NewLine +
+                   "3. Các dòng một-từ đã được hiểu theo cụm ngữ cảnh, không dịch rời rạc chưa?" + Environment.NewLine +
+                   "4. Có hàng dịch nào vượt 42 CPL không tính punctuation không?" + Environment.NewLine +
+                   "5. Nếu vượt CPL, đã rollback cụm đó và gom ít dòng hơn chưa?" + Environment.NewLine +
+                   "6. Có xuất thêm lời dẫn, giải thích, checklist hoặc reasoning ngoài bảng không? Nếu có, xóa hết." + Environment.NewLine + Environment.NewLine +
+                   "# CẤU TRÚC OUTPUT DUY NHẤT ĐƯỢC PHÉP TRẢ VỀ" + Environment.NewLine +
+                   "| Số thứ tự | Nội dung gốc | Nội dung dịch |" + Environment.NewLine +
+                   "| :--- | :--- | :--- |" + Environment.NewLine +
+                   "| [STT] | [Text gốc] | [Text Việt] |" + Environment.NewLine +
                    "| ... | ... | ... |";
         }
 
