@@ -8,6 +8,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-21 11:32:42 AM Tuesday]
+
+### Added - Subtitle Merge Note Toggle
+- Thêm công tắc `note engsub - vietsub` trong tab Subtitle Merge.
+- Khi bật, merge output tự thêm note time 0:00:00 `Vietsub` ở đầu panel Vietsub và `Engsub` ở đầu panel Engsub trước khi ghép theo thứ tự cũ.
+- Tự nhận biết nếu input đã có note `Engsub`/`Vietsub` ở đầu để bật công tắc và tránh thêm trùng.
+
+---
 ## [2026-04-21 10:57:00 AM Tuesday]
 
 ### Added - Translate Prompt 3: Anime One Word

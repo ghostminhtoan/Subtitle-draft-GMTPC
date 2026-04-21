@@ -17,6 +17,8 @@ namespace Subtitle_draft_GMTPC
     private List<SubtitleLine> _vietLines = new List<SubtitleLine>();
     private SubtitleFormat _mergeFormat = SubtitleFormat.Unknown;
     private bool _isMergeUpdating = false;
+    private bool _mergeNotesEnabled = false;
+    private bool _isMergeNoteToggleSyncing = false;
 
 #endregion
 
@@ -41,6 +43,7 @@ namespace Subtitle_draft_GMTPC
                 _mergeFormat = detectedFormat;
             }
             _engLines = SubtitleParser.Parse(content);
+            AutoDetectMergeNotes();
             TxtEngsubFormat.Text = string.Format("({0} - {1} dòng)", detectedFormat.ToString().ToUpper(), _engLines.Count);
         }
         catch (Exception ex)
@@ -74,6 +77,7 @@ namespace Subtitle_draft_GMTPC
                 _mergeFormat = detectedFormat;
             }
             _vietLines = SubtitleParser.Parse(content);
+            AutoDetectMergeNotes();
             TxtVietsubFormat.Text = string.Format("({0} - {1} dòng)", detectedFormat.ToString().ToUpper(), _vietLines.Count);
         }
         catch (Exception ex)
@@ -116,6 +120,14 @@ namespace Subtitle_draft_GMTPC
         }
     }
 
+    private void ToggleMergeNotes_CheckedChanged(object sender, RoutedEventArgs e)
+    {
+        if (_isMergeNoteToggleSyncing) return;
+
+        _mergeNotesEnabled = ToggleMergeNotes.IsChecked == true;
+        UpdateMergeDisplays();
+    }
+
 #endregion
 
 #region "Subtitle Merge - Display Methods"
@@ -128,10 +140,13 @@ namespace Subtitle_draft_GMTPC
             if (_engLines == null) _engLines = new List<SubtitleLine>();
             if (_vietLines == null) _vietLines = new List<SubtitleLine>();
 
-            var mergedLines = MergeService.MergeSubtitles(_engLines, _vietLines, _mergeFormat);
+            var engLines = GetMergeLinesWithOptionalNote(_engLines, "Engsub");
+            var vietLines = GetMergeLinesWithOptionalNote(_vietLines, "Vietsub");
+
+            var mergedLines = MergeService.MergeSubtitles(engLines, vietLines, _mergeFormat);
             TxtMerge.Text = (mergedLines != null && mergedLines.Count > 0) ? SubtitleParser.ToText(mergedLines, _mergeFormat) : "";
 
-            var unbreakLines = MergeService.MergeUnbreak(_engLines, _vietLines, _mergeFormat);
+            var unbreakLines = MergeService.MergeUnbreak(engLines, vietLines, _mergeFormat);
             TxtMergeUnbreak.Text = (unbreakLines != null && unbreakLines.Count > 0) ? SubtitleParser.ToText(unbreakLines, _mergeFormat) : "";
         }
         catch (Exception)
@@ -139,6 +154,99 @@ namespace Subtitle_draft_GMTPC
             TxtMerge.Text = "";
             TxtMergeUnbreak.Text = "";
         }
+    }
+
+    private List<SubtitleLine> GetMergeLinesWithOptionalNote(List<SubtitleLine> lines, string noteText)
+    {
+        var result = new List<SubtitleLine>();
+        if (lines == null || lines.Count == 0) return result;
+
+        if (_mergeNotesEnabled && !HasMergeNote(lines, noteText))
+        {
+            result.Add(CreateMergeNoteLine(noteText));
+        }
+
+        foreach (var line in lines)
+        {
+            result.Add(line);
+        }
+
+        return result;
+    }
+
+    private SubtitleLine CreateMergeNoteLine(string noteText)
+    {
+        if (_mergeFormat == SubtitleFormat.Ass)
+        {
+            return new AssSubtitleLine()
+            {
+                OriginalText = noteText,
+                StartTime = TimeSpan.Zero,
+                EndTime = TimeSpan.Zero,
+                Content = noteText,
+                Layer = "0",
+                Style = "Default",
+                Name = "",
+                MarginL = "0000",
+                MarginR = "0000",
+                MarginV = "0000",
+                Effect = "",
+                DialogText = noteText,
+                Header = "Dialogue"
+            };
+        }
+
+        return new SrtSubtitleLine(0, TimeSpan.Zero, TimeSpan.Zero, noteText)
+        {
+            OriginalText = noteText,
+            Content = noteText
+        };
+    }
+
+    private void AutoDetectMergeNotes()
+    {
+        if (_mergeNotesEnabled) return;
+        if (!HasMergeNote(_engLines, "Engsub") || !HasMergeNote(_vietLines, "Vietsub")) return;
+
+        _mergeNotesEnabled = true;
+        SetMergeNoteToggleChecked(true);
+    }
+
+    private void SetMergeNoteToggleChecked(bool isChecked)
+    {
+        if (ToggleMergeNotes == null) return;
+
+        try
+        {
+            _isMergeNoteToggleSyncing = true;
+            ToggleMergeNotes.IsChecked = isChecked;
+        }
+        finally
+        {
+            _isMergeNoteToggleSyncing = false;
+        }
+    }
+
+    private bool HasMergeNote(List<SubtitleLine> lines, string noteText)
+    {
+        if (lines == null || lines.Count == 0) return false;
+
+        var firstLine = lines[0];
+        if (firstLine == null || firstLine.StartTime != TimeSpan.Zero) return false;
+
+        var assLine = firstLine as AssSubtitleLine;
+        if (assLine != null)
+        {
+            return string.Equals((assLine.DialogText ?? "").Trim(), noteText, StringComparison.OrdinalIgnoreCase);
+        }
+
+        var srtLine = firstLine as SrtSubtitleLine;
+        if (srtLine != null)
+        {
+            return string.Equals((srtLine.Text ?? "").Trim(), noteText, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return false;
     }
 
 #endregion
