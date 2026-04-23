@@ -8,6 +8,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-23 08:37:18 AM Thursday]
+
+### Changed - Subtitle Merge Style Preset Labels
+- Đổi menu `Change Style` để hiển thị đúng cặp tên style `Engsub 480/720/1080` và `Vietsub 480/720/1080`.
+- Toast và button sau khi chọn preset cũng hiển thị theo tên style, không còn ghi kiểu `720p` chung chung.
+- Logic đổi style vẫn thay trực tiếp field Style của từng Dialogue từ style gốc sang tên style preset đã chọn.
+
+---
 ## [2026-04-21 01:51:10 PM Tuesday]
 
 ### Added - Subtitle Merge Change Style Menu

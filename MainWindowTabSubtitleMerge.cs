@@ -145,7 +145,7 @@ namespace Subtitle_draft_GMTPC
         UpdateMergeStyleButtonDisplay();
         UpdateMergeDisplays();
 
-        var status = string.IsNullOrWhiteSpace(_mergeStylePreset) ? "Default" : _mergeStylePreset + "p";
+        var status = string.IsNullOrWhiteSpace(_mergeStylePreset) ? "Giữ style gốc" : "Engsub " + _mergeStylePreset + " / Vietsub " + _mergeStylePreset;
         ShowToastMerge("\ud83c\udfa8 Style: " + status);
     }
 
@@ -228,7 +228,7 @@ namespace Subtitle_draft_GMTPC
 
         BtnMergeChangeStyle.Content = string.IsNullOrWhiteSpace(_mergeStylePreset)
             ? "\ud83c\udfa8 Change Style"
-            : "\ud83c\udfa8 Style " + _mergeStylePreset + "p";
+            : "\ud83c\udfa8 Eng/Viet " + _mergeStylePreset;
     }
 
     private SubtitleLine CreateMergeNoteLine(string noteText)

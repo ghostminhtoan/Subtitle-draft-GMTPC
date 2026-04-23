@@ -1121,11 +1121,11 @@
                                     Click="BtnMergeChangeStyle_Click">
                                 <Button.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="480p - Times New Roman 35" Tag="480" Click="MenuMergeStyle_Click"/>
-                                        <MenuItem Header="720p - Times New Roman 50" Tag="720" Click="MenuMergeStyle_Click"/>
-                                        <MenuItem Header="1080p - Times New Roman 70" Tag="1080" Click="MenuMergeStyle_Click"/>
+                                        <MenuItem Header="Engsub 480 / Vietsub 480" Tag="480" Click="MenuMergeStyle_Click"/>
+                                        <MenuItem Header="Engsub 720 / Vietsub 720" Tag="720" Click="MenuMergeStyle_Click"/>
+                                        <MenuItem Header="Engsub 1080 / Vietsub 1080" Tag="1080" Click="MenuMergeStyle_Click"/>
                                         <Separator/>
-                                        <MenuItem Header="Default style" Tag="" Click="MenuMergeStyle_Click"/>
+                                        <MenuItem Header="Giữ style gốc" Tag="" Click="MenuMergeStyle_Click"/>
                                     </ContextMenu>
                                 </Button.ContextMenu>
                             </Button>
