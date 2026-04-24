@@ -8,6 +8,15 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-24 09:31:00 AM Friday]
+
+### Fixed - Hardware Info CPU and RAM Layout
+- Sửa lỗi tab Hardware Info lấy sai property RAM trống, không còn hiện `Lỗi: Not found` ở khung RAM.
+- Thêm khoảng cách một dòng giữa các CPU socket để thông tin nhiều CPU không dính liền nhau.
+- Thêm khoảng cách một dòng giữa các slot RAM để danh sách thanh RAM dễ đọc hơn.
+- Bổ sung đọc property an toàn hơn trong Hardware Info để tránh văng lỗi khi WMI thiếu field.
+
+---
 ## [2026-04-23 08:37:18 AM Thursday]
 
 ### Changed - Subtitle Merge Style Preset Labels

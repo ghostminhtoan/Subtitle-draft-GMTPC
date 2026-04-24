@@ -5,7 +5,7 @@ using System.Text;
 namespace Subtitle_draft_GMTPC.Services
 {
     /// <summary>
-    /// Service thu thập thông tin phần cứng hệ thống
+    /// Service thu thap thong tin phan cung he thong
     /// </summary>
     public class HardwareInfoService
     {
@@ -26,7 +26,7 @@ namespace Subtitle_draft_GMTPC.Services
                     sb.AppendLine($"=== GPU {gpuIndex} ===");
 
                     var name = GetProperty(obj, "Name");
-                    if (!string.IsNullOrEmpty(name)) sb.AppendLine($"  Tên: {name}");
+                    if (!string.IsNullOrEmpty(name)) sb.AppendLine($"  Ten: {name}");
 
                     var driverVersion = GetProperty(obj, "DriverVersion");
                     if (!string.IsNullOrEmpty(driverVersion)) sb.AppendLine($"  Driver Version: {driverVersion}");
@@ -45,7 +45,7 @@ namespace Subtitle_draft_GMTPC.Services
                     var currentResV = GetProperty(obj, "CurrentVerticalResolution");
                     if (!string.IsNullOrEmpty(currentRes) && !string.IsNullOrEmpty(currentResV))
                     {
-                        sb.AppendLine($"  Độ phân giải: {currentRes} x {currentResV}");
+                        sb.AppendLine($"  Do phan giai: {currentRes} x {currentResV}");
                     }
 
                     var refreshRate = GetProperty(obj, "CurrentRefreshRate");
@@ -55,9 +55,8 @@ namespace Subtitle_draft_GMTPC.Services
                     if (!string.IsNullOrEmpty(bitsPerPixel)) sb.AppendLine($"  Bit Depth: {bitsPerPixel}-bit");
 
                     var status = GetProperty(obj, "Status");
-                    if (!string.IsNullOrEmpty(status)) sb.AppendLine($"  Trạng thái: {status}");
+                    if (!string.IsNullOrEmpty(status)) sb.AppendLine($"  Trang thai: {status}");
 
-                    // Kiểm tra encoder hỗ trợ dựa trên tên GPU
                     var encoderInfo = GetEncoderInfo(name);
                     if (!string.IsNullOrEmpty(encoderInfo))
                     {
@@ -65,11 +64,11 @@ namespace Subtitle_draft_GMTPC.Services
                     }
                 }
 
-                if (gpuIndex == 0) sb.AppendLine("  Không tìm thấy GPU!");
+                if (gpuIndex == 0) sb.AppendLine("  Khong tim thay GPU!");
             }
             catch (Exception ex)
             {
-                sb.AppendLine($"  Lỗi: {ex.Message}");
+                sb.AppendLine($"  Loi: {ex.Message}");
             }
             return sb.ToString().TrimEnd();
         }
@@ -83,142 +82,124 @@ namespace Subtitle_draft_GMTPC.Services
                 {
                     return $"{ramMB / 1024.0:0.0} GB";
                 }
-                else
-                {
-                    return $"{ramMB} MB";
-                }
+
+                return $"{ramMB} MB";
             }
+
             return ramStr;
         }
 
-        /// <summary>
-        /// Xác định hardware encoder dựa trên tên GPU
-        /// NVIDIA → NVENC, AMD → AMF, Intel → Quick Sync (QSV)
-        /// </summary>
         private static string GetEncoderInfo(string gpuName)
         {
             if (string.IsNullOrWhiteSpace(gpuName)) return string.Empty;
 
             var nameLower = gpuName.ToLower();
 
-            // NVIDIA - NVENC
             if (nameLower.Contains("nvidia") || nameLower.Contains("geforce") || nameLower.Contains("quadro") || nameLower.Contains("rtx") || nameLower.Contains("gtx") || nameLower.Contains("tesla"))
             {
-                // Kiểm tra generation
                 if (nameLower.Contains("rtx 50") || nameLower.Contains("5090") || nameLower.Contains("5080") || nameLower.Contains("5070"))
                 {
                     return "NVENC (8th Gen - AV1 + HEVC)";
                 }
-                else if (nameLower.Contains("rtx 40") || nameLower.Contains("4090") || nameLower.Contains("4080") || nameLower.Contains("4070") || nameLower.Contains("4060"))
+                if (nameLower.Contains("rtx 40") || nameLower.Contains("4090") || nameLower.Contains("4080") || nameLower.Contains("4070") || nameLower.Contains("4060"))
                 {
                     return "NVENC (8th Gen - AV1 + HEVC)";
                 }
-                else if (nameLower.Contains("rtx 30") || nameLower.Contains("3090") || nameLower.Contains("3080") || nameLower.Contains("3070") || nameLower.Contains("3060"))
+                if (nameLower.Contains("rtx 30") || nameLower.Contains("3090") || nameLower.Contains("3080") || nameLower.Contains("3070") || nameLower.Contains("3060"))
                 {
                     return "NVENC (7th Gen - HEVC)";
                 }
-                else if (nameLower.Contains("rtx 20") || nameLower.Contains("2080") || nameLower.Contains("2070") || nameLower.Contains("2060"))
+                if (nameLower.Contains("rtx 20") || nameLower.Contains("2080") || nameLower.Contains("2070") || nameLower.Contains("2060"))
                 {
                     return "NVENC (Turing - HEVC)";
                 }
-                else if (nameLower.Contains("gtx 16") || nameLower.Contains("1660") || nameLower.Contains("1650"))
+                if (nameLower.Contains("gtx 16") || nameLower.Contains("1660") || nameLower.Contains("1650"))
                 {
                     return "NVENC (Turing - HEVC)";
                 }
-                else if (nameLower.Contains("gtx 10") || nameLower.Contains("1080") || nameLower.Contains("1070") || nameLower.Contains("1060") || nameLower.Contains("1050"))
+                if (nameLower.Contains("gtx 10") || nameLower.Contains("1080") || nameLower.Contains("1070") || nameLower.Contains("1060") || nameLower.Contains("1050"))
                 {
                     return "NVENC (Pascal - HEVC 8-bit)";
                 }
-                else if (nameLower.Contains("gtx 9") || nameLower.Contains("980") || nameLower.Contains("970") || nameLower.Contains("960"))
+                if (nameLower.Contains("gtx 9") || nameLower.Contains("980") || nameLower.Contains("970") || nameLower.Contains("960"))
                 {
                     return "NVENC (Maxwell)";
                 }
-                else if (nameLower.Contains("gtx 7") || nameLower.Contains("780") || nameLower.Contains("770") || nameLower.Contains("760"))
+                if (nameLower.Contains("gtx 7") || nameLower.Contains("780") || nameLower.Contains("770") || nameLower.Contains("760"))
                 {
                     return "NVENC (Kepler)";
                 }
-                else
-                {
-                    return "NVENC (NVIDIA)";
-                }
+                return "NVENC (NVIDIA)";
             }
 
-            // AMD - AMF
             if (nameLower.Contains("amd") || nameLower.Contains("radeon") || nameLower.Contains("rx ") || nameLower.Contains("rx vega") || nameLower.Contains("wrx") || nameLower.Contains("firepro"))
             {
                 if (nameLower.Contains("rx 9000") || nameLower.Contains("9070") || nameLower.Contains("9060"))
                 {
                     return "AMF (RDNA 4 - AV1 + HEVC + H.264)";
                 }
-                else if (nameLower.Contains("rx 7") || nameLower.Contains("7900") || nameLower.Contains("7800") || nameLower.Contains("7700") || nameLower.Contains("7600"))
+                if (nameLower.Contains("rx 7") || nameLower.Contains("7900") || nameLower.Contains("7800") || nameLower.Contains("7700") || nameLower.Contains("7600"))
                 {
                     return "AMF (RDNA 3 - AV1 + HEVC)";
                 }
-                else if (nameLower.Contains("rx 6") || nameLower.Contains("6900") || nameLower.Contains("6800") || nameLower.Contains("6700") || nameLower.Contains("6600") || nameLower.Contains("6500"))
+                if (nameLower.Contains("rx 6") || nameLower.Contains("6900") || nameLower.Contains("6800") || nameLower.Contains("6700") || nameLower.Contains("6600") || nameLower.Contains("6500"))
                 {
                     return "AMF (RDNA 2 - HEVC)";
                 }
-                else if (nameLower.Contains("rx 5") || nameLower.Contains("5700") || nameLower.Contains("5600") || nameLower.Contains("5500"))
+                if (nameLower.Contains("rx 5") || nameLower.Contains("5700") || nameLower.Contains("5600") || nameLower.Contains("5500"))
                 {
                     return "AMF (RDNA - HEVC)";
                 }
-                else if (nameLower.Contains("rx vega") || nameLower.Contains("vega "))
+                if (nameLower.Contains("rx vega") || nameLower.Contains("vega "))
                 {
                     return "AMF (Vega - HEVC)";
                 }
-                else if (nameLower.Contains("rx 4") || nameLower.Contains("480") || nameLower.Contains("470") || nameLower.Contains("460"))
+                if (nameLower.Contains("rx 4") || nameLower.Contains("480") || nameLower.Contains("470") || nameLower.Contains("460"))
                 {
                     return "AMF (Polaris - HEVC)";
                 }
-                else
-                {
-                    return "AMF (AMD)";
-                }
+                return "AMF (AMD)";
             }
 
-            // Intel - Quick Sync Video (QSV)
             if (nameLower.Contains("intel") || nameLower.Contains("uhd") || nameLower.Contains("hd graphics") || nameLower.Contains("iris") || nameLower.Contains("arc ") || nameLower.Contains("battlemage"))
             {
                 if (nameLower.Contains("battlemage") || nameLower.Contains("arc b"))
                 {
                     return "Intel Quick Sync + Xe Media (AV1 + HEVC + H.264)";
                 }
-                else if (nameLower.Contains("arc a"))
+                if (nameLower.Contains("arc a"))
                 {
                     return "Intel Quick Sync + Xe Media (AV1 + HEVC)";
                 }
-                else if (nameLower.Contains("ultra") || nameLower.Contains("meteor lake") || nameLower.Contains("lunar lake") || nameLower.Contains("arrow lake"))
+                if (nameLower.Contains("ultra") || nameLower.Contains("meteor lake") || nameLower.Contains("lunar lake") || nameLower.Contains("arrow lake"))
                 {
                     return "Intel Quick Sync (Xe-LPG - AV1 + HEVC)";
                 }
-                else if (nameLower.Contains("13th") || nameLower.Contains("14th") || nameLower.Contains("raptor lake"))
+                if (nameLower.Contains("13th") || nameLower.Contains("14th") || nameLower.Contains("raptor lake"))
                 {
                     return "Intel Quick Sync (Gen12 - AV1 + HEVC)";
                 }
-                else if (nameLower.Contains("11th") || nameLower.Contains("12th"))
+                if (nameLower.Contains("11th") || nameLower.Contains("12th"))
                 {
                     return "Intel Quick Sync (Gen12 - HEVC)";
                 }
-                else if (nameLower.Contains("10th") || nameLower.Contains("9th"))
+                if (nameLower.Contains("10th") || nameLower.Contains("9th"))
                 {
                     return "Intel Quick Sync (Gen9.5 - HEVC)";
                 }
-                else if (nameLower.Contains("8th") || nameLower.Contains("7th"))
+                if (nameLower.Contains("8th") || nameLower.Contains("7th"))
                 {
                     return "Intel Quick Sync (Gen9 - HEVC)";
                 }
-                else if (nameLower.Contains("uhd") || nameLower.Contains("iris xe"))
+                if (nameLower.Contains("uhd") || nameLower.Contains("iris xe"))
                 {
                     return "Intel Quick Sync (Gen11/12 - HEVC)";
                 }
-                else if (nameLower.Contains("hd graphics"))
+                if (nameLower.Contains("hd graphics"))
                 {
                     return "Intel Quick Sync (Gen8/9 - HEVC)";
                 }
-                else
-                {
-                    return "Intel Quick Sync (QSV)";
-                }
+                return "Intel Quick Sync (QSV)";
             }
 
             return string.Empty;
@@ -234,26 +215,30 @@ namespace Subtitle_draft_GMTPC.Services
             try
             {
                 var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
+                int cpuIndex = 0;
 
                 foreach (ManagementObject obj in searcher.Get())
                 {
+                    cpuIndex++;
+                    if (cpuIndex > 1) sb.AppendLine();
+
                     var name = GetProperty(obj, "Name");
-                    if (!string.IsNullOrEmpty(name)) sb.AppendLine($"  Tên: {name.Trim()}");
+                    if (!string.IsNullOrEmpty(name)) sb.AppendLine($"  Ten: {name.Trim()}");
 
                     var manufacturer = GetProperty(obj, "Manufacturer");
-                    if (!string.IsNullOrEmpty(manufacturer)) sb.AppendLine($"  Hãng sản xuất: {manufacturer}");
+                    if (!string.IsNullOrEmpty(manufacturer)) sb.AppendLine($"  Hang san xuat: {manufacturer}");
 
                     var cores = GetProperty(obj, "NumberOfCores");
-                    if (!string.IsNullOrEmpty(cores)) sb.AppendLine($"  Số nhân: {cores}");
+                    if (!string.IsNullOrEmpty(cores)) sb.AppendLine($"  So nhan: {cores}");
 
                     var logicalProc = GetProperty(obj, "NumberOfLogicalProcessors");
-                    if (!string.IsNullOrEmpty(logicalProc)) sb.AppendLine($"  Số luồng: {logicalProc}");
+                    if (!string.IsNullOrEmpty(logicalProc)) sb.AppendLine($"  So luong: {logicalProc}");
 
                     var maxClock = GetProperty(obj, "MaxClockSpeed");
-                    if (!string.IsNullOrEmpty(maxClock)) sb.AppendLine($"  Xung nhịp tối đa: {maxClock} MHz");
+                    if (!string.IsNullOrEmpty(maxClock)) sb.AppendLine($"  Xung nhip toi da: {maxClock} MHz");
 
                     var curClock = GetProperty(obj, "CurrentClockSpeed");
-                    if (!string.IsNullOrEmpty(curClock)) sb.AppendLine($"  Xung nhịp hiện tại: {curClock} MHz");
+                    if (!string.IsNullOrEmpty(curClock)) sb.AppendLine($"  Xung nhip hien tai: {curClock} MHz");
 
                     var l2Cache = GetProperty(obj, "L2CacheSize");
                     if (!string.IsNullOrEmpty(l2Cache)) sb.AppendLine($"  Cache L2: {l2Cache} KB");
@@ -265,19 +250,19 @@ namespace Subtitle_draft_GMTPC.Services
                     if (!string.IsNullOrEmpty(architecture))
                     {
                         var archName = GetArchitectureName(architecture);
-                        sb.AppendLine($"  Kiến trúc: {archName}");
+                        sb.AppendLine($"  Kien truc: {archName}");
                     }
 
                     var caption = GetProperty(obj, "Caption");
                     if (!string.IsNullOrEmpty(caption) && string.IsNullOrEmpty(name))
                     {
-                        sb.AppendLine($"  Tên: {caption}");
+                        sb.AppendLine($"  Ten: {caption}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                sb.AppendLine($"  Lỗi: {ex.Message}");
+                sb.AppendLine($"  Loi: {ex.Message}");
             }
             return sb.ToString().TrimEnd();
         }
@@ -307,7 +292,6 @@ namespace Subtitle_draft_GMTPC.Services
             var sb = new StringBuilder();
             try
             {
-                // Tổng quan RAM hệ thống
                 var totalSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_ComputerSystem");
                 foreach (ManagementObject obj in totalSearcher.Get())
                 {
@@ -315,73 +299,83 @@ namespace Subtitle_draft_GMTPC.Services
                     if (!string.IsNullOrEmpty(totalRam))
                     {
                         var totalGB = double.Parse(totalRam) / Math.Pow(1024, 3);
-                        sb.AppendLine($"  Tổng RAM vật lý: {totalGB:0.00} GB");
+                        sb.AppendLine($"  Tong RAM vat ly: {totalGB:0.00} GB");
                     }
+                }
 
+                var freeRamSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem");
+                foreach (ManagementObject obj in freeRamSearcher.Get())
+                {
                     var freeRam = GetProperty(obj, "FreePhysicalMemory");
                     if (!string.IsNullOrEmpty(freeRam))
                     {
                         var freeGB = double.Parse(freeRam) / Math.Pow(1024, 2);
-                        sb.AppendLine($"  RAM trống: {freeGB:0.00} GB");
+                        sb.AppendLine($"  RAM trong: {freeGB:0.00} GB");
                     }
                 }
 
                 sb.AppendLine();
+                sb.AppendLine("  Chi tiet cac slot RAM:");
+                sb.AppendLine();
 
-                // Chi tiết từng thanh RAM
                 var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMemory");
                 int stickIndex = 0;
 
                 foreach (ManagementObject obj in searcher.Get())
                 {
                     stickIndex++;
+                    if (stickIndex > 1) sb.AppendLine();
+
                     sb.AppendLine($"  --- Thanh RAM {stickIndex} ---");
 
                     var manufacturer = GetProperty(obj, "Manufacturer");
-                    if (!string.IsNullOrEmpty(manufacturer)) sb.AppendLine($"    Hãng: {manufacturer}");
+                    if (!string.IsNullOrEmpty(manufacturer)) sb.AppendLine($"    Hang: {manufacturer}");
 
                     var partNumber = GetProperty(obj, "PartNumber");
-                    if (!string.IsNullOrEmpty(partNumber)) sb.AppendLine($"    Mã: {partNumber.Trim()}");
+                    if (!string.IsNullOrEmpty(partNumber)) sb.AppendLine($"    Ma: {partNumber.Trim()}");
 
                     var capacity = GetProperty(obj, "Capacity");
                     if (!string.IsNullOrEmpty(capacity))
                     {
                         var capGB = double.Parse(capacity) / Math.Pow(1024, 3);
-                        sb.AppendLine($"    Dung lượng: {capGB:0.0} GB");
+                        sb.AppendLine($"    Dung luong: {capGB:0.0} GB");
                     }
 
                     var speed = GetProperty(obj, "Speed");
-                    if (!string.IsNullOrEmpty(speed)) sb.AppendLine($"    Tốc độ: {speed} MHz");
+                    if (!string.IsNullOrEmpty(speed)) sb.AppendLine($"    Toc do: {speed} MHz");
 
                     var configuredSpeed = GetProperty(obj, "ConfiguredClockSpeed");
-                    if (!string.IsNullOrEmpty(configuredSpeed)) sb.AppendLine($"    Xung nhịp: {configuredSpeed} MHz");
+                    if (!string.IsNullOrEmpty(configuredSpeed)) sb.AppendLine($"    Xung nhip: {configuredSpeed} MHz");
 
                     var memType = GetProperty(obj, "MemoryType");
                     if (!string.IsNullOrEmpty(memType))
                     {
                         var typeName = GetMemoryTypeName(memType);
-                        sb.AppendLine($"    Loại: {typeName}");
+                        sb.AppendLine($"    Loai: {typeName}");
                     }
 
                     var formFactor = GetProperty(obj, "FormFactor");
                     if (!string.IsNullOrEmpty(formFactor))
                     {
                         var ffName = GetFormFactorName(formFactor);
-                        sb.AppendLine($"    Kiểu: {ffName}");
+                        sb.AppendLine($"    Kieu: {ffName}");
                     }
 
                     var dataWidth = GetProperty(obj, "DataWidth");
-                    if (!string.IsNullOrEmpty(dataWidth)) sb.AppendLine($"    Độ rộng bus: {dataWidth}-bit");
+                    if (!string.IsNullOrEmpty(dataWidth)) sb.AppendLine($"    Do rong bus: {dataWidth}-bit");
 
                     var voltage = GetProperty(obj, "ConfiguredVoltage");
-                    if (!string.IsNullOrEmpty(voltage)) sb.AppendLine($"    Điện áp: {double.Parse(voltage):0.0} mV");
+                    if (!string.IsNullOrEmpty(voltage)) sb.AppendLine($"    Dien ap: {double.Parse(voltage):0.0} mV");
                 }
 
-                if (stickIndex == 0) sb.AppendLine("  Không tìm thấy thông tin RAM!");
+                if (stickIndex == 0)
+                {
+                    sb.AppendLine("  Khong tim thay thong tin RAM!");
+                }
             }
             catch (Exception ex)
             {
-                sb.AppendLine($"  Lỗi: {ex.Message}");
+                sb.AppendLine($"  Loi: {ex.Message}");
             }
             return sb.ToString().TrimEnd();
         }
@@ -427,7 +421,7 @@ namespace Subtitle_draft_GMTPC.Services
                 foreach (ManagementObject obj in searcher.Get())
                 {
                     var manufacturer = GetProperty(obj, "Manufacturer");
-                    if (!string.IsNullOrEmpty(manufacturer)) sb.AppendLine($"  Hãng sản xuất: {manufacturer}");
+                    if (!string.IsNullOrEmpty(manufacturer)) sb.AppendLine($"  Hang san xuat: {manufacturer}");
 
                     var product = GetProperty(obj, "Product");
                     if (!string.IsNullOrEmpty(product)) sb.AppendLine($"  Model: {product}");
@@ -439,10 +433,9 @@ namespace Subtitle_draft_GMTPC.Services
                     if (!string.IsNullOrEmpty(version)) sb.AppendLine($"  Version: {version}");
 
                     var status = GetProperty(obj, "Status");
-                    if (!string.IsNullOrEmpty(status)) sb.AppendLine($"  Trạng thái: {status}");
+                    if (!string.IsNullOrEmpty(status)) sb.AppendLine($"  Trang thai: {status}");
                 }
 
-                // Thêm thông tin BIOS
                 sb.AppendLine();
                 var biosSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_BIOS");
                 foreach (ManagementObject obj in biosSearcher.Get())
@@ -457,11 +450,10 @@ namespace Subtitle_draft_GMTPC.Services
                     if (!string.IsNullOrEmpty(releaseDate))
                     {
                         var formattedDate = FormatWmiDate(releaseDate);
-                        sb.AppendLine($"  Ngày phát hành: {formattedDate}");
+                        sb.AppendLine($"  Ngay phat hanh: {formattedDate}");
                     }
                 }
 
-                // Thêm thông tin hệ thống
                 sb.AppendLine();
                 var sysSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_ComputerSystem");
                 foreach (ManagementObject obj in sysSearcher.Get())
@@ -470,12 +462,12 @@ namespace Subtitle_draft_GMTPC.Services
                     if (!string.IsNullOrEmpty(sysManufacturer)) sb.AppendLine($"  System: {sysManufacturer}");
 
                     var model = GetProperty(obj, "Model");
-                    if (!string.IsNullOrEmpty(model)) sb.AppendLine($"  Model hệ thống: {model}");
+                    if (!string.IsNullOrEmpty(model)) sb.AppendLine($"  Model he thong: {model}");
                 }
             }
             catch (Exception ex)
             {
-                sb.AppendLine($"  Lỗi: {ex.Message}");
+                sb.AppendLine($"  Loi: {ex.Message}");
             }
             return sb.ToString().TrimEnd();
         }
@@ -498,11 +490,18 @@ namespace Subtitle_draft_GMTPC.Services
 
         private static string GetProperty(ManagementObject obj, string propertyName)
         {
-            var value = obj[propertyName];
-            if (value != null)
+            try
             {
-                return value.ToString().Trim();
+                var value = obj[propertyName];
+                if (value != null)
+                {
+                    return value.ToString().Trim();
+                }
             }
+            catch
+            {
+            }
+
             return string.Empty;
         }
 
