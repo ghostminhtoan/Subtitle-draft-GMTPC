@@ -8,6 +8,16 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-24 09:56:30 AM Friday]
+
+### Changed - Hardware Info Vietnamese UI and Dark Panel Colors
+- Việt hóa toàn bộ nội dung tab Hardware Info sang tiếng Việt Unicode UTF-8, gồm text hiển thị, toast và nút sao chép.
+- CPU chỉ còn hiển thị xung nhịp cơ bản và xung nhịp Turbo Boost, không còn hiển thị xung nhịp hiện tại.
+- Thêm hiển thị socket CPU và giữ khoảng cách một dòng giữa nhiều CPU socket.
+- Đổi 4 panel GPU, CPU, RAM, Bo Mạch Chủ sang 4 tông nền tối khác nhau để chữ trắng sáng dễ đọc hơn.
+- Cải thiện nhận diện loại RAM bằng `SMBIOSMemoryType` trước, giúp giảm tình trạng hiện `Unknown`.
+
+---
 ## [2026-04-24 09:31:00 AM Friday]
 
 ### Fixed - Hardware Info CPU and RAM Layout

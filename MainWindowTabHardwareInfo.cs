@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Controls;
 using System.Threading.Tasks;
+using System.Windows;
 using Subtitle_draft_GMTPC.Services;
 
 namespace Subtitle_draft_GMTPC
@@ -18,11 +16,12 @@ namespace Subtitle_draft_GMTPC
         #region Hardware Info - Methods
 
         /// <summary>
-        /// Load toàn bộ thông tin phần cứng khi mở app
+        /// Load toàn bộ thông tin phần cứng khi mở app.
         /// </summary>
         private void LoadHardwareInfo()
         {
             if (_isHardwareLoading) return;
+
             try
             {
                 _isHardwareLoading = true;
@@ -34,10 +33,10 @@ namespace Subtitle_draft_GMTPC
             }
             catch (Exception ex)
             {
-                TxtGpuInfo.Text = string.Format("Lỗi: {0}", ex.Message);
-                TxtCpuInfo.Text = string.Format("Lỗi: {0}", ex.Message);
-                TxtRamInfo.Text = string.Format("Lỗi: {0}", ex.Message);
-                TxtMainboardInfo.Text = string.Format("Lỗi: {0}", ex.Message);
+                TxtGpuInfo.Text = $"Lỗi: {ex.Message}";
+                TxtCpuInfo.Text = $"Lỗi: {ex.Message}";
+                TxtRamInfo.Text = $"Lỗi: {ex.Message}";
+                TxtMainboardInfo.Text = $"Lỗi: {ex.Message}";
             }
             finally
             {
@@ -64,56 +63,60 @@ namespace Subtitle_draft_GMTPC
         private void BtnCopyGpu_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TxtGpuInfo.Text)) return;
+
             try
             {
                 Clipboard.SetText(TxtGpuInfo.Text);
-                ShowToastHardware("📋 Đã copy GPU info!");
+                ShowToastHardware("📋 Đã copy thông tin GPU.");
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void BtnCopyCpu_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TxtCpuInfo.Text)) return;
+
             try
             {
                 Clipboard.SetText(TxtCpuInfo.Text);
-                ShowToastHardware("📋 Đã copy CPU info!");
+                ShowToastHardware("📋 Đã copy thông tin CPU.");
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void BtnCopyRam_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TxtRamInfo.Text)) return;
+
             try
             {
                 Clipboard.SetText(TxtRamInfo.Text);
-                ShowToastHardware("📋 Đã copy RAM info!");
+                ShowToastHardware("📋 Đã copy thông tin RAM.");
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void BtnCopyMainboard_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TxtMainboardInfo.Text)) return;
+
             try
             {
                 Clipboard.SetText(TxtMainboardInfo.Text);
-                ShowToastHardware("📋 Đã copy Mainboard info!");
+                ShowToastHardware("📋 Đã copy thông tin Mainboard.");
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
