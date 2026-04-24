@@ -8,6 +8,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-24 10:47:21 AM Friday]
+
+### Fixed - ASS Font Adjust Input Only Keeps Styles
+- Tab ASS Font Adjust giờ tự lọc nội dung khi dán nguyên file ASS, chỉ giữ lại block `[V4+ Styles]` cùng `Format` và các dòng `Style`.
+- Tự loại bỏ phần dư như `[Script Info]`, `[Events]`, dialogue và các section khác khỏi ô input styles.
+- Vẫn hỗ trợ paste trực tiếp danh sách `Style:` rời mà không cần cả file ASS đầy đủ.
+
+---
 ## [2026-04-24 10:31:59 AM Friday]
 
 ### Fixed - Hardware Info VRAM and CPU Clock Accuracy
