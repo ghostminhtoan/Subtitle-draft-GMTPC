@@ -4,8 +4,8 @@
 - **Thêm tính năng**: Xác định tab → Mở `MainWindowTab[Tên].cs` → Code vào Region phù hợp
 - **Sửa lỗi**: Nhìn tên control (`Txt*`, `Btn*`) → Mở file tab tương ứng → Sửa → Build
 - **File >500 dòng**: Tách Region thành file mới
-- **Luôn luôn**: `taskkill "Subtitle draft GMTPC.exe"` → Build → Copy exe ra root → Update changelog → Git commit
-- **Luôn luôn**: Nếu không có diff sau khi build/copy thì vẫn phải tạo `git commit --allow-empty`
+- **Luôn luôn**: `taskkill "Subtitle draft GMTPC.exe"` → Build → Copy exe ra root → Update changelog → Git commit → Git push
+- **Luôn luôn**: Nếu không có diff sau khi build/copy thì vẫn phải tạo `git commit --allow-empty`, sau đó vẫn `git push`
 
 **Checklist**: Đúng file? ✅ Đặt tên Region chuẩn? ✅ Prefix `_` cho fields? ✅ Try-Catch? ✅ Build sạch? ✅ Copy exe ra root? ✅ Update changelog? ✅ Commit?
 
@@ -225,7 +225,7 @@ Gap = StartTime(dòng dưới) - EndTime(dòng trên)
 
 ## 🤖 Quy Tắc Workflow Tự Động (BẮT BUỘC)
 
-### 🔄 Trigger Kill App → Build → Copy → Commit Sau Mỗi Lần Code
+### 🔄 Trigger Kill App → Build → Copy → Commit → Push Sau Mỗi Lần Code
 **Khi nào**: Bất kỳ khi nào hoàn thành code changes (sau mỗi edit file)
 **Workflow tự động**:
 1. **Taskkill app đang chạy**: Chạy `taskkill /IM "Subtitle draft GMTPC.exe" /F` để giải phóng file exe trước khi build
@@ -235,14 +235,16 @@ Gap = StartTime(dòng dưới) - EndTime(dòng trên)
    - Message: `"Build & update exe: [timestamp]"`
    - **KHÔNG BAO GIỜ** commit code mà không có exe file
    - Nếu Git không phát hiện thay đổi nào thì vẫn phải `git commit --allow-empty` để giữ đúng workflow auto commit
+5. **Push lên remote**: Sau mỗi commit, BẮT BUỘC chạy `git push`
 
 **Quy tắc**:
 - **Sau mỗi lần code** = trigger full workflow tự động
-- Thứ tự BẮT BUỘC: `taskkill` → `build` → `copy to root` → `git commit`
+- Thứ tự BẮT BUỘC: `taskkill` → `build` → `copy to root` → `git commit` → `git push`
 - **KHÔNG** bỏ qua bước `taskkill` nếu app đang chạy và đang lock file exe
 - File exe PHẢI có trong repo để đảm bảo version consistency
-- Nếu build fail → **DỪNG LẠI** → fix error → build lại → copy lại → commit
+- Nếu build fail → **DỪNG LẠI** → fix error → build lại → copy lại → commit → push
 - Kể cả khi không có khác biệt file sau build/copy, vẫn phải tạo commit rỗng thay vì bỏ qua commit
+- Kể cả khi commit rỗng, vẫn phải `git push` để đảm bảo remote đồng bộ workflow
 
 ---
 
@@ -256,8 +258,8 @@ Gap = StartTime(dòng dưới) - EndTime(dòng trên)
 - **Build qua Visual Studio Code** (task build hoặc terminal)
 - `build.cmd` là file build thủ công dự phòng - **KHÔNG ĐỤNG VÀO**
 - Sau khi build ra `.exe` → **BẮT BUỘC** copy file exe mới ra root project
-- Sau build → Copy exe ra root → Update changelog → Commit
+- Sau build → Copy exe ra root → Update changelog → Commit → Push
 
-**Workflow**: Code → `taskkill "Subtitle draft GMTPC.exe"` → Build → Copy exe ra root → Update changelog → Commit (hoặc `--allow-empty` nếu không có diff)
+**Workflow**: Code → `taskkill "Subtitle draft GMTPC.exe"` → Build → Copy exe ra root → Update changelog → Commit (hoặc `--allow-empty` nếu không có diff) → Push
 
 ---

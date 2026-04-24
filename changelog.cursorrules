@@ -8,6 +8,13 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-24 05:04:07 PM Friday]
+
+### Changed - Workflow Now Requires Push After Every Commit
+- Cập nhật workflow để sau mỗi lượt code đều phải chạy đủ chuỗi `taskkill` → `build` → `copy exe ra root` → `commit` → `push`.
+- Nếu không có diff sau build và copy, vẫn phải `commit --allow-empty` rồi `push` để remote luôn theo kịp local workflow.
+
+---
 ## [2026-04-24 05:00:21 PM Friday]
 
 ### Changed - Workflow Requires Commit Every Coding Turn
