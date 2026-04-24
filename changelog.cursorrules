@@ -8,6 +8,15 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-24 11:03:32 AM Friday]
+
+### Fixed - ASS Font Adjust Paste Filter and Build Stamp Footer
+- Nối lại `TextChanged` cho ô `Input Styles` trong tab ASS Font Adjust để bộ lọc styles thực sự chạy ngay khi paste.
+- Khi dán nguyên file ASS, ô input giờ chỉ giữ lại phần styles cần thiết thay vì để lọt nguyên `[Script Info]` và các section dư.
+- Thêm build timestamp trước nhãn tác giả ở footer theo định dạng `yyyy-MM-dd hh.mm.ss AM/PM dddd`.
+- Áp dụng build timestamp cho cả footer dùng `Tác giả:` và `Author:` trong giao diện.
+
+---
 ## [2026-04-24 10:47:21 AM Friday]
 
 ### Fixed - ASS Font Adjust Input Only Keeps Styles

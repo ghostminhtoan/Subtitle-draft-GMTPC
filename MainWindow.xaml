@@ -931,6 +931,7 @@
 
                             <TextBox x:Name="TxtStylesInput" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
+                                     TextChanged="TxtStylesInput_TextChanged"
                                      PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
                         </Grid>
                     </Border>

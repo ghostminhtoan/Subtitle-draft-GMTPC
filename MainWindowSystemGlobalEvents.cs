@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Threading.Tasks;
 using System.Text;
 using Microsoft.Win32;
@@ -64,6 +67,7 @@ namespace Subtitle_draft_GMTPC
     {
         LoadSettings();
         InitFontSizes();
+        ApplyBuildStampToFooterLabels();
         LoadHardwareInfo();
         InitializeDefaultPrompts();
         LoadAllPrompts();
@@ -114,6 +118,59 @@ namespace Subtitle_draft_GMTPC
             CmbFontSize.Items.Add(i.ToString());
         }
         CmbFontSize.SelectedIndex = 0; // Default to 1
+    }
+
+    private void ApplyBuildStampToFooterLabels()
+    {
+        try
+        {
+            var executablePath = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+            var buildTime = File.GetLastWriteTime(executablePath);
+            var buildStamp = buildTime.ToString("yyyy-MM-dd hh.mm.ss tt dddd", new CultureInfo("en-US"));
+
+            foreach (var textBlock in FindVisualChildren<TextBlock>(this))
+            {
+                if (textBlock == null || textBlock.Text == null)
+                {
+                    continue;
+                }
+
+                if (textBlock.Text == "Tác giả: ")
+                {
+                    textBlock.Text = $"Build: {buildStamp} | Tác giả: ";
+                }
+                else if (textBlock.Text == "Author: ")
+                {
+                    textBlock.Text = $"Build: {buildStamp} | Author: ";
+                }
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private static IEnumerable<T> FindVisualChildren<T>(DependencyObject dependencyObject) where T : DependencyObject
+    {
+        if (dependencyObject == null)
+        {
+            yield break;
+        }
+
+        var childCount = VisualTreeHelper.GetChildrenCount(dependencyObject);
+        for (int i = 0; i < childCount; i++)
+        {
+            var child = VisualTreeHelper.GetChild(dependencyObject, i);
+            if (child is T typedChild)
+            {
+                yield return typedChild;
+            }
+
+            foreach (var descendant in FindVisualChildren<T>(child))
+            {
+                yield return descendant;
+            }
+        }
     }
 
     /// <summary>
