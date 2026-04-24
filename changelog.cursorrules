@@ -8,6 +8,13 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-24 06:21:21 PM Friday]
+
+### Fixed - Tutorials GitHub Reload Now Bypasses HTTP Cache
+- Sửa nút `Tải lại từ GitHub` để không chỉ xóa cache trong RAM của app mà còn ép request HTTP mới với `no-cache`, `no-store` và URL gắn timestamp.
+- Mục tiêu là khi nội dung Markdown trên GitHub vừa đổi, bấm reload trong `Tutorials` sẽ lấy bản mới thay vì bị dính cache cũ ở tầng mạng/CDN.
+
+---
 ## [2026-04-24 05:04:07 PM Friday]
 
 ### Changed - Workflow Now Requires Push After Every Commit

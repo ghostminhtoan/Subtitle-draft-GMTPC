@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -129,7 +130,7 @@ namespace Subtitle_draft_GMTPC
                         continue;
                     }
 
-                    var html = await GetTutorialHtmlAsync(pair.Key, pair.Value);
+                    var html = await GetTutorialHtmlAsync(pair.Key, pair.Value, forceRefresh);
                     browser.NavigateToString(html);
                 }
 
@@ -152,17 +153,40 @@ namespace Subtitle_draft_GMTPC
             }
         }
 
-        private async Task<string> GetTutorialHtmlAsync(string key, TutorialDocumentDefinition document)
+        private async Task<string> GetTutorialHtmlAsync(string key, TutorialDocumentDefinition document, bool forceRefresh)
         {
             if (_tutorialHtmlCache.TryGetValue(key, out var cachedHtml))
             {
                 return cachedHtml;
             }
 
-            var markdown = await _tutorialsHttpClient.GetStringAsync(document.RawUrl);
+            var markdown = await FetchTutorialMarkdownAsync(document, forceRefresh);
             var html = GitHubMarkdownHtmlRenderer.RenderDocument(markdown, document.BlobUrl, document.Title);
             _tutorialHtmlCache[key] = html;
             return html;
+        }
+
+        private async Task<string> FetchTutorialMarkdownAsync(TutorialDocumentDefinition document, bool forceRefresh)
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, document.GetRequestUrl(forceRefresh)))
+            {
+                if (forceRefresh)
+                {
+                    request.Headers.CacheControl = new CacheControlHeaderValue
+                    {
+                        NoCache = true,
+                        NoStore = true,
+                        MaxAge = TimeSpan.Zero
+                    };
+                    request.Headers.Pragma.ParseAdd("no-cache");
+                }
+
+                using (var response = await _tutorialsHttpClient.SendAsync(request))
+                {
+                    response.EnsureSuccessStatusCode();
+                    return await response.Content.ReadAsStringAsync();
+                }
+            }
         }
 
         private void ShowTutorialLoadingState()
@@ -575,6 +599,16 @@ namespace Subtitle_draft_GMTPC
             public string BlobUrl { get; }
 
             public string RawUrl { get; }
+
+            public string GetRequestUrl(bool forceRefresh)
+            {
+                if (!forceRefresh)
+                {
+                    return RawUrl;
+                }
+
+                return RawUrl + "?t=" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            }
         }
 
         #endregion
