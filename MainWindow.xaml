@@ -403,7 +403,7 @@
 
         <TabControl x:Name="MainTabControl" Grid.Row="2" Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="1">
             <!-- Tab 1: Hardware Info -->
-            <TabItem Header="🖥️ Thông Tin Phần Cứng">
+            <TabItem Header="🖥️ Hardware info">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -425,12 +425,12 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <Label Grid.Row="0" Content="🎮 GPU" Style="{StaticResource SectionLabelStyle}"/>
+                            <Label Grid.Row="0" Content="🎮 GPU" Style="{StaticResource SectionLabelStyle}" FontSize="16"/>
 
                             <TextBox x:Name="TxtGpuInfo" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
                                      Background="#121C2C" BorderBrush="#314E78"
-                                     IsReadOnly="True" FontSize="14"
+                                     IsReadOnly="True" FontSize="16"
                                      PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <Button x:Name="BtnCopyGpu" Grid.Row="2" Content="📋 Sao chép GPU"
@@ -454,12 +454,12 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <Label Grid.Row="0" Content="🔧 CPU" Style="{StaticResource SectionLabelStyle}" Grid.ColumnSpan="2"/>
+                            <Label Grid.Row="0" Content="🔧 CPU" Style="{StaticResource SectionLabelStyle}" FontSize="16" Grid.ColumnSpan="2"/>
 
                             <TextBox x:Name="TxtCpuInfo" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
                                      Background="#1D1524" BorderBrush="#64457E"
-                                     IsReadOnly="True" FontSize="14"
+                                     IsReadOnly="True" FontSize="16"
                                      PreviewMouseWheel="TextBox_PreviewMouseWheel" Grid.ColumnSpan="2" Margin="0,0,0,39" Grid.RowSpan="2"/>
 
                             <Button x:Name="BtnCopyCpu" Grid.Row="2" Content="📋 Sao chép CPU"
@@ -479,12 +479,12 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <Label Grid.Row="0" Content="💾 RAM" Style="{StaticResource SectionLabelStyle}"/>
+                            <Label Grid.Row="0" Content="💾 RAM" Style="{StaticResource SectionLabelStyle}" FontSize="16"/>
 
                             <TextBox x:Name="TxtRamInfo" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
                                      Background="#121C18" BorderBrush="#426F5C"
-                                     IsReadOnly="True" FontSize="14"
+                                     IsReadOnly="True" FontSize="16"
                                      PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <Button x:Name="BtnCopyRam" Grid.Row="2" Content="📋 Sao chép RAM"
@@ -504,12 +504,12 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <Label Grid.Row="0" Content="🔌 Bo Mạch Chủ" Style="{StaticResource SectionLabelStyle}"/>
+                            <Label Grid.Row="0" Content="🔌 Bo Mạch Chủ" Style="{StaticResource SectionLabelStyle}" FontSize="16"/>
 
                             <TextBox x:Name="TxtMainboardInfo" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
                                      Background="#24180F" BorderBrush="#7F5A38"
-                                     IsReadOnly="True" FontSize="14"
+                                     IsReadOnly="True" FontSize="16"
                                      PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                             <Button x:Name="BtnCopyMainboard" Grid.Row="2" Content="📋 Sao chép Bo Mạch Chủ"
@@ -527,9 +527,9 @@
                             <TextBlock Text="Tác giả: " Foreground="#808080" FontSize="12"/>
                             <TextBlock Text="Ma Minh Toàn 1993" Foreground="#0078D4" FontSize="12" FontWeight="SemiBold"/>
                             <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
-                            <TextBlock Text="Thông Tin Phần Cứng GMTPC" Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="Hardware info GMTPC" Foreground="#808080" FontSize="12"/>
                             <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
-                            <TextBlock Text="Xem thông tin phần cứng hệ thống" Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="Xem thông tin phần cứng và loại GPU đang dùng" Foreground="#808080" FontSize="12"/>
                         </StackPanel>
                     </Border>
 
@@ -757,7 +757,10 @@
                 </Grid>
             </TabItem>
 
-            <!-- Tab 3: Dialogue -->
+            <!-- Tab 3: Subtitle Tools -->
+            <TabItem Header="🧰 Subtitle Tools">
+                <TabControl x:Name="SubtitleToolsTabControl" Background="#1E1E1E" BorderBrush="#3E3E42" BorderThickness="1">
+            <!-- Sub-tab: Dialogue -->
             <TabItem Header="💬 Dialogue">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -1024,7 +1027,7 @@
                             </Grid.RowDefinitions>
 
                             <StackPanel Grid.Row="0" Orientation="Horizontal">
-                                <Label Content="📄 Input Styles (Paste .ASS Styles vào đây)" Style="{StaticResource SectionLabelStyle}"/>
+                                <Label Content="📄 Input Styles (dán file .ASS hoặc block styles, app sẽ tự lọc styles)" Style="{StaticResource SectionLabelStyle}"/>
                                 <TextBlock x:Name="TxtStylesFontCount" Text="" Foreground="#808080" FontSize="11"
                                            VerticalAlignment="Center" Margin="8,0,0,0"/>
                             </StackPanel>
@@ -1101,7 +1104,7 @@
                             <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
                             <TextBlock Text="Search Fonts GMTPC" Foreground="#808080" FontSize="12"/>
                             <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
-                            <TextBlock Text="Tìm và cài font thiếu cho file .ASS" Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="Tìm font thiếu cho styles file .ASS" Foreground="#808080" FontSize="12"/>
                         </StackPanel>
                     </Border>
 
@@ -1372,7 +1375,10 @@
                 </Grid>
             </TabItem>
 
-            <!-- Tab 7: Subtitle Draft -->
+                </TabControl>
+            </TabItem>
+
+            <!-- Tab 4: Subtitle Draft -->
             <TabItem Header="📝 Subtitle Draft">
                 <Grid>
                     <Grid.RowDefinitions>

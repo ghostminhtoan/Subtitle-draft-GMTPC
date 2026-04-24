@@ -8,6 +8,15 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-24 08:58:07 PM Friday]
+
+### Changed - Subtitle Tools Parent Tab and Hardware/Search Fonts Updates
+- Gom 5 tab `Dialogue`, `Translate`, `Search Fonts`, `ASS Font Adjust`, `Subtitle Merge` vào parent tab mới `Subtitle Tools`, giữ `Subtitle Draft` đứng riêng bên ngoài.
+- Đổi tên tab `Thông Tin Phần Cứng` thành `Hardware info` và tăng font hiển thị trong các khung thông tin thêm 2 đơn vị.
+- Bổ sung nhận diện loại GPU trong Hardware info để báo cho người dùng biết GPU là `iGPU / onboard` hay `card rời (dGPU)`.
+- Tab `Search Fonts` giờ tự lọc input xuống chỉ còn block styles giống `ASS Font Adjust`, đồng thời bỏ hẳn luồng tự phát hiện và cài font pack tự động.
+
+---
 ## [2026-04-24 07:16:30 PM Friday]
 
 ### Fixed - F5 in Tutorials Now Reloads from GitHub Instead of Blank Page

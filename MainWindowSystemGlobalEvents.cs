@@ -375,6 +375,10 @@ namespace Subtitle_draft_GMTPC
             return;
 
         string header = selectedTab.Header?.ToString() ?? "";
+        if (header.Contains("Subtitle Tools") && SubtitleToolsTabControl?.SelectedItem is TabItem selectedToolsTab)
+        {
+            header = selectedToolsTab.Header?.ToString() ?? header;
+        }
         bool found = false;
 
         // Reset search manager nếu text thay đổi
@@ -387,7 +391,7 @@ namespace Subtitle_draft_GMTPC
         try
         {
             // Tab Hardware Info
-            if (header.Contains("Hardware Info"))
+            if (header.Contains("Hardware"))
             {
                 TextBox[] textboxes = new[] { TxtGpuInfo, TxtCpuInfo, TxtRamInfo, TxtMainboardInfo };
                 foreach (var tb in textboxes)
@@ -639,8 +643,12 @@ namespace Subtitle_draft_GMTPC
         if (selectedTab == null) return null;
 
         string header = selectedTab.Header?.ToString() ?? "";
+        if (header.Contains("Subtitle Tools") && SubtitleToolsTabControl?.SelectedItem is TabItem selectedToolsTab)
+        {
+            header = selectedToolsTab.Header?.ToString() ?? header;
+        }
 
-        if (header.Contains("Hardware Info")) return _searchHardware;
+        if (header.Contains("Hardware")) return _searchHardware;
         if (header.Contains("Dialogue")) return _searchDialogue;
         if (header.Contains("Translate")) return _searchTranslate;
         if (header.Contains("Search Fonts")) return _searchFonts;

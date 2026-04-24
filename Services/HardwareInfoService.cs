@@ -39,7 +39,10 @@ namespace Subtitle_draft_GMTPC.Services
                     sb.AppendLine($"=== GPU {gpuIndex} ===");
 
                     var name = GetProperty(obj, "Name");
+                    var gpuType = DetectGpuType(name);
                     if (!string.IsNullOrEmpty(name)) sb.AppendLine($"  Tên: {name}");
+
+                    if (!string.IsNullOrEmpty(gpuType)) sb.AppendLine($"  GPU Type: {gpuType}");
 
                     var driverVersion = GetProperty(obj, "DriverVersion");
                     if (!string.IsNullOrEmpty(driverVersion)) sb.AppendLine($"  Phiên bản driver: {driverVersion}");
@@ -314,6 +317,52 @@ namespace Subtitle_draft_GMTPC.Services
             }
 
             return string.Empty;
+        }
+
+        private static string DetectGpuType(string gpuName)
+        {
+            if (string.IsNullOrWhiteSpace(gpuName))
+            {
+                return string.Empty;
+            }
+
+            var nameLower = gpuName.ToLowerInvariant();
+
+            if (nameLower.Contains("geforce") ||
+                nameLower.Contains("quadro") ||
+                nameLower.Contains("rtx") ||
+                nameLower.Contains("gtx") ||
+                nameLower.Contains("radeon rx") ||
+                nameLower.Contains("radeon pro") ||
+                nameLower.Contains("firepro") ||
+                nameLower.Contains("arc a") ||
+                nameLower.Contains("arc b") ||
+                nameLower.Contains("tesla") ||
+                nameLower.Contains("nvidia"))
+            {
+                return "Card rời (dGPU)";
+            }
+
+            if (nameLower.Contains("intel") ||
+                nameLower.Contains("uhd") ||
+                nameLower.Contains("hd graphics") ||
+                nameLower.Contains("iris") ||
+                nameLower.Equals("radeon graphics") ||
+                nameLower.Contains("radeon graphics") ||
+                nameLower.Contains("vega 8") ||
+                nameLower.Contains("vega 7") ||
+                nameLower.Contains("vega 6") ||
+                nameLower.Contains("vega 3"))
+            {
+                return "iGPU / onboard";
+            }
+
+            if (nameLower.Contains("amd") || nameLower.Contains("radeon"))
+            {
+                return "Card rời (dGPU)";
+            }
+
+            return "Chưa xác định rõ";
         }
 
         #endregion
