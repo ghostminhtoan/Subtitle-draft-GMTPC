@@ -5,6 +5,7 @@
 - **Sửa lỗi**: Nhìn tên control (`Txt*`, `Btn*`) → Mở file tab tương ứng → Sửa → Build
 - **File >500 dòng**: Tách Region thành file mới
 - **Luôn luôn**: `taskkill "Subtitle draft GMTPC.exe"` → Build → Copy exe ra root → Update changelog → Git commit
+- **Luôn luôn**: Nếu không có diff sau khi build/copy thì vẫn phải tạo `git commit --allow-empty`
 
 **Checklist**: Đúng file? ✅ Đặt tên Region chuẩn? ✅ Prefix `_` cho fields? ✅ Try-Catch? ✅ Build sạch? ✅ Copy exe ra root? ✅ Update changelog? ✅ Commit?
 
@@ -233,6 +234,7 @@ Gap = StartTime(dòng dưới) - EndTime(dòng trên)
 4. **Force commit exe**: Commit BẮT BUỘC file exe cùng với code changes
    - Message: `"Build & update exe: [timestamp]"`
    - **KHÔNG BAO GIỜ** commit code mà không có exe file
+   - Nếu Git không phát hiện thay đổi nào thì vẫn phải `git commit --allow-empty` để giữ đúng workflow auto commit
 
 **Quy tắc**:
 - **Sau mỗi lần code** = trigger full workflow tự động
@@ -240,6 +242,7 @@ Gap = StartTime(dòng dưới) - EndTime(dòng trên)
 - **KHÔNG** bỏ qua bước `taskkill` nếu app đang chạy và đang lock file exe
 - File exe PHẢI có trong repo để đảm bảo version consistency
 - Nếu build fail → **DỪNG LẠI** → fix error → build lại → copy lại → commit
+- Kể cả khi không có khác biệt file sau build/copy, vẫn phải tạo commit rỗng thay vì bỏ qua commit
 
 ---
 
@@ -255,6 +258,6 @@ Gap = StartTime(dòng dưới) - EndTime(dòng trên)
 - Sau khi build ra `.exe` → **BẮT BUỘC** copy file exe mới ra root project
 - Sau build → Copy exe ra root → Update changelog → Commit
 
-**Workflow**: Code → `taskkill "Subtitle draft GMTPC.exe"` → Build → Copy exe ra root → Update changelog → Commit
+**Workflow**: Code → `taskkill "Subtitle draft GMTPC.exe"` → Build → Copy exe ra root → Update changelog → Commit (hoặc `--allow-empty` nếu không có diff)
 
 ---

@@ -8,6 +8,13 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-24 05:00:21 PM Friday]
+
+### Changed - Workflow Requires Commit Every Coding Turn
+- Cập nhật workflow để mọi lượt code đều phải đi theo chuỗi `taskkill` → `build` → `copy exe ra root` → `commit`.
+- Nếu sau build và copy mà Git không thấy khác biệt file, workflow giờ vẫn bắt buộc tạo `git commit --allow-empty`.
+
+---
 ## [2026-04-24 04:57:48 PM Friday]
 
 ### Fixed - Tutorials Search Scroll Centers Current Match
