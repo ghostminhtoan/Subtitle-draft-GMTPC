@@ -8,6 +8,13 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-24 07:16:30 PM Friday]
+
+### Fixed - F5 in Tutorials Now Reloads from GitHub Instead of Blank Page
+- Chặn phím `F5` khi đang ở tab `Tutorials` và map nó sang cùng luồng với nút `Tải lại từ GitHub`.
+- Tránh để `WebBrowser` tự refresh trang HTML tạm bằng cơ chế nội bộ của nó, vì việc đó có thể làm nội dung trắng màn hình.
+
+---
 ## [2026-04-24 06:21:21 PM Friday]
 
 ### Fixed - Tutorials GitHub Reload Now Bypasses HTTP Cache

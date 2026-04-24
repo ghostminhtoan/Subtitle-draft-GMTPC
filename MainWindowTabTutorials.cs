@@ -256,6 +256,11 @@ namespace Subtitle_draft_GMTPC
             await LoadAllTutorialDocumentsAsync(true);
         }
 
+        private async void RefreshTutorialsFromGitHub()
+        {
+            await LoadAllTutorialDocumentsAsync(true);
+        }
+
         private void TutorialsTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!IsLoaded || _isTutorialsLoading)

@@ -88,6 +88,13 @@ namespace Subtitle_draft_GMTPC
     {
         if (IsTutorialsTabActive())
         {
+            if (e.Key == Key.F5)
+            {
+                e.Handled = true;
+                RefreshTutorialsFromGitHub();
+                return;
+            }
+
             if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
             {
                 e.Handled = true;
