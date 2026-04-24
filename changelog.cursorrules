@@ -8,6 +8,15 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-24 10:31:59 AM Friday]
+
+### Fixed - Hardware Info VRAM and CPU Clock Accuracy
+- Sửa cách lấy VRAM GPU: ưu tiên đọc `DedicatedMemory` từ `dxdiag` thay vì tin hoàn toàn `AdapterRAM` của WMI, nên RTX 2060 SUPER giờ hiện đúng `8 GB`.
+- Sửa xung nhịp CPU: bỏ cách suy ra sai từ `ExtClock`, giữ base clock theo tên model CPU và tra turbo clock danh nghĩa từ web theo model CPU.
+- Phần load Hardware Info chuyển sang chạy nền để việc gọi `dxdiag` và lookup web không làm khựng giao diện tab.
+- Chuẩn hóa tên CPU hiển thị để khớp model thực tế và hiển thị `Xeon E5-2696 v3` cùng turbo boost đúng hơn.
+
+---
 ## [2026-04-24 09:56:30 AM Friday]
 
 ### Changed - Hardware Info Vietnamese UI and Dark Panel Colors

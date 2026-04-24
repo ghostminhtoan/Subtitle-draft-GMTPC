@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Management;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace Subtitle_draft_GMTPC.Services
 {
@@ -11,6 +15,12 @@ namespace Subtitle_draft_GMTPC.Services
     /// </summary>
     public class HardwareInfoService
     {
+        private static readonly Dictionary<string, DxDiagDisplayInfo> _dxDiagDisplayCache =
+            new Dictionary<string, DxDiagDisplayInfo>(StringComparer.OrdinalIgnoreCase);
+
+        private static readonly Dictionary<string, CpuClockInfo> _cpuClockCache =
+            new Dictionary<string, CpuClockInfo>(StringComparer.OrdinalIgnoreCase);
+
         #region GPU Info
 
         public static string GetGpuInfo()
@@ -18,6 +28,7 @@ namespace Subtitle_draft_GMTPC.Services
             var sb = new StringBuilder();
             try
             {
+                var dxDiagMap = GetDxDiagDisplayInfoMap();
                 var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
                 int gpuIndex = 0;
 
@@ -33,11 +44,8 @@ namespace Subtitle_draft_GMTPC.Services
                     var driverVersion = GetProperty(obj, "DriverVersion");
                     if (!string.IsNullOrEmpty(driverVersion)) sb.AppendLine($"  Phiên bản driver: {driverVersion}");
 
-                    var adapterRam = GetProperty(obj, "AdapterRAM");
-                    if (!string.IsNullOrEmpty(adapterRam))
-                    {
-                        sb.AppendLine($"  VRAM: {FormatGpuRam(adapterRam)}");
-                    }
+                    var vramText = GetGpuVramText(obj, dxDiagMap);
+                    if (!string.IsNullOrEmpty(vramText)) sb.AppendLine($"  VRAM: {vramText}");
 
                     var videoProcessor = GetProperty(obj, "VideoProcessor");
                     if (!string.IsNullOrEmpty(videoProcessor)) sb.AppendLine($"  Bộ xử lý đồ họa: {videoProcessor}");
@@ -75,17 +83,164 @@ namespace Subtitle_draft_GMTPC.Services
             return sb.ToString().TrimEnd();
         }
 
+        private static string GetGpuVramText(ManagementObject obj, Dictionary<string, DxDiagDisplayInfo> dxDiagMap)
+        {
+            var name = GetProperty(obj, "Name");
+            if (!string.IsNullOrWhiteSpace(name) && dxDiagMap.TryGetValue(name.Trim(), out DxDiagDisplayInfo info))
+            {
+                if (info.DedicatedMemoryMb > 0)
+                {
+                    return FormatMemoryFromMb(info.DedicatedMemoryMb);
+                }
+
+                if (info.DisplayMemoryMb > 0)
+                {
+                    return FormatMemoryFromMb(info.DisplayMemoryMb);
+                }
+            }
+
+            var adapterRam = GetProperty(obj, "AdapterRAM");
+            if (!string.IsNullOrEmpty(adapterRam))
+            {
+                return FormatGpuRam(adapterRam);
+            }
+
+            return string.Empty;
+        }
+
+        private static Dictionary<string, DxDiagDisplayInfo> GetDxDiagDisplayInfoMap()
+        {
+            if (_dxDiagDisplayCache.Count > 0)
+            {
+                return _dxDiagDisplayCache;
+            }
+
+            var result = new Dictionary<string, DxDiagDisplayInfo>(StringComparer.OrdinalIgnoreCase);
+            string tempFile = Path.Combine(Path.GetTempPath(), "subtitle-draft-gmtpc-dxdiag.xml");
+
+            try
+            {
+                var process = new System.Diagnostics.Process();
+                process.StartInfo.FileName = "dxdiag";
+                process.StartInfo.Arguments = "/x \"" + tempFile + "\"";
+                process.StartInfo.CreateNoWindow = true;
+                process.StartInfo.UseShellExecute = false;
+                process.Start();
+                process.WaitForExit(10000);
+
+                if (!File.Exists(tempFile))
+                {
+                    return result;
+                }
+
+                var xml = new XmlDocument();
+                xml.Load(tempFile);
+                var nodes = xml.SelectNodes("//DisplayDevice");
+                if (nodes == null)
+                {
+                    return result;
+                }
+
+                foreach (XmlNode node in nodes)
+                {
+                    if (node == null) continue;
+
+                    string cardName = GetXmlNodeText(node, "CardName");
+                    if (string.IsNullOrWhiteSpace(cardName)) continue;
+
+                    var info = new DxDiagDisplayInfo
+                    {
+                        DedicatedMemoryMb = ParseDxDiagMemoryMb(GetXmlNodeText(node, "DedicatedMemory")),
+                        DisplayMemoryMb = ParseDxDiagMemoryMb(GetXmlNodeText(node, "DisplayMemory"))
+                    };
+
+                    result[cardName.Trim()] = info;
+                }
+            }
+            catch
+            {
+                return result;
+            }
+            finally
+            {
+                try
+                {
+                    if (File.Exists(tempFile))
+                    {
+                        File.Delete(tempFile);
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            _dxDiagDisplayCache.Clear();
+            foreach (var item in result)
+            {
+                _dxDiagDisplayCache[item.Key] = item.Value;
+            }
+
+            return _dxDiagDisplayCache;
+        }
+
+        private static string GetXmlNodeText(XmlNode parent, string childName)
+        {
+            var child = parent.SelectSingleNode(childName);
+            return child == null ? string.Empty : child.InnerText.Trim();
+        }
+
+        private static int ParseDxDiagMemoryMb(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return 0;
+            }
+
+            var match = Regex.Match(text, @"\d+");
+            if (!match.Success)
+            {
+                return 0;
+            }
+
+            int memoryMb;
+            return int.TryParse(match.Value, out memoryMb) ? memoryMb : 0;
+        }
+
+        private static string FormatMemoryFromMb(int memoryMb)
+        {
+            if (memoryMb <= 0)
+            {
+                return string.Empty;
+            }
+
+            if (memoryMb >= 1024)
+            {
+                var memoryGb = memoryMb / 1024.0;
+                var roundedGb = Math.Round(memoryGb);
+                if (Math.Abs(memoryGb - roundedGb) <= 0.35)
+                {
+                    return roundedGb.ToString("0", CultureInfo.InvariantCulture) + " GB";
+                }
+
+                return memoryGb.ToString("0.#", CultureInfo.InvariantCulture) + " GB";
+            }
+
+            return memoryMb.ToString(CultureInfo.InvariantCulture) + " MB";
+        }
+
         private static string FormatGpuRam(string ramStr)
         {
-            if (long.TryParse(ramStr, out long ramBytes))
+            long ramBytes;
+            if (long.TryParse(ramStr, out ramBytes))
             {
                 var ramMB = ramBytes / (1024 * 1024);
                 if (ramMB >= 1024)
                 {
-                    return $"{ramMB / 1024.0:0.0} GB";
+                    return (ramMB / 1024.0).ToString("0.#", CultureInfo.InvariantCulture) + " GB";
                 }
 
-                return $"{ramMB} MB";
+                return ramMB.ToString(CultureInfo.InvariantCulture) + " MB";
             }
 
             return ramStr;
@@ -178,10 +333,11 @@ namespace Subtitle_draft_GMTPC.Services
                     cpuIndex++;
                     if (cpuIndex > 1) sb.AppendLine();
 
-                    var name = GetProperty(obj, "Name");
-                    if (!string.IsNullOrEmpty(name))
+                    var rawName = GetProperty(obj, "Name");
+                    var displayName = NormalizeCpuDisplayName(rawName);
+                    if (!string.IsNullOrEmpty(displayName))
                     {
-                        sb.AppendLine($"  Tên: {name.Trim()}");
+                        sb.AppendLine($"  Tên: {displayName}");
                     }
 
                     var manufacturer = GetProperty(obj, "Manufacturer");
@@ -196,11 +352,16 @@ namespace Subtitle_draft_GMTPC.Services
                     var logicalProc = GetProperty(obj, "NumberOfLogicalProcessors");
                     if (!string.IsNullOrEmpty(logicalProc)) sb.AppendLine($"  Số luồng: {logicalProc}");
 
-                    var baseClock = GetCpuBaseClock(obj, name);
-                    if (!string.IsNullOrEmpty(baseClock)) sb.AppendLine($"  Xung nhịp cơ bản: {baseClock}");
+                    var clockInfo = GetCpuClockInfo(rawName);
+                    if (!string.IsNullOrEmpty(clockInfo.BaseClock))
+                    {
+                        sb.AppendLine($"  Xung nhịp cơ bản: {clockInfo.BaseClock}");
+                    }
 
-                    var turboClock = GetCpuTurboClock(obj);
-                    if (!string.IsNullOrEmpty(turboClock)) sb.AppendLine($"  Xung nhịp Turbo Boost: {turboClock}");
+                    if (!string.IsNullOrEmpty(clockInfo.TurboClock))
+                    {
+                        sb.AppendLine($"  Xung nhịp Turbo Boost: {clockInfo.TurboClock}");
+                    }
 
                     var l2Cache = GetProperty(obj, "L2CacheSize");
                     if (!string.IsNullOrEmpty(l2Cache)) sb.AppendLine($"  Cache L2: {l2Cache} KB");
@@ -225,44 +386,195 @@ namespace Subtitle_draft_GMTPC.Services
             return sb.ToString().TrimEnd();
         }
 
-        private static string GetCpuBaseClock(ManagementObject obj, string cpuName)
+        private static CpuClockInfo GetCpuClockInfo(string rawCpuName)
         {
-            var extClock = GetProperty(obj, "ExtClock");
-            if (int.TryParse(extClock, out int extClockMhz) && extClockMhz > 0)
+            var normalizedCpuName = NormalizeCpuDisplayName(rawCpuName);
+            if (string.IsNullOrWhiteSpace(normalizedCpuName))
             {
-                return $"{extClockMhz} MHz";
+                return new CpuClockInfo();
             }
 
-            if (!string.IsNullOrWhiteSpace(cpuName))
+            CpuClockInfo cachedInfo;
+            if (_cpuClockCache.TryGetValue(normalizedCpuName, out cachedInfo))
             {
-                var match = Regex.Match(cpuName, @"@\s*(?<ghz>\d+(?:[.,]\d+)?)\s*GHz", RegexOptions.IgnoreCase);
-                if (match.Success)
-                {
-                    var ghz = match.Groups["ghz"].Value.Replace(',', '.');
-                    if (double.TryParse(ghz, NumberStyles.Float, CultureInfo.InvariantCulture, out double ghzValue))
-                    {
-                        return $"{ghzValue:0.##} GHz";
-                    }
-                }
+                return cachedInfo;
             }
 
-            return string.Empty;
+            var info = new CpuClockInfo
+            {
+                BaseClock = GetCpuBaseClockFromName(rawCpuName)
+            };
+
+            var webInfo = GetCpuClockInfoFromTechPowerUp(normalizedCpuName);
+            if (!string.IsNullOrEmpty(webInfo.BaseClock))
+            {
+                info.BaseClock = webInfo.BaseClock;
+            }
+
+            if (!string.IsNullOrEmpty(webInfo.TurboClock))
+            {
+                info.TurboClock = webInfo.TurboClock;
+            }
+
+            _cpuClockCache[normalizedCpuName] = info;
+            return info;
         }
 
-        private static string GetCpuTurboClock(ManagementObject obj)
+        private static string NormalizeCpuDisplayName(string rawCpuName)
         {
-            var maxClock = GetProperty(obj, "MaxClockSpeed");
-            if (int.TryParse(maxClock, out int maxClockMhz) && maxClockMhz > 0)
+            if (string.IsNullOrWhiteSpace(rawCpuName))
             {
-                if (maxClockMhz >= 1000)
-                {
-                    return $"{maxClockMhz / 1000.0:0.##} GHz";
-                }
-
-                return $"{maxClockMhz} MHz";
+                return string.Empty;
             }
 
-            return string.Empty;
+            var name = rawCpuName.Replace("(R)", string.Empty)
+                                 .Replace("(TM)", string.Empty)
+                                 .Replace("CPU", string.Empty)
+                                 .Replace("Intel", string.Empty)
+                                 .Replace("AMD", string.Empty)
+                                 .Trim();
+
+            name = Regex.Replace(name, @"\s*@\s*[\d.,]+\s*GHz", string.Empty, RegexOptions.IgnoreCase);
+            name = Regex.Replace(name, @"\s+", " ").Trim();
+            return name;
+        }
+
+        private static string GetCpuBaseClockFromName(string rawCpuName)
+        {
+            if (string.IsNullOrWhiteSpace(rawCpuName))
+            {
+                return string.Empty;
+            }
+
+            var match = Regex.Match(rawCpuName, @"@\s*(?<ghz>\d+(?:[.,]\d+)?)\s*GHz", RegexOptions.IgnoreCase);
+            if (!match.Success)
+            {
+                return string.Empty;
+            }
+
+            double ghzValue;
+            var ghz = match.Groups["ghz"].Value.Replace(',', '.');
+            if (!double.TryParse(ghz, NumberStyles.Float, CultureInfo.InvariantCulture, out ghzValue))
+            {
+                return string.Empty;
+            }
+
+            return ghzValue.ToString("0.##", CultureInfo.InvariantCulture) + " GHz";
+        }
+
+        private static CpuClockInfo GetCpuClockInfoFromTechPowerUp(string normalizedCpuName)
+        {
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(5);
+                    var query = Uri.EscapeDataString(normalizedCpuName);
+                    var json = client.GetStringAsync("https://www.techpowerup.com/cpu-specs/?q=" + query + "&ajax")
+                                     .GetAwaiter()
+                                     .GetResult();
+                    var htmlList = ExtractTechPowerUpListHtml(json);
+                    if (string.IsNullOrWhiteSpace(htmlList))
+                    {
+                        return new CpuClockInfo();
+                    }
+
+                    var rowMatch = Regex.Match(
+                        htmlList,
+                        "<a href=\"(?<href>/cpu-specs/[^\"]+)\">(?<name>[^<]+)</a>\\s*</td>\\s*<td>(?<codename>[^<]*)</td>\\s*<td>(?<cores>[^<]*)</td>\\s*<td>(?<clock>[^<]*)</td>",
+                        RegexOptions.IgnoreCase);
+
+                    if (!rowMatch.Success)
+                    {
+                        return new CpuClockInfo();
+                    }
+
+                    var matchedName = NormalizeCpuDisplayName(rowMatch.Groups["name"].Value.Trim());
+                    if (!string.Equals(matchedName, normalizedCpuName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return new CpuClockInfo();
+                    }
+
+                    return ParseCpuClockText(rowMatch.Groups["clock"].Value.Trim());
+                }
+            }
+            catch
+            {
+                return new CpuClockInfo();
+            }
+        }
+
+        private static CpuClockInfo ParseCpuClockText(string clockText)
+        {
+            if (string.IsNullOrWhiteSpace(clockText))
+            {
+                return new CpuClockInfo();
+            }
+
+            var normalized = Regex.Replace(clockText, @"\s+", " ").Trim();
+            var parts = normalized.Split(new[] { " to " }, StringSplitOptions.None);
+
+            if (parts.Length >= 2)
+            {
+                return new CpuClockInfo
+                {
+                    BaseClock = NormalizeClockValue(parts[0], parts[1]),
+                    TurboClock = NormalizeClockValue(parts[1], parts[0])
+                };
+            }
+
+            return new CpuClockInfo
+            {
+                BaseClock = NormalizeClockValue(normalized, string.Empty)
+            };
+        }
+
+        private static string ExtractTechPowerUpListHtml(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return string.Empty;
+            }
+
+            var match = Regex.Match(json, "\"list\":\"(?<html>.*?)\",\"dropdown\":", RegexOptions.Singleline);
+            if (!match.Success)
+            {
+                return string.Empty;
+            }
+
+            var html = match.Groups["html"].Value;
+            html = html.Replace("\\/", "/");
+            html = Regex.Unescape(html);
+            return html;
+        }
+
+        private static string NormalizeClockValue(string value, string fallbackUnitSource)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            var text = value.Trim();
+            if (Regex.IsMatch(text, @"GHz|MHz", RegexOptions.IgnoreCase))
+            {
+                return text;
+            }
+
+            if (!string.IsNullOrWhiteSpace(fallbackUnitSource))
+            {
+                if (fallbackUnitSource.IndexOf("GHz", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return text + " GHz";
+                }
+
+                if (fallbackUnitSource.IndexOf("MHz", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return text + " MHz";
+                }
+            }
+
+            return text;
         }
 
         private static string GetArchitectureName(string arch)
@@ -294,8 +606,9 @@ namespace Subtitle_draft_GMTPC.Services
                 foreach (ManagementObject obj in totalSearcher.Get())
                 {
                     var totalRam = GetProperty(obj, "TotalPhysicalMemory");
+                    double totalRamBytes;
                     if (!string.IsNullOrEmpty(totalRam) &&
-                        double.TryParse(totalRam, NumberStyles.Float, CultureInfo.InvariantCulture, out double totalRamBytes))
+                        double.TryParse(totalRam, NumberStyles.Float, CultureInfo.InvariantCulture, out totalRamBytes))
                     {
                         var totalGB = totalRamBytes / Math.Pow(1024, 3);
                         sb.AppendLine($"  Tổng RAM vật lý: {totalGB:0.00} GB");
@@ -306,8 +619,9 @@ namespace Subtitle_draft_GMTPC.Services
                 foreach (ManagementObject obj in freeRamSearcher.Get())
                 {
                     var freeRam = GetProperty(obj, "FreePhysicalMemory");
+                    double freeRamKb;
                     if (!string.IsNullOrEmpty(freeRam) &&
-                        double.TryParse(freeRam, NumberStyles.Float, CultureInfo.InvariantCulture, out double freeRamKb))
+                        double.TryParse(freeRam, NumberStyles.Float, CultureInfo.InvariantCulture, out freeRamKb))
                     {
                         var freeGB = freeRamKb / Math.Pow(1024, 2);
                         sb.AppendLine($"  RAM trống: {freeGB:0.00} GB");
@@ -335,8 +649,9 @@ namespace Subtitle_draft_GMTPC.Services
                     if (!string.IsNullOrEmpty(partNumber)) sb.AppendLine($"    Mã: {partNumber.Trim()}");
 
                     var capacity = GetProperty(obj, "Capacity");
+                    double capacityBytes;
                     if (!string.IsNullOrEmpty(capacity) &&
-                        double.TryParse(capacity, NumberStyles.Float, CultureInfo.InvariantCulture, out double capacityBytes))
+                        double.TryParse(capacity, NumberStyles.Float, CultureInfo.InvariantCulture, out capacityBytes))
                     {
                         var capGB = capacityBytes / Math.Pow(1024, 3);
                         sb.AppendLine($"    Dung lượng: {capGB:0.0} GB");
@@ -368,7 +683,8 @@ namespace Subtitle_draft_GMTPC.Services
                     if (!string.IsNullOrEmpty(dataWidth)) sb.AppendLine($"    Độ rộng bus: {dataWidth}-bit");
 
                     var voltage = GetProperty(obj, "ConfiguredVoltage");
-                    if (int.TryParse(voltage, out int milliVolt) && milliVolt > 0)
+                    int milliVolt;
+                    if (int.TryParse(voltage, out milliVolt) && milliVolt > 0)
                     {
                         sb.AppendLine($"    Điện áp: {milliVolt} mV");
                     }
@@ -513,6 +829,18 @@ namespace Subtitle_draft_GMTPC.Services
             }
 
             return string.Empty;
+        }
+
+        private sealed class DxDiagDisplayInfo
+        {
+            public int DedicatedMemoryMb { get; set; }
+            public int DisplayMemoryMb { get; set; }
+        }
+
+        private sealed class CpuClockInfo
+        {
+            public string BaseClock { get; set; }
+            public string TurboClock { get; set; }
         }
 
         #endregion

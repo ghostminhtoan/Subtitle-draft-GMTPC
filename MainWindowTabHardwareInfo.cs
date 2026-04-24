@@ -18,7 +18,7 @@ namespace Subtitle_draft_GMTPC
         /// <summary>
         /// Load toàn bộ thông tin phần cứng khi mở app.
         /// </summary>
-        private void LoadHardwareInfo()
+        private async void LoadHardwareInfo()
         {
             if (_isHardwareLoading) return;
 
@@ -26,10 +26,23 @@ namespace Subtitle_draft_GMTPC
             {
                 _isHardwareLoading = true;
 
-                TxtGpuInfo.Text = HardwareInfoService.GetGpuInfo();
-                TxtCpuInfo.Text = HardwareInfoService.GetCpuInfo();
-                TxtRamInfo.Text = HardwareInfoService.GetRamInfo();
-                TxtMainboardInfo.Text = HardwareInfoService.GetMainboardInfo();
+                TxtGpuInfo.Text = "Đang tải thông tin GPU...";
+                TxtCpuInfo.Text = "Đang tải thông tin CPU...";
+                TxtRamInfo.Text = "Đang tải thông tin RAM...";
+                TxtMainboardInfo.Text = "Đang tải thông tin bo mạch chủ...";
+
+                var hardwareInfo = await Task.Run(() => new
+                {
+                    Gpu = HardwareInfoService.GetGpuInfo(),
+                    Cpu = HardwareInfoService.GetCpuInfo(),
+                    Ram = HardwareInfoService.GetRamInfo(),
+                    Mainboard = HardwareInfoService.GetMainboardInfo()
+                });
+
+                TxtGpuInfo.Text = hardwareInfo.Gpu;
+                TxtCpuInfo.Text = hardwareInfo.Cpu;
+                TxtRamInfo.Text = hardwareInfo.Ram;
+                TxtMainboardInfo.Text = hardwareInfo.Mainboard;
             }
             catch (Exception ex)
             {
@@ -67,7 +80,7 @@ namespace Subtitle_draft_GMTPC
             try
             {
                 Clipboard.SetText(TxtGpuInfo.Text);
-                ShowToastHardware("📋 Đã copy thông tin GPU.");
+                ShowToastHardware("📋 Đã sao chép thông tin GPU.");
             }
             catch (Exception ex)
             {
@@ -82,7 +95,7 @@ namespace Subtitle_draft_GMTPC
             try
             {
                 Clipboard.SetText(TxtCpuInfo.Text);
-                ShowToastHardware("📋 Đã copy thông tin CPU.");
+                ShowToastHardware("📋 Đã sao chép thông tin CPU.");
             }
             catch (Exception ex)
             {
@@ -97,7 +110,7 @@ namespace Subtitle_draft_GMTPC
             try
             {
                 Clipboard.SetText(TxtRamInfo.Text);
-                ShowToastHardware("📋 Đã copy thông tin RAM.");
+                ShowToastHardware("📋 Đã sao chép thông tin RAM.");
             }
             catch (Exception ex)
             {
@@ -112,7 +125,7 @@ namespace Subtitle_draft_GMTPC
             try
             {
                 Clipboard.SetText(TxtMainboardInfo.Text);
-                ShowToastHardware("📋 Đã copy thông tin Mainboard.");
+                ShowToastHardware("📋 Đã sao chép thông tin bo mạch chủ.");
             }
             catch (Exception ex)
             {
