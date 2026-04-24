@@ -4,9 +4,25 @@ echo Building Subtitle draft GMTPC (C# Debug)
 echo ========================================
 echo.
 
-:: Find MSBuild
+:: Find the newest Visual Studio MSBuild first. SDK-style projects such as this one
+:: need the matching MSBuild/.NET SDK resolver, so old Build Tools paths can fail.
 set "MSBUILD="
-if exist "C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe" (
+set "VSCMD="
+set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+
+if exist "%VSWHERE%" (
+    for /f "usebackq delims=" %%I in (`"%VSWHERE%" -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe`) do (
+        if not defined MSBUILD set "MSBUILD=%%I"
+    )
+    for /f "usebackq delims=" %%I in (`"%VSWHERE%" -latest -products * -find Common7\Tools\VsDevCmd.bat`) do (
+        if not defined VSCMD set "VSCMD=%%I"
+    )
+)
+
+if not defined MSBUILD if exist "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" (
+    set "MSBUILD=C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe"
+    set "VSCMD=C:\Program Files\Microsoft Visual Studio\18\Community\Common7\Tools\VsDevCmd.bat"
+) else if exist "C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe" (
     set "MSBUILD=C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe"
 ) else if exist "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" (
     set "MSBUILD=C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
@@ -20,23 +36,34 @@ if exist "C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Cur
     set "MSBUILD=C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe"
 )
 
-if "%MSBUILD%"=="" (
-    echo [ERROR] MSBuild not found! Please install Visual Studio or Build Tools.
-    echo Download from: https://visualstudio.microsoft.com/downloads/
-    pause
-    exit /b 1
+if defined MSBUILD (
+    echo Using MSBuild: %MSBUILD%
+    echo.
+    if defined VSCMD (
+        call "%VSCMD%" >nul
+    )
+    "%MSBUILD%" "Subtitle draft GMTPC.csproj" /p:Configuration=Debug /t:Build /nologo /v:minimal
+    set "BUILD_RESULT=%ERRORLEVEL%"
+) else (
+    where dotnet >nul 2>nul
+    if %ERRORLEVEL% NEQ 0 (
+        echo [ERROR] Neither Visual Studio MSBuild nor dotnet CLI was found.
+        echo Install Visual Studio 2026 or the .NET SDK, then try again.
+        pause
+        exit /b 1
+    )
+
+    echo Using dotnet build fallback
+    echo.
+    dotnet build "Subtitle draft GMTPC.csproj" -c Debug -v minimal
+    set "BUILD_RESULT=%ERRORLEVEL%"
 )
 
-echo Using: %MSBUILD%
-echo.
-
-:: Build the C# project
-"%MSBUILD%" "Subtitle draft GMTPC.csproj" /p:Configuration=Debug /t:Build /nologo /v:minimal
-if %ERRORLEVEL% NEQ 0 (
+if %BUILD_RESULT% NEQ 0 (
     echo.
     echo [ERROR] Build failed!
     pause
-    exit /b %ERRORLEVEL%
+    exit /b %BUILD_RESULT%
 )
 
 echo.

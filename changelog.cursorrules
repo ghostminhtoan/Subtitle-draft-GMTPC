@@ -8,6 +8,31 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-24 04:57:48 PM Friday]
+
+### Fixed - Tutorials Search Scroll Centers Current Match
+- Khi tìm kiếm trong tab `Tutorials`, kết quả đang được chọn giờ tự cuộn ra giữa vùng nhìn thay vì sát mép dưới.
+- Giữ nguyên highlight toàn bộ kết quả và vẫn điều hướng `Next` / `Previous` như trước.
+
+---
+## [2026-04-24 04:42:09 PM Friday]
+
+### Added - Advanced Search Panel for Tutorials
+- Thêm thanh tìm kiếm riêng cho tab `Tutorials` với ô `Find`, nút `Previous`, `Next`, `Clear`, trạng thái kết quả và nút bật/tắt độc lập với search tổng của app.
+- Bổ sung tùy chọn `Match case`, `Whole word`, `Regex` để cách tìm trong `Tutorials` gần hơn với trải nghiệm kiểu Notepad++ thay vì chỉ tìm cơ bản.
+- Tạo search engine chạy ngay trong HTML của tài liệu, hỗ trợ highlight tất cả kết quả, đánh dấu kết quả hiện tại, cuộn tới vị trí match và giữ nguyên format Markdown đã render.
+- Ưu tiên `Ctrl+F` và `F3` cho `Tutorials` khi tab này đang active, đồng thời tự áp lại search khi đổi sub-tab hoặc tải lại tài liệu.
+
+---
+## [2026-04-24 04:30:07 PM Friday]
+
+### Added - Tutorials Tab with GitHub Markdown Rendering
+- Thêm tab `Tutorials` nằm ngay bên phải `Thông Tin Phần Cứng`, gồm các sub-tab `Overview`, `Workflow` và `Shortcuts`.
+- Trong `Shortcuts` bổ sung 5 child tab để tải riêng từng tài liệu workflow/shortcut từ repo GitHub được chỉ định.
+- Tạo luồng tải Markdown raw từ GitHub, cache nội dung và render lại thành HTML dark theme để giữ heading, bullet, in đậm, bảng, code block và ảnh.
+- Thêm nút `Tải lại từ GitHub` và trạng thái tải để cập nhật nội dung tài liệu trực tiếp trong app.
+
+---
 ## [2026-04-24 11:03:32 AM Friday]
 
 ### Fixed - ASS Font Adjust Paste Filter and Build Stamp Footer

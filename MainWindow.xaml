@@ -544,7 +544,220 @@
                 </Grid>
             </TabItem>
 
-            <!-- Tab 2: Dialogue -->
+            <!-- Tab 2: Tutorials -->
+            <TabItem Header="📚 Tutorials">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Style="{StaticResource PanelBorderStyle}"
+                            Background="#1F2330" BorderBrush="#3F4E6A" Margin="8,8,8,4">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <DockPanel Grid.Row="0" LastChildFill="True">
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                    <Button x:Name="BtnToggleTutorialSearch" Content="🔎 Tìm trong Tutorials"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            Margin="0,0,8,0"
+                                            Click="BtnToggleTutorialSearch_Click"/>
+                                    <Button x:Name="BtnRefreshTutorials" Content="🔄 Tải lại từ GitHub"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            Click="BtnRefreshTutorials_Click"/>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock Text="Tutorials"
+                                               Foreground="#FFFFFF"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="TxtTutorialsStatus"
+                                               Text="Đang chuẩn bị tải nội dung từ GitHub..."
+                                               Foreground="#A9B7D0"
+                                               FontSize="12"
+                                               Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </DockPanel>
+
+                            <Border x:Name="TutorialSearchPanel"
+                                    Grid.Row="1"
+                                    Background="#151C28"
+                                    BorderBrush="#324257"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="10"
+                                    Margin="0,10,0,0"
+                                    Visibility="Collapsed">
+                                <WrapPanel>
+                                    <TextBlock Text="Find:"
+                                               Foreground="#E0E0E0"
+                                               FontSize="12"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,8,0"/>
+                                    <TextBox x:Name="TxtTutorialSearchBox"
+                                             Width="260"
+                                             Height="28"
+                                             FontSize="13"
+                                             Background="#2D2D2D"
+                                             Foreground="#E0E0E0"
+                                             BorderBrush="#4A5C74"
+                                             BorderThickness="1"
+                                             Padding="8,4"
+                                             TextChanged="TxtTutorialSearchBox_TextChanged"
+                                             KeyDown="TxtTutorialSearchBox_KeyDown"/>
+                                    <Button x:Name="BtnTutorialSearchPrev"
+                                            Content="◀ Previous"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            Padding="10,4"
+                                            FontSize="12"
+                                            Margin="8,0,0,0"
+                                            Click="BtnTutorialSearchPrev_Click"/>
+                                    <Button x:Name="BtnTutorialSearchNext"
+                                            Content="Next ▶"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            Padding="10,4"
+                                            FontSize="12"
+                                            Margin="4,0,0,0"
+                                            Click="BtnTutorialSearchNext_Click"/>
+                                    <Button x:Name="BtnTutorialSearchClear"
+                                            Content="✕ Clear"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            Padding="10,4"
+                                            FontSize="12"
+                                            Margin="4,0,0,0"
+                                            Click="BtnTutorialSearchClear_Click"/>
+                                    <CheckBox x:Name="ChkTutorialMatchCase"
+                                              Content="Match case"
+                                              Foreground="#D6DFEA"
+                                              VerticalAlignment="Center"
+                                              Margin="12,0,0,0"
+                                              Checked="TutorialSearchOption_Changed"
+                                              Unchecked="TutorialSearchOption_Changed"/>
+                                    <CheckBox x:Name="ChkTutorialWholeWord"
+                                              Content="Whole word"
+                                              Foreground="#D6DFEA"
+                                              VerticalAlignment="Center"
+                                              Margin="12,0,0,0"
+                                              Checked="TutorialSearchOption_Changed"
+                                              Unchecked="TutorialSearchOption_Changed"/>
+                                    <CheckBox x:Name="ChkTutorialRegex"
+                                              Content="Regex"
+                                              Foreground="#D6DFEA"
+                                              VerticalAlignment="Center"
+                                              Margin="12,0,0,0"
+                                              Checked="TutorialSearchOption_Changed"
+                                              Unchecked="TutorialSearchOption_Changed"/>
+                                    <TextBlock x:Name="TxtTutorialSearchStatus"
+                                               Text=""
+                                               Foreground="#9CCBFF"
+                                               FontSize="12"
+                                               VerticalAlignment="Center"
+                                               Margin="12,0,0,0"/>
+                                </WrapPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <TabControl x:Name="TutorialsTabControl"
+                                Grid.Row="1"
+                                Background="#1E1E1E"
+                                BorderBrush="#3E3E42"
+                                BorderThickness="1"
+                                Margin="8,0,8,8"
+                                SelectionChanged="TutorialsTabControl_SelectionChanged">
+                        <TabItem Header="Overview">
+                            <Border Style="{StaticResource PanelBorderStyle}" Margin="6">
+                                <WebBrowser x:Name="BrowserTutorialOverview"
+                                            Navigating="TutorialBrowser_Navigating"
+                                            LoadCompleted="TutorialBrowser_LoadCompleted"/>
+                            </Border>
+                        </TabItem>
+
+                        <TabItem Header="Workflow">
+                            <Border Style="{StaticResource PanelBorderStyle}" Margin="6">
+                                <WebBrowser x:Name="BrowserTutorialWorkflow"
+                                            Navigating="TutorialBrowser_Navigating"
+                                            LoadCompleted="TutorialBrowser_LoadCompleted"/>
+                            </Border>
+                        </TabItem>
+
+                        <TabItem Header="Shortcuts">
+                            <TabControl x:Name="TutorialShortcutsTabControl"
+                                        Background="#1E1E1E"
+                                        BorderBrush="#3E3E42"
+                                        BorderThickness="1"
+                                        Margin="6"
+                                        SelectionChanged="TutorialsTabControl_SelectionChanged">
+                                <TabItem Header="Default Shortcuts">
+                                    <Border Style="{StaticResource PanelBorderStyle}" Margin="6">
+                                        <WebBrowser x:Name="BrowserTutorialShortcutDefault"
+                                                    Navigating="TutorialBrowser_Navigating"
+                                                    LoadCompleted="TutorialBrowser_LoadCompleted"/>
+                                    </Border>
+                                </TabItem>
+
+                                <TabItem Header="Translate - New Subtitle">
+                                    <Border Style="{StaticResource PanelBorderStyle}" Margin="6">
+                                        <WebBrowser x:Name="BrowserTutorialShortcutTranslateNew"
+                                                    Navigating="TutorialBrowser_Navigating"
+                                                    LoadCompleted="TutorialBrowser_LoadCompleted"/>
+                                    </Border>
+                                </TabItem>
+
+                                <TabItem Header="Translate - Existing Subtitle">
+                                    <Border Style="{StaticResource PanelBorderStyle}" Margin="6">
+                                        <WebBrowser x:Name="BrowserTutorialShortcutTranslateExisting"
+                                                    Navigating="TutorialBrowser_Navigating"
+                                                    LoadCompleted="TutorialBrowser_LoadCompleted"/>
+                                    </Border>
+                                </TabItem>
+
+                                <TabItem Header="Edit Translated Subtitle">
+                                    <Border Style="{StaticResource PanelBorderStyle}" Margin="6">
+                                        <WebBrowser x:Name="BrowserTutorialShortcutEditTranslated"
+                                                    Navigating="TutorialBrowser_Navigating"
+                                                    LoadCompleted="TutorialBrowser_LoadCompleted"/>
+                                    </Border>
+                                </TabItem>
+
+                                <TabItem Header="Quick Checker">
+                                    <Border Style="{StaticResource PanelBorderStyle}" Margin="6">
+                                        <WebBrowser x:Name="BrowserTutorialShortcutQuickChecker"
+                                                    Navigating="TutorialBrowser_Navigating"
+                                                    LoadCompleted="TutorialBrowser_LoadCompleted"/>
+                                    </Border>
+                                </TabItem>
+                            </TabControl>
+                        </TabItem>
+                    </TabControl>
+
+                    <Border Grid.Row="2"
+                            Background="#1A1A1A"
+                            BorderBrush="#3E3E42"
+                            BorderThickness="0,1,0,0"
+                            Padding="12,8"
+                            Margin="8,0,8,8">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="Nguồn: " Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="ghostminhtoan/subtitle-edit-shortcuts-GMTPC"
+                                       Foreground="#4DA3FF"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"/>
+                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                            <TextBlock Text="Render Markdown từ GitHub với bảng, in đậm, bullet và ảnh"
+                                       Foreground="#808080"
+                                       FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab 3: Dialogue -->
             <TabItem Header="💬 Dialogue">
                 <Grid>
                     <Grid.RowDefinitions>

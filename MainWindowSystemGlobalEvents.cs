@@ -69,6 +69,7 @@ namespace Subtitle_draft_GMTPC
         InitFontSizes();
         ApplyBuildStampToFooterLabels();
         LoadHardwareInfo();
+        InitializeTutorialsAsync();
         InitializeDefaultPrompts();
         LoadAllPrompts();
         InitializeEffectDebounce();
@@ -85,6 +86,23 @@ namespace Subtitle_draft_GMTPC
     /// </summary>
     private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
     {
+        if (IsTutorialsTabActive())
+        {
+            if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                e.Handled = true;
+                ToggleTutorialSearchPanel();
+                return;
+            }
+
+            if (e.Key == Key.F3)
+            {
+                e.Handled = true;
+                NavigateTutorialSearch(!Keyboard.Modifiers.HasFlag(ModifierKeys.Shift));
+                return;
+            }
+        }
+
         // Ctrl+F - Show/hide search box
         if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
         {
