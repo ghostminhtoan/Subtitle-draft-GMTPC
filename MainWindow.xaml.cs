@@ -19,6 +19,7 @@ using System.Windows.Media;
 /// - MainWindowTabSearchFonts.cs: Tab Search Fonts
 /// - MainWindowTabHardwareInfo.cs: Tab Hardware Info
 /// - MainWindowTabTutorials.cs: Tab Tutorials
+/// - MainWindowSystemUpdater.cs: Update latest version workflow
 /// - MainWindowTabKaraokeVietnamese.cs: Tab Karaoke Vietnamese
 /// - MainWindowTabZeroTime.cs: Tab Zero Time
 /// - MainWindowTabKaraokeEnglish.cs: Tab Karaoke English

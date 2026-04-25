@@ -8,6 +8,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-25 10:40:41 AM Saturday]
+
+### Added - Update Latest Version Button with Auto Replace and Restart
+- Thêm nút `Update latest version` bên phải nút `Donate` trên toolbar.
+- Nút này sẽ so build time local với thời gian mới nhất của file `Subtitle draft GMTPC.exe` trên GitHub; nếu đã là bản mới nhất thì báo cho người dùng biết.
+- Nếu server có bản mới hơn, app sẽ tải file về với tên `Subtitle draft GMTPC latest.exe`, sinh script thay thế file cũ, tự tắt app, đổi lại thành `Subtitle draft GMTPC.exe` và mở lại.
+
+---
 ## [2026-04-24 08:58:07 PM Friday]
 
 ### Changed - Subtitle Tools Parent Tab and Hardware/Search Fonts Updates
