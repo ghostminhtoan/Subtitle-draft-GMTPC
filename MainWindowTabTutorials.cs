@@ -926,7 +926,7 @@ namespace Subtitle_draft_GMTPC
 
             public string GetFullPath()
             {
-                return Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, RelativePath));
+                return Path.GetFullPath(Path.Combine(AppRuntimePaths.BaseDirectory, RelativePath));
             }
 
             public string SourceUrl

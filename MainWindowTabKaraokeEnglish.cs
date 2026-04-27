@@ -45,7 +45,7 @@ namespace Subtitle_draft_GMTPC
         {
             try
             {
-                var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                var appDir = AppRuntimePaths.BaseDirectory;
                 _wordListFilePath = Path.Combine(appDir, "word list rules.txt");
 
                 var dir = Path.GetDirectoryName(_wordListFilePath);
@@ -152,7 +152,7 @@ namespace Subtitle_draft_GMTPC
                 _pendingKaraokeEngRules = WordListRules.DefaultRules;
                 
                 // Ghi đè lên file word list rules.txt
-                var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                var appDir = AppRuntimePaths.BaseDirectory;
                 _wordListFilePath = Path.Combine(appDir, "word list rules.txt");
                 File.WriteAllText(_wordListFilePath, WordListRules.DefaultRules);
                 
@@ -172,7 +172,7 @@ namespace Subtitle_draft_GMTPC
         {
             try
             {
-                var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                var appDir = AppRuntimePaths.BaseDirectory;
                 _wordListFilePath = Path.Combine(appDir, "word list rules.txt");
 
                 if (!File.Exists(_wordListFilePath))
@@ -240,7 +240,7 @@ namespace Subtitle_draft_GMTPC
                     _pendingKaraokeEngRules = content;
                     
                     // Lưu vào file word list rules.txt để watcher theo dõi
-                    var appDir = AppDomain.CurrentDomain.BaseDirectory;
+                    var appDir = AppRuntimePaths.BaseDirectory;
                     _wordListFilePath = Path.Combine(appDir, "word list rules.txt");
                     File.WriteAllText(_wordListFilePath, content);
                     
