@@ -747,13 +747,12 @@
 
                         <TabItem Header="Shortcuts Excel">
                             <Grid Margin="6">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="320"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-                                <Border Grid.Row="0" Style="{StaticResource PanelBorderStyle}" Margin="0,0,0,8">
+                                <Border Grid.Column="0" Style="{StaticResource PanelBorderStyle}" Margin="0,0,8,0" VerticalAlignment="Top">
                                     <StackPanel>
                                         <TextBlock Text="Shortcuts Excel"
                                                    Foreground="#FFFFFF"
@@ -767,7 +766,7 @@
                                     </StackPanel>
                                 </Border>
 
-                                <Border Grid.Row="1" Style="{StaticResource PanelBorderStyle}">
+                                <Border Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
                                     <wv2:WebView2 x:Name="BrowserTutorialShortcutsExcel"
                                                   NavigationCompleted="BrowserTutorialShortcutsExcel_NavigationCompleted"/>
                                 </Border>
