@@ -1,8 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Net.Http;
-using System.Net.Http.Headers;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,8 +14,6 @@ namespace Subtitle_draft_GMTPC
     public partial class MainWindow : Window
     {
         #region Tutorials - Fields
-
-        private static readonly HttpClient _tutorialsHttpClient = CreateTutorialsHttpClient();
 
         private readonly Dictionary<string, TutorialDocumentDefinition> _tutorialDocuments = CreateTutorialDocuments();
         private readonly Dictionary<string, string> _tutorialHtmlCache = new Dictionary<string, string>();
@@ -41,14 +38,6 @@ namespace Subtitle_draft_GMTPC
             await LoadAllTutorialDocumentsAsync(false);
         }
 
-        private static HttpClient CreateTutorialsHttpClient()
-        {
-            var client = new HttpClient();
-            client.Timeout = TimeSpan.FromSeconds(30);
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("SubtitleDraftGMTPC/1.0");
-            return client;
-        }
-
         private static Dictionary<string, TutorialDocumentDefinition> CreateTutorialDocuments()
         {
             return new Dictionary<string, TutorialDocumentDefinition>
@@ -57,43 +46,43 @@ namespace Subtitle_draft_GMTPC
                         "overview",
                         new TutorialDocumentDefinition(
                             "Overview",
-                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorials/H%C6%B0%E1%BB%9Bng%20d%E1%BA%ABn/1-gioi-thieu-so-luoc.md")
+                        Path.Combine("Tutorials", "Hướng dẫn", "1-gioi-thieu-so-luoc.md"))
                 },
                 {
                     "workflow",
                     new TutorialDocumentDefinition(
                         "Workflow",
-                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorials/Tutorial/Profiles/README.md")
+                        Path.Combine("Tutorials", "Tutorial", "Profiles", "README.md"))
                 },
                 {
                     "shortcut-default",
                     new TutorialDocumentDefinition(
                         "Default Shortcuts",
-                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorials/Shortcuts/shortcut%20MMT%20-%20Vietnamese.md")
+                        Path.Combine("Tutorials", "Shortcuts", "shortcut MMT - Vietnamese.md"))
                 },
                 {
                     "shortcut-translate-new",
                     new TutorialDocumentDefinition(
                         "Translate - New Subtitle",
-                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorials/Tutorial/Profiles/profile-01-translate-new-subtitle.md")
+                        Path.Combine("Tutorials", "Tutorial", "Profiles", "profile-01-translate-new-subtitle.md"))
                 },
                 {
                     "shortcut-translate-existing",
                     new TutorialDocumentDefinition(
                         "Translate - Existing Subtitle",
-                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorials/Tutorial/Profiles/profile-02-translate-existing-subtitle.md")
+                        Path.Combine("Tutorials", "Tutorial", "Profiles", "profile-02-translate-existing-subtitle.md"))
                 },
                 {
                     "shortcut-edit-translated",
                     new TutorialDocumentDefinition(
                         "Edit Translated Subtitle",
-                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorials/Tutorial/Profiles/profile-03-edit-translated.md")
+                        Path.Combine("Tutorials", "Tutorial", "Profiles", "profile-03-edit-translated.md"))
                 },
                 {
                     "shortcut-quick-checker",
                     new TutorialDocumentDefinition(
                         "Quick Checker",
-                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorials/Tutorial/Profiles/profile-04-quick-checker.md")
+                        Path.Combine("Tutorials", "Tutorial", "Profiles", "profile-04-quick-checker.md"))
                 }
             };
         }
@@ -113,7 +102,7 @@ namespace Subtitle_draft_GMTPC
             {
                 _isTutorialsLoading = true;
                 BtnRefreshTutorials.IsEnabled = false;
-                TxtTutorialsStatus.Text = "Đang tải tài liệu từ GitHub...";
+                TxtTutorialsStatus.Text = "Đang tải tài liệu từ thư mục Tutorials...";
 
                 ShowTutorialLoadingState();
 
@@ -135,7 +124,7 @@ namespace Subtitle_draft_GMTPC
                 }
 
                 TxtTutorialsStatus.Text = string.Format(
-                    "Đã tải {0} tài liệu từ GitHub lúc {1:HH:mm:ss}.",
+                    "Đã tải {0} tài liệu từ Tutorials lúc {1:HH:mm:ss}.",
                     _tutorialDocuments.Count,
                     DateTime.Now);
 
@@ -143,7 +132,7 @@ namespace Subtitle_draft_GMTPC
             }
             catch (Exception ex)
             {
-                TxtTutorialsStatus.Text = "Không thể tải tutorials từ GitHub.";
+                TxtTutorialsStatus.Text = "Không thể tải tutorials từ thư mục Tutorials.";
                 ShowTutorialErrorState(ex.Message);
             }
             finally
@@ -155,37 +144,29 @@ namespace Subtitle_draft_GMTPC
 
         private async Task<string> GetTutorialHtmlAsync(string key, TutorialDocumentDefinition document, bool forceRefresh)
         {
-            if (_tutorialHtmlCache.TryGetValue(key, out var cachedHtml))
+            if (!forceRefresh && _tutorialHtmlCache.TryGetValue(key, out var cachedHtml))
             {
                 return cachedHtml;
             }
 
-            var markdown = await FetchTutorialMarkdownAsync(document, forceRefresh);
-            var html = GitHubMarkdownHtmlRenderer.RenderDocument(markdown, document.BlobUrl, document.Title);
+            var markdown = await LoadTutorialMarkdownAsync(document);
+            var html = GitHubMarkdownHtmlRenderer.RenderDocument(markdown, document.SourceUrl, document.Title);
             _tutorialHtmlCache[key] = html;
             return html;
         }
 
-        private async Task<string> FetchTutorialMarkdownAsync(TutorialDocumentDefinition document, bool forceRefresh)
+        private static async Task<string> LoadTutorialMarkdownAsync(TutorialDocumentDefinition document)
         {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, document.GetRequestUrl(forceRefresh)))
+            var filePath = document.GetFullPath();
+            if (!File.Exists(filePath))
             {
-                if (forceRefresh)
-                {
-                    request.Headers.CacheControl = new CacheControlHeaderValue
-                    {
-                        NoCache = true,
-                        NoStore = true,
-                        MaxAge = TimeSpan.Zero
-                    };
-                    request.Headers.Pragma.ParseAdd("no-cache");
-                }
+                throw new FileNotFoundException("Không tìm thấy file tutorial.", filePath);
+            }
 
-                using (var response = await _tutorialsHttpClient.SendAsync(request))
-                {
-                    response.EnsureSuccessStatusCode();
-                    return await response.Content.ReadAsStringAsync();
-                }
+            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var reader = new StreamReader(stream, true))
+            {
+                return await reader.ReadToEndAsync();
             }
         }
 
@@ -199,7 +180,7 @@ namespace Subtitle_draft_GMTPC
                     continue;
                 }
 
-                browser.NavigateToString(BuildTutorialPlaceholderHtml(pair.Value.Title, "Đang tải nội dung từ GitHub..."));
+                browser.NavigateToString(BuildTutorialPlaceholderHtml(pair.Value.Title, "Đang tải nội dung từ Tutorials..."));
             }
         }
 
@@ -252,6 +233,11 @@ namespace Subtitle_draft_GMTPC
         #region Tutorials - Events
 
         private async void BtnRefreshTutorials_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadAllTutorialDocumentsAsync(true);
+        }
+
+        private async void RefreshTutorialsFromLocalFolder()
         {
             await LoadAllTutorialDocumentsAsync(true);
         }
@@ -591,28 +577,27 @@ namespace Subtitle_draft_GMTPC
 
         private sealed class TutorialDocumentDefinition
         {
-            public TutorialDocumentDefinition(string title, string blobUrl)
+            public TutorialDocumentDefinition(string title, string relativePath)
             {
                 Title = title;
-                BlobUrl = blobUrl;
-                RawUrl = blobUrl.Replace("https://github.com/", "https://raw.githubusercontent.com/")
-                    .Replace("/blob/", "/");
+                RelativePath = relativePath;
             }
 
             public string Title { get; }
 
-            public string BlobUrl { get; }
+            public string RelativePath { get; }
 
-            public string RawUrl { get; }
-
-            public string GetRequestUrl(bool forceRefresh)
+            public string GetFullPath()
             {
-                if (!forceRefresh)
-                {
-                    return RawUrl;
-                }
+                return Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, RelativePath));
+            }
 
-                return RawUrl + "?t=" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            public string SourceUrl
+            {
+                get
+                {
+                    return new Uri(GetFullPath()).AbsoluteUri;
+                }
             }
         }
 

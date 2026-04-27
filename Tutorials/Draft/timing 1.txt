@@ -1,0 +1,41 @@
+Đây là cách mình timing bằng subtitle edit
+
+
+
+
+
+
+
+
+
+tốc độ 100%
+còn đây là 60%
+bài nào quá nhanh nên để 30%
+alt shift z
+
+chèn {\k} bằng aegisub
+aegisub mới không chèn \k được nên mình bỏ vào aegisub cũ
+ghép sub? 
+ctrl shift K
+do có ∞ ở đầu dòng làm dấu nên đỡ phải tìm
+
+
+
+
+
+
+
+
+
+
+
+
+
+1. tách chữ
+- thêm ∞ đầu câu
+- thay khoảng cách bằng ♫
+auto xuống dòng
+2. copy sang sub-edit
+time từng chữ
+
+

@@ -1,0 +1,15 @@
+Subtitle Edit - Gap
+
+Gap (phần khoảng trống chưa được time giữa cuối dòng 1 - trước và đầu dòng 2 - sau)
+
+Gap = 0: Nếu là dân timing karaoke.
+Gap > 0: Thường là phần giữa câu trước và câu sau trong văn nói và cả trong karaoke timing.
+
+Mục đích của gap: 
+
+Bridge gaps: (bridge: cây cầu), ở đây là để nối câu có các khoảng trống theo thời gian chỉ định (thường là mili giây - ms)
+-> mục đích: 
+dùng khi CPS cao, câu được time quá ít thời gian so với câu thoại.
+
+-> mục đích: có câu thì chữ ít nhưng được time quá nhiều, câu chữ nhiều thì time quá ngắn, dùng cái này để chia gap cho dễ hơn, ngoài ra còn dễ thao tác trên waveform nữa.Fix short gaps: Một gap ít hơn gap đã cài đặt, ví dụ gap cài đặt là 48 ms, nếu gap ở giữa cuối câu trước và đầu câu sau (ví dụ 20 ms) - ít hơn 48 sẽ gọi là short gap.
+

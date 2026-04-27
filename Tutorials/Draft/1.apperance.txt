@@ -1,0 +1,14 @@
+Tips & tricks - Subtitle Edit
+
+Màu giao diện - Apperance
+
+
+Option->Settings->Apperance
+
+1. General 
+
+2. Dark Theme
+
+Reset sau khi đổi
+
+*CẨN THẬN ĐỪNG RESTORE DEFAULT SETTINGS, CÁC SHORTCUTS ĐÃ CHỈNH SẼ BỊ MẤT

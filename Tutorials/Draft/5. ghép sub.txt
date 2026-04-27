@@ -1,0 +1,14 @@
+﻿Ghép sub Eng-Viet trong SUBTITLE EDIT
+Tóm tắt: Từ file gốc tạo ra 2 loại file: NHÁP và HOÀN CHỈNH.
+File nháp: TĂNG TIME
+
+
+Ví dụ: Shakugan no Shana ss3 - 24
+Từ file trên ta COPY THÀNH FILE HOÀN CHỈNH TRƯỚC rồi đổi tên thành gì cũng được, ví dụ: Shakugan no Shana ss3 - 24 FINISH
+Còn file nháp SẼ ĐƯỢC HƯỚNG DẪN NHƯ BÊN DƯỚI
+
+1. Sau khi copy thành file FINISH XONG, từ file gốc ta đổi tên thành FILE NHÁP, ví dụ: 
+Shakugan no Shana ss3 - 24 DRAFT (hoặc NHÁP) hay bất kỳ tên gì cũng được :))
+
+- TĂNG TIME PHỤ ĐỀ: 
+Ví dụ: 

@@ -43,6 +43,13 @@
     </Content>
   </ItemGroup>
 
+  <!-- Copy tutorials content to output directory -->
+  <ItemGroup>
+    <Content Include="Tutorials\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <ItemGroup>
     <Resource Include="subtitle ico.ico" />
   </ItemGroup>

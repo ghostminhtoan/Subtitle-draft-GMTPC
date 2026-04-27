@@ -660,6 +660,12 @@ img {
                 }
 
                 var sourceUri = new Uri(blobUrl);
+                if (sourceUri.IsFile)
+                {
+                    var localBase = GetDirectoryUri(sourceUri);
+                    return new GitHubPathContext(localBase, localBase);
+                }
+
                 var segments = sourceUri.AbsolutePath.Trim('/').Split('/');
                 if (segments.Length < 4 || !string.Equals(segments[2], "blob", StringComparison.OrdinalIgnoreCase))
                 {
@@ -707,6 +713,25 @@ img {
 
                 var baseUri = imageMode ? _rawBaseUri : _blobBaseUri;
                 return new Uri(baseUri, target).AbsoluteUri;
+            }
+
+            private static Uri GetDirectoryUri(Uri sourceUri)
+            {
+                var path = sourceUri.AbsolutePath;
+                var slashIndex = path.LastIndexOf('/');
+                if (slashIndex >= 0)
+                {
+                    path = path.Substring(0, slashIndex + 1);
+                }
+
+                var builder = new UriBuilder(sourceUri)
+                {
+                    Path = path,
+                    Query = string.Empty,
+                    Fragment = string.Empty
+                };
+
+                return builder.Uri;
             }
 
             private static string BuildBaseUri(string root, params string[] parts)

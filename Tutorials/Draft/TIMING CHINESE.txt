@@ -1,0 +1,25 @@
+timing pinyin nhạc Trung
+
+tìm lyric
+biết gõ tắt là 1 lợi thế
+ví dụ: cnlr=歌词 (tìm cách gõ tắt trên mạng nha :)) ) (cnlr=china lyric)
+
+Ví dụ mình timing bài Đào Hoa Duyên của Hải Lai A Mộc
+
+vào link dưới convert tiếng Trung sang pinyin
+https://www.ifreesite.com/pinyin/?fbclid=IwAR3boLZtNAp7b6rEHrktDHgd1qxl732s-8N9bY5EXwy0VLuToGhPl0SLIeM 
+cái này mình gõ cnpy là ra :)) (cnpy=china pinyin)
+
+
+tải notepad++ (link bên dưới có các macro mình đã làm sẵn)
+xóa khoảng cách cuối hàng
+karasub1: all (run until the end of file)
+karasub2: 1 lần
+
+
+subtitle edit
+File -> import plain text (Tập tin-> nhập-> nhập vào văn bản thuần túy) 
+save
+ĐỂ Ý KỸ BÀN PHÍM CỦA MÌNH NHA (つ≧▽≦つ) 
+Chỉ có bị lỗi 1 nốt ♫ thôi, mình định tìm cái nào lỗi thì xóa :v
+

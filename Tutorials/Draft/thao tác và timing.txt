@@ -1,0 +1,102 @@
+GIÁO TRÌNH CĂN BẢN SUBTITLE EDIT
+
+CÁC PHÍM TẮT CHẠY VIDEO & TIMING & CPS & CPL TRONG SUBTITLE EDIT
+
+
+I. CÁC THAO TÁC CHẠY VIDEO
+TRƯỚC HẾT LÀ CÓ 2 KHU VỰC: LIST VIEW (DANH SÁCH) VÀ TEXT BOX (HỘP THOẠI)
+Ở List View có 2 chế độ xem:
+- chế độ bình thường là Cột/Bảng,
+- và bấm F2 để ra chế độ mã nguồn (giao diện giống như notepad)
+
+Các phím tắt cơ bản: (Có thể tùy chỉnh phím tắt trong Options (Tùy chọn) -> Settings (Cài đặt)
+Nếu những bạn nào chưa cài file setting của mình thì vào PHẦN MÔ TẢ ĐỂ XEM PART 1: CÀI ĐẶT.
+
+CTRL ↑ / ↓: LÊN XUỐNG HÀNG VÀ CHẠY VIDEO
+(Rất phù hợp với những subber THÍCH SUB ĐÚNG NGỮ CẢNH)
+F5: chạy dòng HIỆN TẠI
+Ctrl F5: CHẠY / DỪNG VIDEO (không giới hạn thời gian)
+
+CTRL PAGE UP / DOWN: chuyển đến line trước hoặc sau TẠI VỊ TRÍ LINE CỦA VIDEO
+ví dụ: Đang ở line 1, chạy video được một thời gian, đang thì vị trí video đang ở line 10 chẳng hạn,
+BẤM CTRL PAGE UP / DOWN để nhảy đến line trước hoặc sau của line mà video đang chạy
+F7: tua tới 3 giây		Ctrl F7: tua lùi 3 giây -> Trong trường hợp bí ngữ cảnh và không hiểu được các nhân vật nói về cái gì.
+
+II. TIMING 
+1. TIMING CƠ BẢN
+
+F11: START TIME				F12: END TIME
+F10: END TIME & tới dòng sau (trong trường hợp các dòng đè lên nhau)
+LƯU Ý: ĐỪNG BẤM NÚT F9 VÌ ĐÓ LÀ OFFSET 
+(DÒNG HIỆN TẠI ĐANG TRỪ HOẶC CỘNG BAO NHIÊU TIME THÌ CÁC DÒNG SAU SẼ Y CHANG NHƯ VẬY LUÔN)
+
+2. TIMING NÂNG CAO
+
+CTRL 1 / 2 ĐỂ TUA LÙI / TỚI CỦA 				START TIME 100 MILI GIÂY
+CTRL SHIFT 1 / 2 ĐỂ TUA LÙI / CỦA: 		 	END TIME 100 MILI GIÂY
+
+CTRL 7-9
+
+2 PHÍM TẮT NÀY CÓ 3 GIAI ĐOẠN: ẤN - GIỮ - THẢ
+
+CTRL 7:			CHÈN LINE MỚI ở vị trí video
+VÍ DỤ: 
+DÒNG 11: 1 phút 0 giây - 1 phút 5 giây
+DÒNG 12: 1 phút 10 giây - 1 phút 15 giây
+MÌNH MUỐN CHÈN DÒNG VÀO TỪ 1 PHÚT 5 GIÂY - 1 PHÚT 10 GIÂY
+(CỰC KỲ PHÙ HỢP CHO CÁC PHỤ ĐỀ ĐƯỢC TẠO TỰ ĐỘNG TỪ YOUTUBE: TRONG TRƯỜNG HỢP NGƯỜI NÓI CHUYỆN ÂM THANH QUÁ NHỎ NÊN KHÔNG HIỆN SUB ĐƯỢC)
+
+ẤN:CHÈN DÒNG MỚI - START TIME 
+GIỮ: CHỜ CHO ĐẾN ĐOẠN MÌNH MUỐN KẾT THÚC LINE
+THẢ: END TIME VÀ XUỐNG DÒNG KẾ TIẾP
+Kết quả: 
+DÒNG 11: 1 phút 0 giây - 1 phút 5 giây
+DÒNG 12: 1 PHÚT 5 GIÂY - 1 PHÚT 10 GIÂY
+DÒNG 13: 1 phút 10 giây - 1 phút 15 giây
+
+
+CTRL 9:			CHỈNH LINE HIỆN TẠI ở vị trí video:
+VÍ DỤ: Mình có một bài nhạc ĐÃ CÓ FULL LỜI nhưng PHẢI TIMING CHO TỪNG CÂU.
+Ở đây mình lấy bài Em ơi lên phố
+ẤN:CHỈNH DÒNG MỚI - START TIME
+GIỮ: CHỜ CHO ĐẾN ĐOẠN MÌNH MUỐN KẾT THÚC LINE
+THẢ: END TIME VÀ XUỐNG DÒNG KẾ TIẾP
+THỰC HÀNH NHÉ (つ≧▽≦)つ 
+
+CTRL 3: CHẠY END TIME
+CHỈNH TỐC ĐỘ: ALT SHIFT Z / X: SLOW / FAST MOTION
+
+III. TIMING TRONG WAVEFORM (SÓNG ÂM)
+CÓ NHIỀU CÁCH: 
+- KÉO THẢ PHẦN CHÍNH GIỮA ĐẾN VỊ TRÍ MONG MUỐN		- KÉO THẢ START TIME VÀ END TIME
+- TÔ MỘT ĐOẠN RỒI ENTER ĐỂ TẠO LINE MỚI
+
+
+- DÙNG PHÍM TẮT: 
+CTRL 1 / 2 ĐỂ TUA LÙI / TỚI: 						START TIME 100 MILI GIÂY
+CTRL SHIFT 1 / 2 ĐỂ TUA LÙI / TỚI: 		 	END TIME 100 MILI GIÂY
+
+
+IV. CPS & CPL
+1. CPS
+Khái niệm về CPS:
+LÀ SỐ KÝ TỰ TRÊN 1 GIÂY MÀ MẮT NGƯỜI CÓ THỂ ĐỌC ĐƯỢC
+
+
+Chỉ số CPS yêu cầu: TỪ 17 TRỞ XUỐNG
+Có 3 cách chỉnh:
+	- PHÍM TẮT: 
+	CTRL 1 / 2 
+	CTRL SHIFT 1 / 2 
+
+	- KẾ BÊN HỘP THOẠI, dùng phím mũi tên
+
+	- CHỈNH TRỰC TIẾP TRÊN WAVEFORM
+
+
+CPL
+SỐ KÝ TỰ TRÊN 1 HÀNG (KHÁC LINE), MỘT LINE CÓ 1, 2, HOẶC 3 HÀNG
+
+CHỈ SỐ CPL YÊU CẦU: TỪ 50 TRỞ XUỐNG
+
+

@@ -1,0 +1,14 @@
+Tất tần tật về timing
+
+BASIC:
+
+
+F11: START TIME				
+F12: END TIME					F10: END TIME & GO TO NEXT
+
+
+
+CTRL 7: INSERT LINE AT VIDEO POSTION:						CTRL 9: EDIT LINE AT VIDEO POSITION:
+- PRESS & HOLD: START TIME						                        - PRESS & HOLD: START TIME						
+- RELEASE: END TIME						                                        - RELEASE: END TIME
+																																	

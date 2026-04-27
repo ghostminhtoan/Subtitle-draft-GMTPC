@@ -1,0 +1,17 @@
+Sửa lỗi phụ đề thường gặp - sửa lỗi chính tả nhanh bằng Subtitle Edit
+
+File cài đặt và việt hóa lại phần mềm ở part 1 trong playlist và LINK MÔ TẢ.
+
+Các bước sửa lỗi: 
+Công cụ (Options) -> Sửa lỗi phổ biến (fix common errors)
+Chọn Vietnamese (góc trên bên phải)
+Chọn đúng như trong hình (Link ở phần mô tả)
+
+		***Lưu ý: 2 mục sau cực kỳ quan trọng:
+				KHÔNG CHỌN tự động ngắt dòng
+				HẠN CHẾ TỰ ĐỘNG thêm dấu chấm
+
+Thứ tự sửa lỗi:
+CPS (cao/thấp...)
+
+

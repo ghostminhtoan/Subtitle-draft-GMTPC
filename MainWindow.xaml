@@ -572,7 +572,7 @@
                                             Style="{StaticResource AccentButtonStyle}"
                                             Margin="0,0,8,0"
                                             Click="BtnToggleTutorialSearch_Click"/>
-                                    <Button x:Name="BtnRefreshTutorials" Content="🔄 Tải lại từ GitHub"
+                                    <Button x:Name="BtnRefreshTutorials" Content="🔄 Tải lại từ Tutorials"
                                             Style="{StaticResource AccentButtonStyle}"
                                             Click="BtnRefreshTutorials_Click"/>
                                 </StackPanel>
@@ -582,7 +582,7 @@
                                                FontSize="18"
                                                FontWeight="SemiBold"/>
                                     <TextBlock x:Name="TxtTutorialsStatus"
-                                               Text="Đang chuẩn bị tải nội dung từ GitHub..."
+                                               Text="Đang chuẩn bị tải nội dung từ Tutorials..."
                                                Foreground="#A9B7D0"
                                                FontSize="12"
                                                Margin="0,4,0,0"/>
@@ -749,12 +749,12 @@
                             Margin="8,0,8,8">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <TextBlock Text="Nguồn: " Foreground="#808080" FontSize="12"/>
-                            <TextBlock Text="ghostminhtoan/subtitle-edit-shortcuts-GMTPC"
+                            <TextBlock Text="Tutorials local"
                                        Foreground="#4DA3FF"
                                        FontSize="12"
                                        FontWeight="SemiBold"/>
                             <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
-                            <TextBlock Text="Render Markdown từ GitHub với bảng, in đậm, bullet và ảnh"
+                            <TextBlock Text="Render Markdown local với bảng, in đậm, bullet và ảnh"
                                        Foreground="#808080"
                                        FontSize="12"/>
                         </StackPanel>

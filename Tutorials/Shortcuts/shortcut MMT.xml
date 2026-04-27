@@ -1,0 +1,396 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Settings>
+  <Shortcuts>
+    <Plugins />
+    <GeneralGoToFirstSelectedLine>Control+L</GeneralGoToFirstSelectedLine>
+    <GeneralGoToNextEmptyLine />
+    <GeneralMergeSelectedLines>Control+Shift+M</GeneralMergeSelectedLines>
+    <GeneralMergeSelectedLinesAndAutoBreak />
+    <GeneralMergeSelectedLinesAndUnbreak>Alt+K</GeneralMergeSelectedLinesAndUnbreak>
+    <GeneralMergeSelectedLinesAndUnbreakCjk />
+    <GeneralMergeSelectedLinesOnlyFirstText />
+    <GeneralMergeSelectedLinesBilingual />
+    <GeneralMergeWithPreviousBilingual />
+    <GeneralMergeWithNextBilingual />
+    <GeneralMergeWithNext />
+    <GeneralMergeWithPrevious>Control+Shift+PageUp</GeneralMergeWithPrevious>
+    <GeneralMergeWithPreviousAndUnbreak>Control+M</GeneralMergeWithPreviousAndUnbreak>
+    <GeneralMergeWithNextAndUnbreak />
+    <GeneralMergeWithPreviousAndBreak />
+    <GeneralMergeWithNextAndBreak />
+    <GeneralToggleTranslationMode>Control+Shift+O</GeneralToggleTranslationMode>
+    <GeneralSwitchOriginalAndTranslation />
+    <GeneralSwitchOriginalAndTranslationTextBoxes>Control+Alt+O</GeneralSwitchOriginalAndTranslationTextBoxes>
+    <GeneralLayoutChoose>Alt+Shift+D0</GeneralLayoutChoose>
+    <GeneralLayoutChoose1 />
+    <GeneralLayoutChoose2 />
+    <GeneralLayoutChoose3 />
+    <GeneralLayoutChoose4 />
+    <GeneralLayoutChoose5 />
+    <GeneralLayoutChoose6 />
+    <GeneralLayoutChoose7 />
+    <GeneralLayoutChoose8 />
+    <GeneralLayoutChoose9 />
+    <GeneralLayoutChoose10 />
+    <GeneralLayoutChoose11 />
+    <GeneralLayoutChoose12 />
+    <GeneralMergeOriginalAndTranslation>Control+Alt+Shift+M</GeneralMergeOriginalAndTranslation>
+    <GeneralGoToNextSubtitle>Shift+Return</GeneralGoToNextSubtitle>
+    <GeneralGoToNextSubtitlePlayTranslate>Alt+Down</GeneralGoToNextSubtitlePlayTranslate>
+    <GeneralGoToNextSubtitleCursorAtEnd />
+    <GeneralGoToPrevSubtitle />
+    <GeneralGoToPrevSubtitlePlayTranslate>Alt+Up</GeneralGoToPrevSubtitlePlayTranslate>
+    <GeneralGoToEndOfCurrentSubtitle />
+    <GeneralGoToStartOfCurrentSubtitle />
+    <GeneralGoToPreviousSubtitleAndFocusVideo />
+    <GeneralGoToNextSubtitleAndFocusVideo />
+    <GeneralGoToPreviousSubtitleAndFocusWaveform />
+    <GeneralGoToNextSubtitleAndFocusWaveform />
+    <GeneralGoToPrevSubtitleAndPlay>Control+Up</GeneralGoToPrevSubtitleAndPlay>
+    <GeneralGoToNextSubtitleAndPlay>Control+Down</GeneralGoToNextSubtitleAndPlay>
+    <GeneralAutoCalcCurrentDuration />
+    <GeneralAutoCalcCurrentDurationByOptimalReadingSpeed />
+    <GeneralAutoCalcCurrentDurationByMinReadingSpeed />
+    <GeneralPlayFirstSelected />
+    <GeneralToggleBookmarks>Control+Oem7</GeneralToggleBookmarks>
+    <GeneralToggleBookmarksWithText>Alt+Oem7</GeneralToggleBookmarksWithText>
+    <GeneralEditBookmarks>Control+Alt+Shift+Oem7</GeneralEditBookmarks>
+    <GeneralClearBookmarks />
+    <GeneralGoToBookmark>Control+Alt+Oem7</GeneralGoToBookmark>
+    <GeneralGoToNextBookmark>Alt+Shift+Oem7</GeneralGoToNextBookmark>
+    <GeneralGoToPreviousBookmark>Control+Shift+Oem7</GeneralGoToPreviousBookmark>
+    <GeneralChooseProfile />
+    <OpenDataFolder>Control+Alt+Shift+D</OpenDataFolder>
+    <OpenContainingFolder>Alt+Shift+O</OpenContainingFolder>
+    <GeneralDuplicateLine />
+    <GeneralToggleView>Alt+L</GeneralToggleView>
+    <GeneralToggleMode />
+    <GeneralTogglePreviewOnVideo />
+    <GeneralHelp>F1</GeneralHelp>
+    <GeneralFocusTextBox />
+    <GeneralCycleAudioTrack />
+    <MainFileNew>Control+N</MainFileNew>
+    <MainFileOpen>Control+O</MainFileOpen>
+    <MainFileOpenKeepVideo />
+    <MainFileSave>Control+S</MainFileSave>
+    <MainFileSaveOriginal />
+    <MainFileSaveOriginalAs />
+    <MainFileSaveAs>Control+Shift+S</MainFileSaveAs>
+    <MainFileCloseOriginal />
+    <MainFileCloseTranslation />
+    <MainFileCompare />
+    <MainFileVerifyCompleteness />
+    <MainFileOpenOriginal />
+    <MainFileSaveAll />
+    <MainFileImportPlainText />
+    <MainFileImportBdSupForEdit />
+    <MainFileImportTimeCodes />
+    <MainFileExportPlainText />
+    <MainFileExportCustomText1 />
+    <MainFileExportCustomText2 />
+    <MainFileExportCustomText3 />
+    <MainFileExportEbu />
+    <MainFileExportPac />
+    <MainFileExportBdSup />
+    <MainFileExportEdlClip />
+    <MainFileExit>Control+Q</MainFileExit>
+    <MainEditUndo>Control+Z</MainEditUndo>
+    <MainEditRedo>Control+Y</MainEditRedo>
+    <MainEditFind>Control+F</MainEditFind>
+    <MainEditFindNext>F3</MainEditFindNext>
+    <MainEditReplace>Control+H</MainEditReplace>
+    <MainEditMultipleReplace>Alt+Shift+M</MainEditMultipleReplace>
+    <MainEditGoToLineNumber>Control+G</MainEditGoToLineNumber>
+    <MainEditRightToLeft>Control+Shift+Alt+R</MainEditRightToLeft>
+    <MainToolsAdjustDuration />
+    <MainToolsAdjustDurationLimits />
+    <MainToolsFixCommonErrors>Control+Shift+F</MainToolsFixCommonErrors>
+    <MainToolsFixCommonErrorsPreview>Control+P</MainToolsFixCommonErrorsPreview>
+    <MainToolsMergeShortLines />
+    <MainToolsMergeDuplicateText />
+    <MainToolsMergeSameTimeCodes />
+    <MainToolsMakeEmptyFromCurrent />
+    <MainToolsSplitLongLines />
+    <MainToolsMinimumDisplayTimeBetweenParagraphs />
+    <MainToolsDurationsBridgeGap />
+    <MainToolsRenumber>Control+Shift+N</MainToolsRenumber>
+    <MainToolsRemoveTextForHI>Control+Shift+H</MainToolsRemoveTextForHI>
+    <MainToolsConvertColorsToDialog />
+    <MainToolsChangeCasing>Control+Shift+C</MainToolsChangeCasing>
+    <MainToolsAutoDuration />
+    <MainToolsBatchConvert />
+    <MainToolsMeasurementConverter />
+    <MainToolsSplit />
+    <MainToolsAppend />
+    <MainToolsJoin />
+    <MainToolsStyleManager />
+    <MainEditToggleTranslationOriginalInPreviews />
+    <MainEditInverseSelection>Control+Shift+I</MainEditInverseSelection>
+    <MainEditModifySelection />
+    <MainVideoOpen />
+    <MainVideoClose />
+    <MainVideoPause />
+    <MainVideoStop />
+    <MainVideoPlayFromJustBefore>Shift+F10</MainVideoPlayFromJustBefore>
+    <MainVideoPlayFromBeginning />
+    <MainVideoPlayPauseToggle>Control+Space</MainVideoPlayPauseToggle>
+    <MainVideoPlay150Speed />
+    <MainVideoPlay200Speed />
+    <MainVideoFocusSetVideoPosition />
+    <MainVideoToggleVideoControls />
+    <MainVideo1FrameLeft>Alt+OemMinus</MainVideo1FrameLeft>
+    <MainVideo1FrameRight>Alt+Oemplus</MainVideo1FrameRight>
+    <MainVideo1FrameLeftWithPlay>Control+Shift+OemMinus</MainVideo1FrameLeftWithPlay>
+    <MainVideo1FrameRightWithPlay>Control+Shift+Oemplus</MainVideo1FrameRightWithPlay>
+    <MainVideo100MsLeft />
+    <MainVideo100MsRight />
+    <MainVideo500MsLeft>Alt+Left</MainVideo500MsLeft>
+    <MainVideo500MsRight>Alt+Right</MainVideo500MsRight>
+    <MainVideo1000MsLeft />
+    <MainVideo1000MsRight />
+    <MainVideo5000MsLeft>Control+D6</MainVideo5000MsLeft>
+    <MainVideo5000MsRight>Alt+D6</MainVideo5000MsRight>
+    <MainVideoXSMsLeft />
+    <MainVideoXSMsRight />
+    <MainVideoXLMsLeft />
+    <MainVideoXLMsRight />
+    <MainVideo3000MsLeft>Control+D5</MainVideo3000MsLeft>
+    <MainVideo3000MsRight>Alt+D5</MainVideo3000MsRight>
+    <MainVideoGoToStartCurrent />
+    <MainVideoToggleStartEndCurrent />
+    <MainVideoPlaySelectedLines>Control+P</MainVideoPlaySelectedLines>
+    <MainVideoLoopSelectedLines />
+    <MainVideoGoToPrevSubtitle />
+    <MainVideoGoToNextSubtitle />
+    <MainVideoGoToPrevTimeCode>Control+Alt+NumPad1</MainVideoGoToPrevTimeCode>
+    <MainVideoGoToNextTimeCode>Control+Alt+NumPad2</MainVideoGoToNextTimeCode>
+    <MainVideoGoToPrevChapter />
+    <MainVideoGoToNextChapter />
+    <MainVideoSelectNextSubtitle />
+    <MainVideoFullscreen>Alt+Return</MainVideoFullscreen>
+    <MainVideoSlower>Alt+Shift+Z</MainVideoSlower>
+    <MainVideoFaster>Alt+Shift+X</MainVideoFaster>
+    <MainVideoSpeedToggle />
+    <MainVideoReset>Control+Shift+D0</MainVideoReset>
+    <MainVideoToggleBrightness />
+    <MainVideoToggleContrast />
+    <MainVideoAudioToTextVosk />
+    <MainVideoAudioToTextWhisper />
+    <MainVideoAudioExtractAudioSelectedLines />
+    <MainVideoTextToSpeech />
+    <MainSpellCheck>Alt+F7</MainSpellCheck>
+    <MainSpellCheckFindDoubleWords>Control+Shift+D</MainSpellCheckFindDoubleWords>
+    <MainSpellCheckAddWordToNames>Control+Shift+L</MainSpellCheckAddWordToNames>
+    <MainSynchronizationAdjustTimes>Control+Shift+A</MainSynchronizationAdjustTimes>
+    <MainSynchronizationVisualSync>Control+Shift+V</MainSynchronizationVisualSync>
+    <MainSynchronizationPointSync>Control+Shift+P</MainSynchronizationPointSync>
+    <MainSynchronizationPointSyncViaFile />
+    <MainSynchronizationChangeFrameRate />
+    <MainListViewItalic>Control+I</MainListViewItalic>
+    <MainListViewBold />
+    <MainListViewUnderline />
+    <MainListViewBox />
+    <MainListViewToggleQuotes />
+    <MainListViewToggleHiTags />
+    <MainListViewToggleCustomTags />
+    <MainListViewSplit />
+    <MainListViewToggleDashes />
+    <MainListViewToggleMusicSymbols />
+    <MainListViewAlignment />
+    <MainListViewAlignmentN1 />
+    <MainListViewAlignmentN2 />
+    <MainListViewAlignmentN3 />
+    <MainListViewAlignmentN4 />
+    <MainListViewAlignmentN5 />
+    <MainListViewAlignmentN6 />
+    <MainListViewAlignmentN7 />
+    <MainListViewAlignmentN8 />
+    <MainListViewAlignmentN9 />
+    <MainListViewColor1 />
+    <MainListViewColor2 />
+    <MainListViewColor3 />
+    <MainListViewColor4 />
+    <MainListViewColor5 />
+    <MainListViewColor6 />
+    <MainListViewColor7 />
+    <MainListViewColor8 />
+    <MainListViewSetNewActor />
+    <MainListViewSetActor1 />
+    <MainListViewSetActor2 />
+    <MainListViewSetActor3 />
+    <MainListViewSetActor4 />
+    <MainListViewSetActor5 />
+    <MainListViewSetActor6 />
+    <MainListViewSetActor7 />
+    <MainListViewSetActor8 />
+    <MainListViewSetActor9 />
+    <MainListViewSetActor10 />
+    <MainListViewColorChoose />
+    <MainRemoveFormatting />
+    <MainListViewCopyText>Shift+C</MainListViewCopyText>
+    <MainListViewCopyPlainText>Alt+C</MainListViewCopyPlainText>
+    <MainListViewCopyTextFromOriginalToCurrent />
+    <MainListViewAutoDuration />
+    <MainListViewColumnDeleteText>Control+Delete</MainListViewColumnDeleteText>
+    <MainListViewColumnDeleteTextAndShiftUp>Control+Alt+Shift+Up</MainListViewColumnDeleteTextAndShiftUp>
+    <MainListViewColumnInsertText />
+    <MainListViewColumnPaste>Control+Alt+Shift+V</MainListViewColumnPaste>
+    <MainListViewColumnTextUp />
+    <MainListViewColumnTextDown />
+    <MainListViewGoToNextError>Alt+Shift+V</MainListViewGoToNextError>
+    <MainListViewListErrors>Control+Alt+E</MainListViewListErrors>
+    <MainListViewSortByNumber />
+    <MainListViewSortByStartTime>Control+Alt+Home</MainListViewSortByStartTime>
+    <MainListViewSortByEndTime />
+    <MainListViewSortByDuration />
+    <MainListViewSortByGap />
+    <MainListViewSortByText />
+    <MainListViewSortBySingleLineMaxLen />
+    <MainListViewSortByTextTotalLength />
+    <MainListViewSortByCps />
+    <MainListViewSortByWpm />
+    <MainListViewSortByNumberOfLines />
+    <MainListViewSortByActor />
+    <MainListViewSortByStyle />
+    <GeneralRemoveBlankLines />
+    <GeneralApplyAssaOverrideTags />
+    <GeneralSetAssaPosition />
+    <GeneralSetAssaResolution />
+    <GeneralSetAssaBgBox />
+    <GeneralColorPicker />
+    <GeneralTakeAutoBackup />
+    <MainListViewRemoveTimeCodes />
+    <MainEditFixRTLViaUnicodeChars />
+    <MainEditRemoveRTLUnicodeChars />
+    <MainEditReverseStartAndEndingForRTL />
+    <MainVideoToggleControls />
+    <MainTextBoxSplitAtCursor>Control+Alt+V</MainTextBoxSplitAtCursor>
+    <MainTextBoxSplitAtCursorAndAutoBr />
+    <MainTextBoxSplitAtCursorAndVideoPos>Control+Shift+R</MainTextBoxSplitAtCursorAndVideoPos>
+    <MainTextBoxSplitAtCursorAndVideoPosPlay />
+    <MainTextBoxSplitSelectedLineBilingual />
+    <MainTextBoxMoveLastWordDown />
+    <MainTextBoxMoveFirstWordFromNextUp />
+    <MainTextBoxMoveLastWordDownCurrent />
+    <MainTextBoxMoveFirstWordUpCurrent />
+    <MainTextBoxMoveFromCursorToNext />
+    <MainTextBoxMoveFirstWordToPrev />
+    <MainTextBoxSelectionToLower>Control+U</MainTextBoxSelectionToLower>
+    <MainTextBoxSelectionToUpper>Control+Shift+U</MainTextBoxSelectionToUpper>
+    <MainTextBoxSelectionToggleCasing>Control+Shift+F3</MainTextBoxSelectionToggleCasing>
+    <MainTextBoxSelectionToRuby />
+    <MainTextBoxToggleAutoDuration />
+    <MainCreateInsertSubAtVideoPos>Control+Alt+D3</MainCreateInsertSubAtVideoPos>
+    <MainCreateInsertSubAtVideoPosMax />
+    <MainCreateInsertSubAtVideoPosNoTextBoxFocus />
+    <MainCreateSetStart>Control+OemOpenBrackets</MainCreateSetStart>
+    <MainCreateSetEnd>Alt+Oem6</MainCreateSetEnd>
+    <MainAdjustVideoSetStartForAppropriateLine />
+    <MainAdjustVideoSetEndForAppropriateLine />
+    <MainAdjustSetEndAndPause />
+    <MainCreateSetEndAddNewAndGoToNew />
+    <MainCreateStartDownEndUp>Alt+N</MainCreateStartDownEndUp>
+    <MainAdjustSetStartAndOffsetTheRest>Alt+Shift+K</MainAdjustSetStartAndOffsetTheRest>
+    <MainAdjustSetStartAndOffsetTheRest2>Alt+Shift+I</MainAdjustSetStartAndOffsetTheRest2>
+    <MainAdjustSetStartAndOffsetTheWholeSubtitle />
+    <MainAdjustSetEndAndOffsetTheRest />
+    <MainAdjustSetEndAndOffsetTheRestAndGoToNext />
+    <MainAdjustSetStartAndGotoNext />
+    <MainAdjustSetEndAndGotoNext>Control+D0</MainAdjustSetEndAndGotoNext>
+    <MainAdjustViaEndAutoStart />
+    <MainAdjustViaEndAutoStartAndGoToNext />
+    <MainAdjustSetEndMinusGapAndStartNextHere />
+    <MainSetEndAndStartNextAfterGap />
+    <MainAdjustSetStartAutoDurationAndGoToNext />
+    <MainAdjustSetEndNextStartAndGoToNext />
+    <MainAdjustStartDownEndUpAndGoToNext>Control+Tab</MainAdjustStartDownEndUpAndGoToNext>
+    <MainAdjustSetStartAndEndOfPrevious />
+    <MainAdjustSetStartAndEndOfPreviousAndGoToNext />
+    <MainAdjustSetStartKeepDuration />
+    <MainAdjustSelected100MsForward />
+    <MainAdjustSelected100MsBack />
+    <MainAdjustStartXMsBack>Control+D7</MainAdjustStartXMsBack>
+    <MainAdjustStartXMsForward>Alt+D7</MainAdjustStartXMsForward>
+    <MainAdjustEndXMsBack>Control+D8</MainAdjustEndXMsBack>
+    <MainAdjustEndXMsForward>Alt+D8</MainAdjustEndXMsForward>
+    <MoveStartOneFrameBack />
+    <MoveStartOneFrameForward />
+    <MoveEndOneFrameBack />
+    <MoveEndOneFrameForward />
+    <MoveStartOneFrameBackKeepGapPrev />
+    <MoveStartOneFrameForwardKeepGapPrev />
+    <MoveEndOneFrameBackKeepGapNext />
+    <MoveEndOneFrameForwardKeepGapNext />
+    <MainAdjustSnapStartToNextShotChange />
+    <MainAdjustSnapEndToPreviousShotChange />
+    <MainAdjustExtendToNextShotChange />
+    <MainAdjustExtendToPreviousShotChange />
+    <MainAdjustExtendToNextSubtitle>Control+Shift+E</MainAdjustExtendToNextSubtitle>
+    <MainAdjustExtendToPreviousSubtitle>Alt+Shift+E</MainAdjustExtendToPreviousSubtitle>
+    <MainAdjustExtendToNextSubtitleMinusChainingGap>Control+Shift+W</MainAdjustExtendToNextSubtitleMinusChainingGap>
+    <MainAdjustExtendToPreviousSubtitleMinusChainingGap>Alt+Shift+W</MainAdjustExtendToPreviousSubtitleMinusChainingGap>
+    <MainAdjustExtendCurrentSubtitle />
+    <MainAdjustExtendPreviousLineEndToCurrentStart />
+    <MainAdjustExtendNextLineStartToCurrentEnd />
+    <MainSetInCueToClosestShotChangeLeftGreenZone />
+    <MainSetInCueToClosestShotChangeRightGreenZone />
+    <MainSetOutCueToClosestShotChangeLeftGreenZone />
+    <MainSetOutCueToClosestShotChangeRightGreenZone />
+    <MainInsertAfter>Alt+Shift+Insert</MainInsertAfter>
+    <MainTextBoxAutoBreak>Control+R</MainTextBoxAutoBreak>
+    <MainTextBoxBreakAtPosition />
+    <MainTextBoxBreakAtPositionAndGoToNext />
+    <MainTextBoxUnbreak />
+    <MainTextBoxRecord />
+    <MainTextBoxUnbrekNoSpace />
+    <MainTextBoxAssaIntellisense />
+    <MainTextBoxAssaRemoveTag />
+    <MainTextBoxInsertUnicodeSymbol />
+    <MainWaveformInsertAtCurrentPosition>Insert</MainWaveformInsertAtCurrentPosition>
+    <MainInsertBefore>Control+Shift+Insert</MainInsertBefore>
+    <MainMergeDialog />
+    <MainMergeDialogWithNext />
+    <MainMergeDialogWithPrevious />
+    <MainAutoBalanceSelectedLines />
+    <MainEvenlyDistributeSelectedLines />
+    <MainToggleFocus>Control+Oemtilde</MainToggleFocus>
+    <MainToggleFocusWaveform>Control+Shift+Oemtilde</MainToggleFocusWaveform>
+    <MainToggleFocusWaveformTextBox />
+    <WaveformAdd />
+    <WaveformVerticalZoom>Shift+Add</WaveformVerticalZoom>
+    <WaveformVerticalZoomOut>Shift+Subtract</WaveformVerticalZoomOut>
+    <WaveformZoomIn>Control+Oemplus</WaveformZoomIn>
+    <WaveformZoomOut>Control+OemMinus</WaveformZoomOut>
+    <WaveformSplit />
+    <WaveformPlaySelection />
+    <WaveformPlaySelectionEnd>Control+E</WaveformPlaySelectionEnd>
+    <WaveformSearchSilenceForward />
+    <WaveformSearchSilenceBack />
+    <WaveformAddTextHere>Return</WaveformAddTextHere>
+    <WaveformAddTextHereFromClipboard />
+    <WaveformSetParagraphAsSelection />
+    <WaveformGoToPreviousShotChange />
+    <WaveformGoToNextShotChange />
+    <WaveformToggleShotChange />
+    <WaveformAllShotChangesOneFrameForward />
+    <WaveformAllShotChangesOneFrameBack />
+    <WaveformListShotChanges />
+    <WaveformGuessStart />
+    <Waveform100MsLeft>Alt+Shift+Left</Waveform100MsLeft>
+    <Waveform100MsRight>Alt+Shift+Right</Waveform100MsRight>
+    <Waveform1000MsLeft>Left</Waveform1000MsLeft>
+    <Waveform1000MsRight>Right</Waveform1000MsRight>
+    <WaveformAudioToTextVosk />
+    <WaveformAudioToTextWhisper />
+    <MainCheckFixTimingViaShotChanges>Control+Shift+D9</MainCheckFixTimingViaShotChanges>
+    <MainTranslateGoogleIt />
+    <MainTranslateGoogleTranslateIt />
+    <MainTranslateAuto>Control+Shift+G</MainTranslateAuto>
+    <MainTranslateAutoSelectedLines />
+    <MainTranslateCustomSearch1 />
+    <MainTranslateCustomSearch2 />
+    <MainTranslateCustomSearch3 />
+    <MainTranslateCustomSearch4 />
+    <MainTranslateCustomSearch5 />
+  </Shortcuts>
+</Settings>

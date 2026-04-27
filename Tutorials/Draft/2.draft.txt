@@ -1,0 +1,14 @@
+Fix subtitles disappear AFTER PLAYING VIDEO
+
+Solution: 
+1. Saves as DRAFT FILE, make time in DRAFT FILE LONGER (adjust time)
+ BRIDGE GAPS (0 MS)
+
+2. Open the PREVIOUS subtitle (not draft file), open video, and open second subtitle FROM DRAFT FILE
+
+*** If you want to edit in ass mode (with color text, style, position...) you can use the above solution with DIFFERNCE STYLE FROM DRAFT FILE
+
+Go to source view (F2) and copy the draft subtitle at the bottom 
+
+MAKE THE ORIGINAL SUBTITLE HAVE SOME GAPS
+
