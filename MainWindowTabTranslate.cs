@@ -1,5 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Threading.Tasks;
@@ -12,9 +14,17 @@ namespace Subtitle_draft_GMTPC
     {
         #region Translate - Fields
 
+        private static readonly HttpClient _promptHttpClient = CreatePromptHttpClient();
+
         private List<SubtitleLine> _translateLines = new List<SubtitleLine>();
         private SubtitleFormat _translateFormat = SubtitleFormat.Unknown;
         private bool _isTranslateUpdating = false;
+        private bool _isPromptLoading = false;
+        private int _selectedPromptId = 1;
+
+        private const string Prompt1DefaultUrl = "https://raw.githubusercontent.com/ghostminhtoan/Subtitle-draft-GMTPC/master/Prompt/1.%20Anime.md";
+        private const string Prompt2DefaultUrl = "https://raw.githubusercontent.com/ghostminhtoan/Subtitle-draft-GMTPC/master/Prompt/2.%20Film.md";
+        private const string Prompt3DefaultUrl = "https://raw.githubusercontent.com/ghostminhtoan/Subtitle-draft-GMTPC/master/Prompt/3.%20Anime%20one%20word.md";
 
         #endregion
 
@@ -88,51 +98,34 @@ namespace Subtitle_draft_GMTPC
         /// <summary>
         /// Khi click vào nút prompt → dán nội dung prompt vào TxtPrompt
         /// </summary>
-        private void BtnPrompt_Click(object sender, RoutedEventArgs e)
+        private async void BtnPrompt_Click(object sender, RoutedEventArgs e)
         {
             var btn = sender as Button;
             if (btn == null) return;
 
-            int promptId = int.Parse(btn.Tag.ToString());
-            var prompt = GetPromptById(promptId);
-
-            if (!string.IsNullOrWhiteSpace(prompt.Content))
+            int promptId;
+            if (!int.TryParse(btn.Tag == null ? null : btn.Tag.ToString(), out promptId))
             {
-                TxtPrompt.Text = prompt.Content;
-                TxtTranslateStatus.Text = string.Format("📋 Đã load prompt: {0}", prompt.DisplayName);
-            }
-            else
-            {
-                TxtTranslateStatus.Text = string.Format("⚠️ Prompt {0} chưa có nội dung!", promptId);
-            }
-        }
-
-        /// <summary>
-        /// Nút Rename: Hỏi chọn prompt cần rename, sau đó hỏi tên mới
-        /// </summary>
-        private void BtnRenamePrompt_Click(object sender, RoutedEventArgs e)
-        {
-            // Luôn hỏi chọn prompt cần rename trước
-            var input = Microsoft.VisualBasic.Interaction.InputBox(
-                "Nhập số thứ tự prompt cần rename (1-5):" + Environment.NewLine + Environment.NewLine +
-                "1. " + GetPromptNameById(1) + Environment.NewLine +
-                "2. " + GetPromptNameById(2) + Environment.NewLine +
-                "3. " + GetPromptNameById(3) + Environment.NewLine +
-                "4. " + GetPromptNameById(4) + Environment.NewLine +
-                "5. " + GetPromptNameById(5),
-                "Rename Prompt", "1");
-
-            int currentPromptId = 0;
-            if (int.TryParse(input, out currentPromptId) && currentPromptId >= 1 && currentPromptId <= 5)
-            {
-                // OK
-            }
-            else
-            {
-                TxtTranslateStatus.Text = "⚠️ Số thứ tự không hợp lệ!";
                 return;
             }
 
+            await LoadPromptForSelectionAsync(promptId, promptId <= 3, true);
+        }
+
+        /// <summary>
+        /// Load the default source for the currently selected prompt.
+        /// </summary>
+        private async void BtnLoadDefaultPrompt_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadPromptForSelectionAsync(_selectedPromptId, true, false);
+        }
+
+        /// <summary>
+        /// Rename the currently selected prompt.
+        /// </summary>
+        private void BtnRenamePrompt_Click(object sender, RoutedEventArgs e)
+        {
+            var currentPromptId = _selectedPromptId;
             var currentName = GetPromptNameById(currentPromptId);
             var newName = Microsoft.VisualBasic.Interaction.InputBox(
                 string.Format("Đổi tên cho Prompt {0} (hiện tại: {1}):", currentPromptId, currentName),
@@ -148,85 +141,41 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Nút Save Prompts: Hỏi chọn prompt cần save, sau đó lưu nội dung hiện tại vào prompt đó
+        /// Save the current editor content into the selected prompt slot.
         /// </summary>
         private void BtnSavePrompts_Click(object sender, RoutedEventArgs e)
         {
-            // Hỏi chọn prompt cần save vào
-            var input = Microsoft.VisualBasic.Interaction.InputBox(
-                "Nhập số thứ tự prompt cần save (1-5):" + Environment.NewLine + Environment.NewLine +
-                "1. " + GetPromptNameById(1) + Environment.NewLine +
-                "2. " + GetPromptNameById(2) + Environment.NewLine +
-                "3. " + GetPromptNameById(3) + Environment.NewLine +
-                "4. " + GetPromptNameById(4) + Environment.NewLine +
-                "5. " + GetPromptNameById(5),
-                "Save Prompt", "1");
+            var promptId = _selectedPromptId;
+            var currentContent = TxtPrompt.Text.Trim();
 
-            int promptId = 0;
-            if (int.TryParse(input, out promptId) && promptId >= 1 && promptId <= 5)
+            if (string.IsNullOrWhiteSpace(currentContent))
             {
-                // Lưu nội dung hiện tại trong TxtPrompt vào prompt đã chọn
-                var currentContent = TxtPrompt.Text.Trim();
-                if (string.IsNullOrWhiteSpace(currentContent))
-                {
-                    // Prompt trống thì clear (xóa nội dung cũ)
-                    SetPromptContentById(promptId, "");
-                    TxtTranslateStatus.Text = string.Format("🧹 Đã clear Prompt {0}!", promptId);
-                }
-                else
-                {
-                    SetPromptContentById(promptId, currentContent);
-                    TxtTranslateStatus.Text = string.Format("💾 Đã save nội dung vào Prompt {0}: {1}", promptId, GetPromptNameById(promptId));
-                }
-                AppSettings.Save();
+                SetPromptContentById(promptId, "");
+                TxtTranslateStatus.Text = string.Format("🧹 Đã clear Prompt {0}!", promptId);
             }
             else
             {
-                TxtTranslateStatus.Text = "⚠️ Số thứ tự không hợp lệ!";
-                return;
+                SetPromptContentById(promptId, currentContent);
+                TxtTranslateStatus.Text = string.Format("💾 Đã save nội dung vào Prompt {0}: {1}", promptId, GetPromptNameById(promptId));
             }
+
+            AppSettings.Save();
+            UpdatePromptButtonDisplay();
         }
 
         /// <summary>
-        /// Nút Load Prompts: Hỏi chọn prompt cần load từ Settings
+        /// Load the saved local content for the currently selected prompt.
         /// </summary>
         private void BtnLoadPrompts_Click(object sender, RoutedEventArgs e)
         {
-            // Hỏi chọn prompt cần load
-            var input = Microsoft.VisualBasic.Interaction.InputBox(
-                "Nhập số thứ tự prompt cần load (1-5):" + Environment.NewLine + Environment.NewLine +
-                "1. " + GetPromptNameById(1) + Environment.NewLine +
-                "2. " + GetPromptNameById(2) + Environment.NewLine +
-                "3. " + GetPromptNameById(3) + Environment.NewLine +
-                "4. " + GetPromptNameById(4) + Environment.NewLine +
-                "5. " + GetPromptNameById(5),
-                "Load Prompt", "1");
-
-            int promptId = 0;
-            if (int.TryParse(input, out promptId) && promptId >= 1 && promptId <= 5)
-            {
-                var content = GetPromptContentById(promptId);
-                if (!string.IsNullOrWhiteSpace(content))
-                {
-                    TxtPrompt.Text = content;
-                    TxtTranslateStatus.Text = string.Format("📋 Đã load Prompt {0}: {1}", promptId, GetPromptNameById(promptId));
-                }
-                else
-                {
-                    // Prompt trống thì clear TxtPrompt
-                    TxtPrompt.Text = "";
-                    TxtTranslateStatus.Text = string.Format("🧹 Prompt {0} đang trống, đã clear ô nhập!", promptId);
-                }
-                // Cập nhật lại display buttons
-                UpdatePromptButtonDisplay();
-            }
-            else
-            {
-                TxtTranslateStatus.Text = "⚠️ Số thứ tự không hợp lệ!";
-                return;
-            }
+            var promptId = _selectedPromptId;
+            var content = GetPromptContentById(promptId);
+            TxtPrompt.Text = content ?? string.Empty;
+            TxtTranslateStatus.Text = string.IsNullOrWhiteSpace(content)
+                ? string.Format("🧹 Prompt {0} đang trống, đã clear ô nhập!", promptId)
+                : string.Format("📂 Đã load Prompt {0}: {1}", promptId, GetPromptNameById(promptId));
+            UpdatePromptButtonDisplay();
         }
-
         #endregion
 
         #region Translate - Prompt Management
@@ -292,77 +241,50 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Cập nhật hiển thị tên trên 5 nút prompt
+        /// Update the prompt buttons and highlight the selected prompt.
         /// </summary>
         private void UpdatePromptButtonDisplay()
         {
-            BtnPrompt1.Content = string.Format("{0}. {1}", 1, GetPromptNameById(1));
-            BtnPrompt2.Content = string.Format("{0}. {1}", 2, GetPromptNameById(2));
-            BtnPrompt3.Content = string.Format("{0}. {1}", 3, GetPromptNameById(3));
-            BtnPrompt4.Content = string.Format("{0}. {1}", 4, GetPromptNameById(4));
-            BtnPrompt5.Content = string.Format("{0}. {1}", 5, GetPromptNameById(5));
+            BtnPrompt1.Content = FormatPromptButtonContent(1);
+            BtnPrompt2.Content = FormatPromptButtonContent(2);
+            BtnPrompt3.Content = FormatPromptButtonContent(3);
+            BtnPrompt4.Content = FormatPromptButtonContent(4);
+            BtnPrompt5.Content = FormatPromptButtonContent(5);
+        }
+
+        private string FormatPromptButtonContent(int id)
+        {
+            var label = string.Format("{0}. {1}", id, GetPromptNameById(id));
+            return id == _selectedPromptId ? "▶ " + label : label;
         }
 
         /// <summary>
-        /// Tìm ID của prompt đang được hiển thị trong TxtPrompt (nếu khớp content)
+        /// Find the selected prompt id.
         /// </summary>
         private int FindCurrentPromptId()
         {
-            var currentContent = TxtPrompt.Text.Trim();
-            if (string.IsNullOrWhiteSpace(currentContent)) return 0;
-
-            for (int id = 1; id <= 5; id++)
-            {
-                var promptContent = GetPromptContentById(id).Trim();
-                if (promptContent == currentContent)
-                {
-                    return id;
-                }
-            }
-
-            return 0;
+            return _selectedPromptId;
         }
 
         /// <summary>
-        /// Lưu toàn bộ 5 prompts vào Settings
+        /// Save all prompts to Settings.
         /// </summary>
         private void SaveAllPrompts()
         {
-            // Lưu content hiện tại trong TxtPrompt vào prompt đang chọn (nếu có)
-            var currentId = FindCurrentPromptId();
-            if (currentId > 0)
-            {
-                SetPromptContentById(currentId, TxtPrompt.Text.Trim());
-            }
-
             AppSettings.Save();
         }
 
         /// <summary>
-        /// Load toàn bộ 5 prompts từ Settings và cập nhật UI
+        /// Refresh the prompt selector UI and default content.
         /// </summary>
         private void LoadAllPrompts()
         {
             UpdatePromptButtonDisplay();
-
-            // Nếu TxtPrompt đang trống, load prompt đầu tiên có content
-            if (string.IsNullOrWhiteSpace(TxtPrompt.Text))
-            {
-                for (int id = 1; id <= 5; id++)
-                {
-                    var content = GetPromptContentById(id);
-                    if (!string.IsNullOrWhiteSpace(content))
-                    {
-                        TxtPrompt.Text = content;
-                        TxtTranslateStatus.Text = string.Format("📋 Đã load prompt: {0}. {1}", id, GetPromptNameById(id));
-                        break;
-                    }
-                }
-            }
+            _ = LoadPromptForSelectionAsync(_selectedPromptId, _selectedPromptId <= 3, false);
         }
 
         /// <summary>
-        /// Khởi tạo prompts mặc định (Anime và Film) nếu chưa có
+        /// Khá»Ÿi táº¡o prompts máº·c Ä‘á»‹nh (Anime vÃ  Film) náº¿u chÆ°a cÃ³
         /// </summary>
         private void InitializeDefaultPrompts()
         {
@@ -388,6 +310,96 @@ namespace Subtitle_draft_GMTPC
             }
 
             AppSettings.Save();
+        }
+
+        private static HttpClient CreatePromptHttpClient()
+        {
+            var client = new HttpClient();
+            client.Timeout = TimeSpan.FromSeconds(30);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("SubtitleDraftGMTPC/1.0");
+            return client;
+        }
+
+        private string GetPromptDefaultUrlById(int id)
+        {
+            switch (id)
+            {
+                case 1: return Prompt1DefaultUrl;
+                case 2: return Prompt2DefaultUrl;
+                case 3: return Prompt3DefaultUrl;
+                default: return null;
+            }
+        }
+
+        private async Task<string> LoadPromptDefaultContentAsync(int id)
+        {
+            var url = GetPromptDefaultUrlById(id);
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return null;
+            }
+
+            using (var request = new HttpRequestMessage(HttpMethod.Get, url + "?t=" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()))
+            {
+                request.Headers.CacheControl = new CacheControlHeaderValue
+                {
+                    NoCache = true,
+                    NoStore = true,
+                    MaxAge = TimeSpan.Zero
+                };
+                request.Headers.Pragma.ParseAdd("no-cache");
+
+                using (var response = await _promptHttpClient.SendAsync(request))
+                {
+                    response.EnsureSuccessStatusCode();
+                    return await response.Content.ReadAsStringAsync();
+                }
+            }
+        }
+
+        private async Task LoadPromptForSelectionAsync(int promptId, bool useDefaultSource, bool updateSelection)
+        {
+            if (_isPromptLoading)
+            {
+                return;
+            }
+
+            try
+            {
+                _isPromptLoading = true;
+                if (updateSelection)
+                {
+                    _selectedPromptId = promptId;
+                }
+
+                UpdatePromptButtonDisplay();
+
+                string content = null;
+                if (useDefaultSource && promptId <= 3)
+                {
+                    content = await LoadPromptDefaultContentAsync(promptId);
+                    if (!string.IsNullOrWhiteSpace(content))
+                    {
+                        TxtPrompt.Text = content;
+                        TxtTranslateStatus.Text = string.Format("Loaded default Prompt {0}: {1}", promptId, GetPromptNameById(promptId));
+                        return;
+                    }
+                }
+
+                content = GetPromptContentById(promptId);
+                TxtPrompt.Text = content ?? string.Empty;
+                TxtTranslateStatus.Text = string.IsNullOrWhiteSpace(content)
+                    ? string.Format("Prompt {0} is empty.", promptId)
+                    : string.Format("Loaded Prompt {0}: {1}", promptId, GetPromptNameById(promptId));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Khong the tai prompt: " + ex.Message, "Loi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                _isPromptLoading = false;
+            }
         }
 
         private string GetDefaultAnimePrompt()
@@ -537,3 +549,5 @@ namespace Subtitle_draft_GMTPC
         #endregion
     }
 }
+
+

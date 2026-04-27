@@ -931,24 +931,30 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <!-- Buttons row -->
-                            <WrapPanel Grid.Row="0" Margin="0,0,0,8" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <!-- Toolbar actions -->
+                            <WrapPanel Grid.Row="0" Margin="0,0,0,8" Orientation="Horizontal" HorizontalAlignment="Left">
                                 <Button x:Name="BtnOpenQwen" Content="🌐 Mở chat.qwen.ai"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
                                         Margin="0,0,6,0" Click="BtnOpenQwen_Click"/>
                                 <Button x:Name="BtnCopyForPaste" Content="📋 Copy Prompt+Subtitle"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
                                         Margin="0,0,6,0" Click="BtnCopyForPaste_Click"/>
+                                <Button x:Name="BtnLoadDefaultPrompt" Content="↺ Load default"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
+                                        Margin="0,0,6,0" Click="BtnLoadDefaultPrompt_Click"/>
                                 <Button x:Name="BtnSavePrompts" Content="💾 Save Prompts"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
                                         Margin="0,0,6,0" Click="BtnSavePrompts_Click"/>
                                 <Button x:Name="BtnLoadPrompts" Content="📂 Load Prompts"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
-                                        Click="BtnLoadPrompts_Click"/>
+                                        Margin="0,0,6,0" Click="BtnLoadPrompts_Click"/>
+                                <Button x:Name="BtnRenamePrompt" Content="✏️ Rename"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="10,6" FontSize="12"
+                                        Click="BtnRenamePrompt_Click"/>
                             </WrapPanel>
 
-                            <!-- Prompt Buttons -->
-                            <StackPanel Grid.Row="1" Margin="0,0,0,8" Orientation="Horizontal" HorizontalAlignment="Left">
+                            <!-- Prompt selectors -->
+                            <WrapPanel Grid.Row="1" Margin="0,0,0,8" Orientation="Horizontal" HorizontalAlignment="Left">
                                 <Button x:Name="BtnPrompt1" Content="1. Prompt 1"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
                                         Margin="0,0,4,0" Click="BtnPrompt_Click" Tag="1"/>
@@ -964,10 +970,7 @@
                                 <Button x:Name="BtnPrompt5" Content="5. Prompt 5"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
                                         Margin="0,0,4,0" Click="BtnPrompt_Click" Tag="5"/>
-                                <Button x:Name="BtnRenamePrompt" Content="✏️ Rename"
-                                        Style="{StaticResource AccentButtonStyle}" Padding="10,6" FontSize="11"
-                                        Margin="8,0,0,0" Click="BtnRenamePrompt_Click"/>
-                            </StackPanel>
+                            </WrapPanel>
 
                             <!-- Prompt input (expanded) -->
                             <Grid Grid.Row="2" Margin="0,0,0,6">
@@ -975,7 +978,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <Label Grid.Row="0" Content="💬 Prompt:" Style="{StaticResource SectionLabelStyle}" Padding="0"/>
+                                <Label Grid.Row="0" Content="💬 Prompt" Style="{StaticResource SectionLabelStyle}" Padding="0"/>
                                 <TextBox x:Name="TxtPrompt" Grid.Row="1" Style="{StaticResource DarkTextBoxStyle}"
                                          TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" Padding="6"
                                          LostFocus="TxtPrompt_LostFocus"
