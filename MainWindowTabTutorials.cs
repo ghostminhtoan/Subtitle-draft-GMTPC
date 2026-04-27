@@ -332,6 +332,10 @@ namespace Subtitle_draft_GMTPC
             {
                 OpenTutorialsWorkbookPopup();
             }
+            else if (IsOverviewTabActive())
+            {
+                HideTutorialMarkdownPopup();
+            }
             else
             {
                 OpenTutorialMarkdownPopupForCurrentSelection();
@@ -450,8 +454,11 @@ namespace Subtitle_draft_GMTPC
         private void OpenTutorialMarkdownPopupForCurrentSelection()
         {
             var selectedKey = GetCurrentTutorialDocumentKey();
-            if (string.IsNullOrWhiteSpace(selectedKey) || !_tutorialDocuments.ContainsKey(selectedKey))
+            if (string.IsNullOrWhiteSpace(selectedKey)
+                || string.Equals(selectedKey, "overview", StringComparison.OrdinalIgnoreCase)
+                || !_tutorialDocuments.ContainsKey(selectedKey))
             {
+                HideTutorialMarkdownPopup();
                 return;
             }
 
@@ -555,6 +562,14 @@ namespace Subtitle_draft_GMTPC
             if (ReferenceEquals(sender, _tutorialMarkdownPopupWindow))
             {
                 _tutorialMarkdownPopupWindow = null;
+            }
+        }
+
+        private void HideTutorialMarkdownPopup()
+        {
+            if (_tutorialMarkdownPopupWindow != null && _tutorialMarkdownPopupWindow.IsVisible)
+            {
+                _tutorialMarkdownPopupWindow.Hide();
             }
         }
 
@@ -846,7 +861,10 @@ namespace Subtitle_draft_GMTPC
 
         private WebBrowser GetCurrentTutorialBrowser()
         {
-            if (_tutorialMarkdownPopupWindow != null && _tutorialMarkdownPopupWindow.IsVisible && !IsShortcutsExcelTabActive())
+            if (_tutorialMarkdownPopupWindow != null
+                && _tutorialMarkdownPopupWindow.IsVisible
+                && !IsShortcutsExcelTabActive()
+                && !IsOverviewTabActive())
             {
                 return _tutorialMarkdownPopupWindow.Browser;
             }
@@ -902,6 +920,17 @@ namespace Subtitle_draft_GMTPC
             }
 
             return string.Equals(Convert.ToString(selectedMainTab.Header), "Shortcuts Excel", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool IsOverviewTabActive()
+        {
+            var selectedMainTab = TutorialsTabControl.SelectedItem as TabItem;
+            if (selectedMainTab == null)
+            {
+                return false;
+            }
+
+            return string.Equals(Convert.ToString(selectedMainTab.Header), "Overview", StringComparison.OrdinalIgnoreCase);
         }
 
         private TutorialsWorkbookPopupWindow EnsureTutorialsWorkbookPopupWindow()
