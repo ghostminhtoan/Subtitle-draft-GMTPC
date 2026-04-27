@@ -1,0 +1,48 @@
+<Window x:Class="Subtitle_draft_GMTPC.TutorialMarkdownPopupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Tutorial"
+        Width="1200"
+        Height="820"
+        WindowStartupLocation="CenterOwner"
+        Background="#1E1E1E"
+        Foreground="#E0E0E0"
+        Loaded="Window_Loaded"
+        Closed="Window_Closed">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#1F2330" BorderBrush="#3F4E6A" BorderThickness="1" CornerRadius="6" Padding="10">
+            <StackPanel>
+                <TextBlock x:Name="TxtTitle"
+                           Text="Tutorial"
+                           Foreground="#FFFFFF"
+                           FontSize="16"
+                           FontWeight="SemiBold"/>
+                <TextBlock x:Name="TxtStatus"
+                           Text="Đang chuẩn bị mở nội dung..."
+                           Foreground="#A9B7D0"
+                           FontSize="11"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Margin="0,10,0,10" Background="#16181d" BorderBrush="#3E3E42" BorderThickness="1" CornerRadius="6">
+            <WebBrowser x:Name="MarkdownBrowser"
+                        Navigating="MarkdownBrowser_Navigating"
+                        LoadCompleted="MarkdownBrowser_LoadCompleted"/>
+        </Border>
+
+        <Border Grid.Row="2" Background="#171717" BorderBrush="#30363d" BorderThickness="1" CornerRadius="6" Padding="10">
+            <TextBlock x:Name="TxtFooter"
+                       Text="Popup modeless."
+                       Foreground="#808080"
+                       FontSize="11"
+                       HorizontalAlignment="Center"/>
+        </Border>
+    </Grid>
+</Window>

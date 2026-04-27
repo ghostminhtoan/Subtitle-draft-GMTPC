@@ -23,6 +23,7 @@ namespace Subtitle_draft_GMTPC
 
         private readonly Dictionary<string, TutorialDocumentDefinition> _tutorialDocuments = CreateTutorialDocuments();
         private readonly Dictionary<string, string> _tutorialHtmlCache = new Dictionary<string, string>();
+        private TutorialMarkdownPopupWindow _tutorialMarkdownPopupWindow;
         private TutorialsWorkbookPopupWindow _tutorialsWorkbookPopupWindow;
         private bool _isTutorialsLoading = false;
         private bool _isTutorialShortcutsExcelLoading = false;
@@ -149,6 +150,7 @@ namespace Subtitle_draft_GMTPC
                     DateTime.Now);
 
                 await LoadTutorialShortcutsExcelAsync(forceRefresh);
+                UpdateTutorialMarkdownPopupForCurrentSelection(forceRefresh);
 
                 ReapplyTutorialSearchToCurrentBrowser();
             }
@@ -242,6 +244,11 @@ namespace Subtitle_draft_GMTPC
 
                 browser.NavigateToString(BuildTutorialPlaceholderHtml(pair.Value.Title, "Đang tải nội dung từ Tutorials..."));
             }
+
+            if (_tutorialMarkdownPopupWindow != null && _tutorialMarkdownPopupWindow.IsVisible)
+            {
+                _tutorialMarkdownPopupWindow.ShowHtml("Tutorials", BuildTutorialPlaceholderHtml("Tutorials", "Đang tải nội dung từ Tutorials..."));
+            }
         }
 
         private void ShowTutorialErrorState(string message)
@@ -255,6 +262,11 @@ namespace Subtitle_draft_GMTPC
                 }
 
                 browser.NavigateToString(BuildTutorialPlaceholderHtml(pair.Value.Title, "Lỗi tải dữ liệu: " + message));
+            }
+
+            if (_tutorialMarkdownPopupWindow != null && _tutorialMarkdownPopupWindow.IsVisible)
+            {
+                _tutorialMarkdownPopupWindow.ShowHtml("Tutorials", BuildTutorialPlaceholderHtml("Tutorials", "Lỗi tải dữ liệu: " + message));
             }
         }
 
@@ -319,6 +331,10 @@ namespace Subtitle_draft_GMTPC
             if (IsShortcutsExcelTabActive())
             {
                 OpenTutorialsWorkbookPopup();
+            }
+            else
+            {
+                OpenTutorialMarkdownPopupForCurrentSelection();
             }
             ReapplyTutorialSearchToCurrentBrowser();
         }
@@ -428,6 +444,117 @@ namespace Subtitle_draft_GMTPC
                 {
                     ChkTutorialRegex.IsChecked = false;
                 }
+            }
+        }
+
+        private void OpenTutorialMarkdownPopupForCurrentSelection()
+        {
+            var selectedKey = GetCurrentTutorialDocumentKey();
+            if (string.IsNullOrWhiteSpace(selectedKey) || !_tutorialDocuments.ContainsKey(selectedKey))
+            {
+                return;
+            }
+
+            var document = _tutorialDocuments[selectedKey];
+            var popup = EnsureTutorialMarkdownPopupWindow();
+            popup.Show();
+            popup.Activate();
+            popup.Topmost = true;
+            popup.Topmost = false;
+
+            var html = _tutorialHtmlCache.ContainsKey(selectedKey)
+                ? _tutorialHtmlCache[selectedKey]
+                : BuildTutorialPlaceholderHtml(document.Title, "Đang tải nội dung từ Tutorials...");
+
+            popup.ShowHtml(document.Title, html);
+        }
+
+        private void UpdateTutorialMarkdownPopupForCurrentSelection(bool forceRefresh)
+        {
+            if (_tutorialMarkdownPopupWindow == null || !_tutorialMarkdownPopupWindow.IsVisible)
+            {
+                return;
+            }
+
+            var selectedKey = GetCurrentTutorialDocumentKey();
+            if (string.IsNullOrWhiteSpace(selectedKey) || !_tutorialDocuments.ContainsKey(selectedKey))
+            {
+                return;
+            }
+
+            var document = _tutorialDocuments[selectedKey];
+            string html;
+            if (forceRefresh || !_tutorialHtmlCache.TryGetValue(selectedKey, out html))
+            {
+                html = BuildTutorialPlaceholderHtml(document.Title, "Đang tải nội dung từ Tutorials...");
+            }
+
+            _tutorialMarkdownPopupWindow.ShowHtml(document.Title, html);
+        }
+
+        private TutorialMarkdownPopupWindow EnsureTutorialMarkdownPopupWindow()
+        {
+            if (_tutorialMarkdownPopupWindow == null)
+            {
+                _tutorialMarkdownPopupWindow = new TutorialMarkdownPopupWindow
+                {
+                    Owner = this
+                };
+                _tutorialMarkdownPopupWindow.Closed += TutorialMarkdownPopupWindow_Closed;
+            }
+
+            return _tutorialMarkdownPopupWindow;
+        }
+
+        private string GetCurrentTutorialDocumentKey()
+        {
+            var selectedMainTab = TutorialsTabControl.SelectedItem as TabItem;
+            if (selectedMainTab == null)
+            {
+                return "overview";
+            }
+
+            var mainHeader = Convert.ToString(selectedMainTab.Header);
+            if (string.Equals(mainHeader, "Overview", StringComparison.OrdinalIgnoreCase))
+            {
+                return "overview";
+            }
+
+            if (string.Equals(mainHeader, "Workflow", StringComparison.OrdinalIgnoreCase))
+            {
+                return "workflow";
+            }
+
+            if (string.Equals(mainHeader, "Shortcuts", StringComparison.OrdinalIgnoreCase))
+            {
+                var selectedShortcutsTab = TutorialShortcutsTabControl != null
+                    ? TutorialShortcutsTabControl.SelectedItem as TabItem
+                    : null;
+                var shortcutsHeader = selectedShortcutsTab != null ? Convert.ToString(selectedShortcutsTab.Header) : "Default Shortcuts";
+
+                switch (shortcutsHeader)
+                {
+                    case "Translate - New Subtitle":
+                        return "shortcut-translate-new";
+                    case "Translate - Existing Subtitle":
+                        return "shortcut-translate-existing";
+                    case "Edit Translated Subtitle":
+                        return "shortcut-edit-translated";
+                    case "Quick Checker":
+                        return "shortcut-quick-checker";
+                    default:
+                        return "shortcut-default";
+                }
+            }
+
+            return "overview";
+        }
+
+        private void TutorialMarkdownPopupWindow_Closed(object sender, System.EventArgs e)
+        {
+            if (ReferenceEquals(sender, _tutorialMarkdownPopupWindow))
+            {
+                _tutorialMarkdownPopupWindow = null;
             }
         }
 
@@ -719,6 +846,11 @@ namespace Subtitle_draft_GMTPC
 
         private WebBrowser GetCurrentTutorialBrowser()
         {
+            if (_tutorialMarkdownPopupWindow != null && _tutorialMarkdownPopupWindow.IsVisible && !IsShortcutsExcelTabActive())
+            {
+                return _tutorialMarkdownPopupWindow.Browser;
+            }
+
             var selectedMainTab = TutorialsTabControl.SelectedItem as TabItem;
             if (selectedMainTab == null)
             {
