@@ -746,32 +746,49 @@
                         </TabItem>
 
                         <TabItem Header="Shortcuts Excel">
-                            <Grid Margin="6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="320"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
+                            <Border Style="{StaticResource PanelBorderStyle}" Margin="6">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
 
-                                <Border Grid.Column="0" Style="{StaticResource PanelBorderStyle}" Margin="0,0,8,0" VerticalAlignment="Top">
-                                    <StackPanel>
+                                    <StackPanel Grid.Row="0">
                                         <TextBlock Text="Shortcuts Excel"
                                                    Foreground="#FFFFFF"
                                                    FontSize="18"
                                                    FontWeight="SemiBold"/>
                                         <TextBlock x:Name="TxtTutorialsExcelStatus"
-                                                   Text="Đang chuẩn bị tải workbook Excel..."
+                                                   Text="Workbook Excel sẽ mở ở cửa sổ popup riêng."
                                                    Foreground="#A9B7D0"
                                                    FontSize="12"
                                                    Margin="0,4,0,0"/>
                                     </StackPanel>
-                                </Border>
 
-                                <Border Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
-                                    <wv2:WebView2 x:Name="BrowserTutorialShortcutsExcel"
-                                                  NavigationCompleted="BrowserTutorialShortcutsExcel_NavigationCompleted"/>
-                                </Border>
-
-                            </Grid>
+                                    <Border Grid.Row="1"
+                                            Background="#16181d"
+                                            BorderBrush="#3E3E42"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Padding="16"
+                                            Margin="0,14,0,0">
+                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                            <TextBlock Text="Workbook OneDrive đang mở trong một cửa sổ popup modeless."
+                                                       Foreground="#E0E0E0"
+                                                       FontSize="13"
+                                                       TextAlignment="Center"
+                                                       TextWrapping="Wrap"
+                                                       Margin="0,0,0,10"/>
+                                            <Button x:Name="BtnOpenTutorialExcelPopup"
+                                                    Content="Mở / đưa popup lên"
+                                                    Style="{StaticResource AccentButtonStyle}"
+                                                    Padding="14,6"
+                                                    FontSize="12"
+                                                    Click="BtnOpenTutorialExcelPopup_Click"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
                         </TabItem>
                     </TabControl>
 

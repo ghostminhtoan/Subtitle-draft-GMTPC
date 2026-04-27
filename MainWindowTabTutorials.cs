@@ -23,6 +23,7 @@ namespace Subtitle_draft_GMTPC
 
         private readonly Dictionary<string, TutorialDocumentDefinition> _tutorialDocuments = CreateTutorialDocuments();
         private readonly Dictionary<string, string> _tutorialHtmlCache = new Dictionary<string, string>();
+        private TutorialsWorkbookPopupWindow _tutorialsWorkbookPopupWindow;
         private bool _isTutorialsLoading = false;
         private bool _isTutorialShortcutsExcelLoading = false;
         private bool _tutorialsInitialized = false;
@@ -208,53 +209,25 @@ namespace Subtitle_draft_GMTPC
                 _isTutorialShortcutsExcelLoading = true;
                 TxtTutorialsExcelStatus.Text = "Đang mở workbook Excel từ OneDrive...";
 
-                if (BrowserTutorialShortcutsExcel == null)
+                var popup = EnsureTutorialsWorkbookPopupWindow();
+                popup.WorkbookUrl = TutorialShortcutsExcelOneDriveUrl;
+                if (forceRefresh)
                 {
-                    throw new InvalidOperationException("Không tìm thấy khung hiển thị workbook Excel.");
-                }
-
-                await BrowserTutorialShortcutsExcel.EnsureCoreWebView2Async();
-
-                if (forceRefresh &&
-                    BrowserTutorialShortcutsExcel.CoreWebView2 != null &&
-                    BrowserTutorialShortcutsExcel.Source != null)
-                {
-                    BrowserTutorialShortcutsExcel.CoreWebView2.Reload();
-                }
-                else
-                {
-                    BrowserTutorialShortcutsExcel.Source = new System.Uri(TutorialShortcutsExcelOneDriveUrl);
+                    popup.ReloadWorkbook();
                 }
 
                 _tutorialShortcutsExcelInitialized = true;
-                TxtTutorialsExcelStatus.Text = "Đã gửi yêu cầu mở workbook OneDrive...";
+                TxtTutorialsExcelStatus.Text = "Workbook OneDrive sẵn sàng để mở popup.";
             }
             catch (Exception ex)
             {
                 TxtTutorialsExcelStatus.Text = "Không thể tải workbook Excel.";
-                if (BrowserTutorialShortcutsExcel != null)
-                {
-                    BrowserTutorialShortcutsExcel.NavigateToString(BuildTutorialPlaceholderHtml("Shortcuts Excel", "Lỗi tải workbook: " + ex.Message));
-                }
+                MessageBox.Show("Không thể tải workbook Excel: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
                 _isTutorialShortcutsExcelLoading = false;
             }
-        }
-
-        private void BrowserTutorialShortcutsExcel_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
-        {
-            if (e.IsSuccess)
-            {
-                TxtTutorialsExcelStatus.Text = string.Format(
-                    "Workbook OneDrive đã sẵn sàng lúc {0:HH:mm:ss}.",
-                    DateTime.Now);
-                ReapplyTutorialSearchToCurrentBrowser();
-                return;
-            }
-
-            TxtTutorialsExcelStatus.Text = "Không thể mở workbook Excel từ OneDrive.";
         }
 
         private void ShowTutorialLoadingState()
@@ -343,6 +316,10 @@ namespace Subtitle_draft_GMTPC
 
             UpdateTutorialSearchModeForCurrentTab();
             TxtTutorialsStatus.Text = "Đang xem: " + GetCurrentTutorialTitle();
+            if (IsShortcutsExcelTabActive())
+            {
+                OpenTutorialsWorkbookPopup();
+            }
             ReapplyTutorialSearchToCurrentBrowser();
         }
 
@@ -382,6 +359,11 @@ namespace Subtitle_draft_GMTPC
         private void BtnToggleTutorialSearch_Click(object sender, RoutedEventArgs e)
         {
             ToggleTutorialSearchPanel();
+        }
+
+        private void BtnOpenTutorialExcelPopup_Click(object sender, RoutedEventArgs e)
+        {
+            OpenTutorialsWorkbookPopup();
         }
 
         private void TxtTutorialSearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -532,6 +514,10 @@ namespace Subtitle_draft_GMTPC
             }
 
             _tutorialSearchText = TxtTutorialSearchBox.Text;
+            if (IsShortcutsExcelTabActive())
+            {
+                OpenTutorialsWorkbookPopup();
+            }
             var result = IsShortcutsExcelTabActive()
                 ? await NavigateTutorialShortcutsExcelSearchAsync(forward)
                 : InvokeTutorialSearchScript(forward ? "tutorialSearchNext" : "tutorialSearchPrev");
@@ -549,6 +535,10 @@ namespace Subtitle_draft_GMTPC
                 return;
             }
 
+            if (IsShortcutsExcelTabActive())
+            {
+                OpenTutorialsWorkbookPopup();
+            }
             var result = IsShortcutsExcelTabActive()
                 ? await ApplyTutorialShortcutsExcelSearchAsync(
                     _tutorialSearchText,
@@ -766,14 +756,8 @@ namespace Subtitle_draft_GMTPC
 
         private WebView2 GetCurrentTutorialExcelWebView()
         {
-            var selectedMainTab = TutorialsTabControl.SelectedItem as TabItem;
-            if (selectedMainTab == null)
-            {
-                return null;
-            }
-
-            return string.Equals(Convert.ToString(selectedMainTab.Header), "Shortcuts Excel", StringComparison.OrdinalIgnoreCase)
-                ? BrowserTutorialShortcutsExcel
+            return _tutorialsWorkbookPopupWindow != null && _tutorialsWorkbookPopupWindow.IsVisible
+                ? _tutorialsWorkbookPopupWindow.WorkbookBrowser
                 : null;
         }
 
@@ -786,6 +770,45 @@ namespace Subtitle_draft_GMTPC
             }
 
             return string.Equals(Convert.ToString(selectedMainTab.Header), "Shortcuts Excel", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private TutorialsWorkbookPopupWindow EnsureTutorialsWorkbookPopupWindow()
+        {
+            if (_tutorialsWorkbookPopupWindow == null)
+            {
+                _tutorialsWorkbookPopupWindow = new TutorialsWorkbookPopupWindow
+                {
+                    Owner = this,
+                    WorkbookUrl = TutorialShortcutsExcelOneDriveUrl
+                };
+                _tutorialsWorkbookPopupWindow.Closed += TutorialsWorkbookPopupWindow_Closed;
+            }
+
+            return _tutorialsWorkbookPopupWindow;
+        }
+
+        private void OpenTutorialsWorkbookPopup()
+        {
+            var popup = EnsureTutorialsWorkbookPopupWindow();
+            popup.WorkbookUrl = TutorialShortcutsExcelOneDriveUrl;
+
+            if (!popup.IsVisible)
+            {
+                popup.Show();
+            }
+
+            popup.Activate();
+            popup.Topmost = true;
+            popup.Topmost = false;
+            popup.Focus();
+        }
+
+        private void TutorialsWorkbookPopupWindow_Closed(object sender, System.EventArgs e)
+        {
+            if (ReferenceEquals(sender, _tutorialsWorkbookPopupWindow))
+            {
+                _tutorialsWorkbookPopupWindow = null;
+            }
         }
 
         #endregion
