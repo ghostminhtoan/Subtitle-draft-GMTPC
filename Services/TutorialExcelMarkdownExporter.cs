@@ -443,7 +443,13 @@ namespace Subtitle_draft_GMTPC.Services
 
         private static string NormalizeSheetTarget(string target)
         {
-            return (target ?? string.Empty).Replace('\\', '/').TrimStart('/');
+            var normalized = (target ?? string.Empty).Replace('\\', '/').TrimStart('/');
+            if (normalized.StartsWith("xl/", StringComparison.OrdinalIgnoreCase))
+            {
+                normalized = normalized.Substring(3);
+            }
+
+            return normalized;
         }
 
         private static int GetColumnIndexFromCellReference(string reference)
