@@ -82,6 +82,25 @@ if %ERRORLEVEL% NEQ 0 (
 )
 echo.
 
+:: Copy runtime dependencies to root so the app can run from a portable folder.
+echo Copying runtime dependencies to root folder...
+copy /Y "bin\Debug\net48\Microsoft.Web.WebView2.Core.dll" "Microsoft.Web.WebView2.Core.dll" >nul
+copy /Y "bin\Debug\net48\Microsoft.Web.WebView2.WinForms.dll" "Microsoft.Web.WebView2.WinForms.dll" >nul
+copy /Y "bin\Debug\net48\Microsoft.Web.WebView2.Wpf.dll" "Microsoft.Web.WebView2.Wpf.dll" >nul
+copy /Y "bin\Debug\net48\WebView2Loader.dll" "WebView2Loader.dll" >nul
+copy /Y "bin\Debug\net48\Subtitle draft GMTPC.exe.config" "Subtitle draft GMTPC.exe.config" >nul
+copy /Y "bin\Debug\net48\Subtitle draft GMTPC.pdb" "Subtitle draft GMTPC.pdb" >nul
+if exist "bin\Debug\net48\Subtitle draft GMTPC.exe.WebView2" (
+    if exist "Subtitle draft GMTPC.exe.WebView2" rmdir /S /Q "Subtitle draft GMTPC.exe.WebView2"
+    xcopy /E /I /Y "bin\Debug\net48\Subtitle draft GMTPC.exe.WebView2" "Subtitle draft GMTPC.exe.WebView2" >nul
+)
+if exist "bin\Debug\net48\runtimes" (
+    if exist "runtimes" rmdir /S /Q "runtimes"
+    xcopy /E /I /Y "bin\Debug\net48\runtimes" "runtimes" >nul
+)
+echo [OK] Runtime dependencies copied to root.
+echo.
+
 :: Push changes to git repository
 echo.
 echo Pushing changes to git repository...
