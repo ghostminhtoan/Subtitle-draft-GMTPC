@@ -285,16 +285,6 @@ namespace Subtitle_draft_GMTPC
                     return BrowserTutorialOverview;
                 case "workflow":
                     return BrowserTutorialWorkflow;
-                case "shortcut-default":
-                    return BrowserTutorialShortcutDefault;
-                case "shortcut-translate-new":
-                    return BrowserTutorialShortcutTranslateNew;
-                case "shortcut-translate-existing":
-                    return BrowserTutorialShortcutTranslateExisting;
-                case "shortcut-edit-translated":
-                    return BrowserTutorialShortcutEditTranslated;
-                case "shortcut-quick-checker":
-                    return BrowserTutorialShortcutQuickChecker;
                 default:
                     return null;
             }
@@ -522,36 +512,9 @@ namespace Subtitle_draft_GMTPC
             }
 
             var mainHeader = Convert.ToString(selectedMainTab.Header);
-            if (string.Equals(mainHeader, "Overview", StringComparison.OrdinalIgnoreCase))
-            {
-                return "overview";
-            }
-
             if (string.Equals(mainHeader, "Workflow", StringComparison.OrdinalIgnoreCase))
             {
                 return "workflow";
-            }
-
-            if (string.Equals(mainHeader, "Shortcuts", StringComparison.OrdinalIgnoreCase))
-            {
-                var selectedShortcutsTab = TutorialShortcutsTabControl != null
-                    ? TutorialShortcutsTabControl.SelectedItem as TabItem
-                    : null;
-                var shortcutsHeader = selectedShortcutsTab != null ? Convert.ToString(selectedShortcutsTab.Header) : "Default Shortcuts";
-
-                switch (shortcutsHeader)
-                {
-                    case "Translate - New Subtitle":
-                        return "shortcut-translate-new";
-                    case "Translate - Existing Subtitle":
-                        return "shortcut-translate-existing";
-                    case "Edit Translated Subtitle":
-                        return "shortcut-edit-translated";
-                    case "Quick Checker":
-                        return "shortcut-quick-checker";
-                    default:
-                        return "shortcut-default";
-                }
             }
 
             return "overview";
@@ -586,16 +549,7 @@ namespace Subtitle_draft_GMTPC
                 return "Tutorials";
             }
 
-            var mainHeader = Convert.ToString(selectedMainTab.Header);
-            if (!string.Equals(mainHeader, "Shortcuts", StringComparison.OrdinalIgnoreCase))
-            {
-                return mainHeader;
-            }
-
-            var selectedShortcutsTab = TutorialShortcutsTabControl.SelectedItem as TabItem;
-            return selectedShortcutsTab != null
-                ? Convert.ToString(selectedShortcutsTab.Header)
-                : mainHeader;
+            return Convert.ToString(selectedMainTab.Header);
         }
 
         private bool IsTutorialsTabActive()
@@ -876,32 +830,12 @@ namespace Subtitle_draft_GMTPC
             }
 
             var mainHeader = Convert.ToString(selectedMainTab.Header);
-            if (string.Equals(mainHeader, "Overview", StringComparison.OrdinalIgnoreCase))
-            {
-                return BrowserTutorialOverview;
-            }
-
             if (string.Equals(mainHeader, "Workflow", StringComparison.OrdinalIgnoreCase))
             {
                 return BrowserTutorialWorkflow;
             }
 
-            var selectedShortcutsTab = TutorialShortcutsTabControl != null ? TutorialShortcutsTabControl.SelectedItem as TabItem : null;
-            var shortcutsHeader = selectedShortcutsTab != null ? Convert.ToString(selectedShortcutsTab.Header) : "Default Shortcuts";
-
-            switch (shortcutsHeader)
-            {
-                case "Translate - New Subtitle":
-                    return BrowserTutorialShortcutTranslateNew;
-                case "Translate - Existing Subtitle":
-                    return BrowserTutorialShortcutTranslateExisting;
-                case "Edit Translated Subtitle":
-                    return BrowserTutorialShortcutEditTranslated;
-                case "Quick Checker":
-                    return BrowserTutorialShortcutQuickChecker;
-                default:
-                    return BrowserTutorialShortcutDefault;
-            }
+            return BrowserTutorialOverview;
         }
 
         private WebView2 GetCurrentTutorialExcelWebView()

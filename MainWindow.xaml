@@ -696,55 +696,6 @@
                             </Border>
                         </TabItem>
 
-                        <TabItem Header="Shortcuts">
-                            <TabControl x:Name="TutorialShortcutsTabControl"
-                                        Background="#1E1E1E"
-                                        BorderBrush="#3E3E42"
-                                        BorderThickness="1"
-                                        Margin="6"
-                                        SelectionChanged="TutorialsTabControl_SelectionChanged">
-                                <TabItem Header="Default Shortcuts">
-                                    <Border Style="{StaticResource PanelBorderStyle}" Margin="6">
-                                        <WebBrowser x:Name="BrowserTutorialShortcutDefault"
-                                                    Navigating="TutorialBrowser_Navigating"
-                                                    LoadCompleted="TutorialBrowser_LoadCompleted"/>
-                                    </Border>
-                                </TabItem>
-
-                                <TabItem Header="Translate - New Subtitle">
-                                    <Border Style="{StaticResource PanelBorderStyle}" Margin="6">
-                                        <WebBrowser x:Name="BrowserTutorialShortcutTranslateNew"
-                                                    Navigating="TutorialBrowser_Navigating"
-                                                    LoadCompleted="TutorialBrowser_LoadCompleted"/>
-                                    </Border>
-                                </TabItem>
-
-                                <TabItem Header="Translate - Existing Subtitle">
-                                    <Border Style="{StaticResource PanelBorderStyle}" Margin="6">
-                                        <WebBrowser x:Name="BrowserTutorialShortcutTranslateExisting"
-                                                    Navigating="TutorialBrowser_Navigating"
-                                                    LoadCompleted="TutorialBrowser_LoadCompleted"/>
-                                    </Border>
-                                </TabItem>
-
-                                <TabItem Header="Edit Translated Subtitle">
-                                    <Border Style="{StaticResource PanelBorderStyle}" Margin="6">
-                                        <WebBrowser x:Name="BrowserTutorialShortcutEditTranslated"
-                                                    Navigating="TutorialBrowser_Navigating"
-                                                    LoadCompleted="TutorialBrowser_LoadCompleted"/>
-                                    </Border>
-                                </TabItem>
-
-                                <TabItem Header="Quick Checker">
-                                    <Border Style="{StaticResource PanelBorderStyle}" Margin="6">
-                                        <WebBrowser x:Name="BrowserTutorialShortcutQuickChecker"
-                                                    Navigating="TutorialBrowser_Navigating"
-                                                    LoadCompleted="TutorialBrowser_LoadCompleted"/>
-                                    </Border>
-                                </TabItem>
-                            </TabControl>
-                        </TabItem>
-
                         <TabItem Header="Shortcuts Excel">
                             <Border Style="{StaticResource PanelBorderStyle}" Margin="6">
                                 <Grid>
