@@ -54,46 +54,46 @@ namespace Subtitle_draft_GMTPC
             return new Dictionary<string, TutorialDocumentDefinition>
             {
                 {
-                    "overview",
-                    new TutorialDocumentDefinition(
-                        "Overview",
-                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/H%C6%B0%E1%BB%9Bng%20d%E1%BA%ABn/1-gioi-thieu-so-luoc.md")
+                        "overview",
+                        new TutorialDocumentDefinition(
+                            "Overview",
+                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorials/H%C6%B0%E1%BB%9Bng%20d%E1%BA%ABn/1-gioi-thieu-so-luoc.md")
                 },
                 {
                     "workflow",
                     new TutorialDocumentDefinition(
                         "Workflow",
-                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorial/Profiles/README.md")
+                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorials/Tutorial/Profiles/README.md")
                 },
                 {
                     "shortcut-default",
                     new TutorialDocumentDefinition(
                         "Default Shortcuts",
-                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Shortcuts/shortcut%20MMT%20-%20Vietnamese.md")
+                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorials/Shortcuts/shortcut%20MMT%20-%20Vietnamese.md")
                 },
                 {
                     "shortcut-translate-new",
                     new TutorialDocumentDefinition(
                         "Translate - New Subtitle",
-                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorial/Profiles/profile-01-translate-new-subtitle.md")
+                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorials/Tutorial/Profiles/profile-01-translate-new-subtitle.md")
                 },
                 {
                     "shortcut-translate-existing",
                     new TutorialDocumentDefinition(
                         "Translate - Existing Subtitle",
-                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorial/Profiles/profile-02-translate-existing-subtitle.md")
+                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorials/Tutorial/Profiles/profile-02-translate-existing-subtitle.md")
                 },
                 {
                     "shortcut-edit-translated",
                     new TutorialDocumentDefinition(
                         "Edit Translated Subtitle",
-                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorial/Profiles/profile-03-edit-translated.md")
+                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorials/Tutorial/Profiles/profile-03-edit-translated.md")
                 },
                 {
                     "shortcut-quick-checker",
                     new TutorialDocumentDefinition(
                         "Quick Checker",
-                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorial/Profiles/profile-04-quick-checker.md")
+                        "https://github.com/ghostminhtoan/subtitle-edit-shortcuts-GMTPC/blob/master/Tutorials/Tutorial/Profiles/profile-04-quick-checker.md")
                 }
             };
         }

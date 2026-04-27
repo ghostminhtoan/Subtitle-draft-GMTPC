@@ -8,6 +8,13 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-04-27 10:58:00 AM Sunday]
+
+### Changed - Tutorials Links Now Point to Tutorials Folder in Source Repo
+- Cập nhật toàn bộ link trong `MainWindowTabTutorials.cs` sang cấu trúc mới của repo `subtitle-edit-shortcuts-GMTPC`, nơi các folder nội dung đã được gộp dưới `Tutorials/`.
+- Mục tiêu là tránh link nhập nhằng và đồng bộ với cấu trúc thư mục mới sau khi repo tài liệu đã được commit/push.
+
+---
 ## [2026-04-25 10:40:41 AM Saturday]
 
 ### Added - Update Latest Version Button with Auto Replace and Restart
