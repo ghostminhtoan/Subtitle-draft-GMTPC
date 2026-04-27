@@ -102,8 +102,7 @@ echo [OK] Runtime dependencies copied to root.
 echo.
 :: Append portable payload to the root exe so it can self-extract when copied alone.
 echo Embedding portable payload into exe...
-powershell -NoProfile -ExecutionPolicy Bypass -File "build_portable_package.ps1" -BuildDir "bin\Debug
-et48" -SourceRoot "." -ExePath ".\Subtitle draft GMTPC.exe"
+powershell -NoProfile -ExecutionPolicy Bypass -File "build_portable_package.ps1" -BuildDir "bin\Debug\net48" -SourceRoot "." -ExePath ".\Subtitle draft GMTPC.exe"
 if %ERRORLEVEL% NEQ 0 (
     echo [WARNING] Failed to embed portable payload into exe.
 ) else (
