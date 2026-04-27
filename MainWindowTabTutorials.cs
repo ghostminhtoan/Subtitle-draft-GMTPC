@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,6 +17,8 @@ namespace Subtitle_draft_GMTPC
     {
         #region Tutorials - Fields
 
+        private static readonly HttpClient _tutorialsHttpClient = CreateTutorialsHttpClient();
+
         private readonly Dictionary<string, TutorialDocumentDefinition> _tutorialDocuments = CreateTutorialDocuments();
         private readonly Dictionary<string, string> _tutorialHtmlCache = new Dictionary<string, string>();
         private readonly Dictionary<string, string> _tutorialShortcutsExcelHtmlCache = new Dictionary<string, string>();
@@ -26,6 +30,12 @@ namespace Subtitle_draft_GMTPC
         private bool _tutorialSearchSuppressTextChanged = false;
         private string _tutorialSearchText = string.Empty;
         private TutorialExcelMarkdownExporter.TutorialExcelWorkbookDocument _tutorialShortcutsExcelWorkbook;
+
+        private const string TutorialShortcutsExcelBlobUrl =
+            "https://github.com/ghostminhtoan/Subtitle-draft-GMTPC/blob/master/Tutorials/Shortcuts/shortcut%20MMT%20-%20Vietnamese.xlsx";
+
+        private const string TutorialShortcutsExcelRawUrl =
+            "https://raw.githubusercontent.com/ghostminhtoan/Subtitle-draft-GMTPC/master/Tutorials/Shortcuts/shortcut%20MMT%20-%20Vietnamese.xlsx";
 
         #endregion
 
@@ -40,6 +50,14 @@ namespace Subtitle_draft_GMTPC
 
             _tutorialsInitialized = true;
             await LoadAllTutorialDocumentsAsync(false);
+        }
+
+        private static HttpClient CreateTutorialsHttpClient()
+        {
+            var client = new HttpClient();
+            client.Timeout = TimeSpan.FromSeconds(30);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("SubtitleDraftGMTPC/1.0");
+            return client;
         }
 
         private static Dictionary<string, TutorialDocumentDefinition> CreateTutorialDocuments()
@@ -188,24 +206,38 @@ namespace Subtitle_draft_GMTPC
                 return;
             }
 
-            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tutorials", "Shortcuts", "shortcut MMT - Vietnamese.xlsx");
-            if (!File.Exists(filePath))
-            {
-                TxtTutorialsExcelStatus.Text = "Không tìm thấy file shortcut Excel.";
-                if (BrowserTutorialShortcutsExcel != null)
-                {
-                    BrowserTutorialShortcutsExcel.NavigateToString(BuildTutorialPlaceholderHtml("Shortcuts Excel", "Không tìm thấy file shortcut MMT - Vietnamese.xlsx."));
-                }
-                return;
-            }
-
             try
             {
                 _isTutorialShortcutsExcelLoading = true;
                 TxtTutorialsExcelStatus.Text = "Đang tải workbook Excel...";
 
-                var workbook = await Task.Run(() => TutorialExcelMarkdownExporter.LoadWorkbook(filePath, "Shortcuts Excel"));
-                _tutorialShortcutsExcelWorkbook = workbook;
+                using (var request = new HttpRequestMessage(HttpMethod.Get, TutorialShortcutsExcelRawUrl))
+                {
+                    if (forceRefresh)
+                    {
+                        request.Headers.CacheControl = new CacheControlHeaderValue
+                        {
+                            NoCache = true,
+                            NoStore = true,
+                            MaxAge = TimeSpan.Zero
+                        };
+                        request.Headers.Pragma.ParseAdd("no-cache");
+                    }
+
+                    using (var response = await _tutorialsHttpClient.SendAsync(request))
+                    {
+                        response.EnsureSuccessStatusCode();
+                        using (var stream = await response.Content.ReadAsStreamAsync())
+                        using (var memory = new MemoryStream())
+                        {
+                            await stream.CopyToAsync(memory);
+                            memory.Position = 0;
+                            _tutorialShortcutsExcelWorkbook = await Task.Run(() =>
+                                TutorialExcelMarkdownExporter.LoadWorkbook(memory, "Shortcuts Excel", TutorialShortcutsExcelBlobUrl));
+                        }
+                    }
+                }
+
                 _tutorialShortcutsExcelHtmlCache.Clear();
                 _tutorialShortcutsExcelInitialized = true;
 

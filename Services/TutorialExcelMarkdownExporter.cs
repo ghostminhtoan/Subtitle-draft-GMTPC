@@ -15,7 +15,15 @@ namespace Subtitle_draft_GMTPC.Services
 
         public static string ExportMarkdown(string filePath, string title)
         {
-            var workbook = LoadWorkbook(filePath, title);
+            using (var stream = File.OpenRead(filePath))
+            {
+                return ExportMarkdown(stream, title, new Uri(Path.GetFullPath(filePath)).AbsoluteUri);
+            }
+        }
+
+        public static string ExportMarkdown(Stream stream, string title, string sourceUrl)
+        {
+            var workbook = LoadWorkbook(stream, title, sourceUrl);
             var markdown = new StringBuilder();
             markdown.AppendLine("# " + (string.IsNullOrWhiteSpace(title) ? "Excel" : title));
 
@@ -28,46 +36,45 @@ namespace Subtitle_draft_GMTPC.Services
             return markdown.ToString();
         }
 
-        public static TutorialExcelWorkbookDocument LoadWorkbook(string filePath, string title)
+        public static TutorialExcelWorkbookDocument LoadWorkbook(Stream stream, string title, string sourceUrl)
         {
-            var workbookDocument = new TutorialExcelWorkbookDocument(title, filePath);
+            var workbookDocument = new TutorialExcelWorkbookDocument(title, sourceUrl);
 
-            using (var archive = ZipFile.OpenRead(filePath))
+            using (var archive = new ZipArchive(stream, ZipArchiveMode.Read, true))
             {
                 var sharedStrings = ReadSharedStrings(archive);
                 var sheets = ReadSheets(archive);
 
-                for (var sheetIndex = 0; sheetIndex < sheets.Count; sheetIndex++)
+                foreach (var sheet in sheets)
                 {
-                    var sheet = sheets[sheetIndex];
                     var rows = ReadRows(archive, sheet.TargetPath, sharedStrings);
                     if (rows.Count == 0)
                     {
                         continue;
                     }
 
-                    var markdown = BuildSheetMarkdown(sheet, rows, sheets.Count > 1);
-                    workbookDocument.Sheets.Add(new TutorialExcelSheetDocument(sheet.Name, markdown));
+                    workbookDocument.Sheets.Add(
+                        new TutorialExcelSheetDocument(sheet.Name, BuildSheetMarkdown(sheet.Name, rows)));
                 }
             }
 
             return workbookDocument;
         }
 
-        private static string BuildSheetMarkdown(SheetInfo sheet, List<RowData> rows, bool includeSheetHeading)
+        public static TutorialExcelWorkbookDocument LoadWorkbook(string filePath, string title)
         {
-            var markdown = new StringBuilder();
-            if (includeSheetHeading)
+            using (var stream = File.OpenRead(filePath))
             {
-                markdown.AppendLine("## " + CleanText(sheet.Name));
+                return LoadWorkbook(stream, title, new Uri(Path.GetFullPath(filePath)).AbsoluteUri);
             }
-
-            RenderRowsAsMarkdown(markdown, rows);
-            return markdown.ToString().TrimEnd();
         }
 
-        private static void RenderRowsAsMarkdown(StringBuilder markdown, List<RowData> rows)
+        private static string BuildSheetMarkdown(string sheetName, List<RowData> rows)
         {
+            var markdown = new StringBuilder();
+            markdown.AppendLine("## " + CleanText(sheetName));
+            markdown.AppendLine();
+
             var headerRowIndex = FindHeaderRow(rows);
             if (headerRowIndex < 0)
             {
@@ -84,23 +91,22 @@ namespace Subtitle_draft_GMTPC.Services
 
                 if (i == 0 && rows[i].NonEmptyCount == 1)
                 {
-                    markdown.AppendLine();
                     markdown.AppendLine("# " + rowText);
+                    markdown.AppendLine();
                     continue;
                 }
 
-                markdown.AppendLine();
                 markdown.AppendLine("> " + rowText);
+                markdown.AppendLine();
             }
 
             var headerRow = rows[headerRowIndex];
             var columnCount = Math.Max(GetMaxColumnIndex(rows), headerRow.MaxColumnIndex);
             if (columnCount <= 0)
             {
-                return;
+                return markdown.ToString().TrimEnd();
             }
 
-            markdown.AppendLine();
             markdown.Append("| ");
             markdown.Append(string.Join(" | ", BuildRowValues(headerRow, columnCount)));
             markdown.AppendLine(" |");
@@ -121,6 +127,8 @@ namespace Subtitle_draft_GMTPC.Services
                 markdown.Append(string.Join(" | ", values));
                 markdown.AppendLine(" |");
             }
+
+            return markdown.ToString().TrimEnd();
         }
 
         private static string[] BuildRowValues(RowData row, int columnCount)
@@ -188,7 +196,7 @@ namespace Subtitle_draft_GMTPC.Services
             for (var i = 0; i < rows.Count; i++)
             {
                 var row = rows[i];
-                if (row.NonEmptyCount < 3)
+                if (row.NonEmptyCount < 2)
                 {
                     continue;
                 }
@@ -357,6 +365,7 @@ namespace Subtitle_draft_GMTPC.Services
                 {
                     return sharedStrings[index];
                 }
+
                 return string.Empty;
             }
 
@@ -489,26 +498,18 @@ namespace Subtitle_draft_GMTPC.Services
 
         internal sealed class TutorialExcelWorkbookDocument
         {
-            public TutorialExcelWorkbookDocument(string title, string filePath)
+            public TutorialExcelWorkbookDocument(string title, string sourceUrl)
             {
                 Title = title;
-                FilePath = filePath;
+                SourceUrl = sourceUrl;
                 Sheets = new List<TutorialExcelSheetDocument>();
             }
 
             public string Title { get; }
 
-            public string FilePath { get; }
+            public string SourceUrl { get; }
 
             public List<TutorialExcelSheetDocument> Sheets { get; }
-
-            public string SourceUrl
-            {
-                get
-                {
-                    return new Uri(Path.GetFullPath(FilePath)).AbsoluteUri;
-                }
-            }
         }
 
         internal sealed class TutorialExcelSheetDocument
