@@ -17,11 +17,15 @@ namespace Subtitle_draft_GMTPC
 
         private readonly Dictionary<string, TutorialDocumentDefinition> _tutorialDocuments = CreateTutorialDocuments();
         private readonly Dictionary<string, string> _tutorialHtmlCache = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _tutorialShortcutsExcelHtmlCache = new Dictionary<string, string>();
         private bool _isTutorialsLoading = false;
+        private bool _isTutorialShortcutsExcelLoading = false;
         private bool _tutorialsInitialized = false;
+        private bool _tutorialShortcutsExcelInitialized = false;
         private bool _isTutorialSearchPanelOpen = false;
         private bool _tutorialSearchSuppressTextChanged = false;
         private string _tutorialSearchText = string.Empty;
+        private TutorialExcelMarkdownExporter.TutorialExcelWorkbookDocument _tutorialShortcutsExcelWorkbook;
 
         #endregion
 
@@ -58,7 +62,7 @@ namespace Subtitle_draft_GMTPC
                     "shortcut-default",
                     new TutorialDocumentDefinition(
                         "Default Shortcuts",
-                        Path.Combine("Tutorials", "Shortcuts", "shortcut MMT - Vietnamese.xlsx"))
+                        Path.Combine("Tutorials", "Shortcuts", "shortcut MMT - Vietnamese.md"))
                 },
                 {
                     "shortcut-translate-new",
@@ -128,6 +132,8 @@ namespace Subtitle_draft_GMTPC
                     _tutorialDocuments.Count,
                     DateTime.Now);
 
+                await LoadTutorialShortcutsExcelAsync(forceRefresh);
+
                 ReapplyTutorialSearchToCurrentBrowser();
             }
             catch (Exception ex)
@@ -149,10 +155,7 @@ namespace Subtitle_draft_GMTPC
                 return cachedHtml;
             }
 
-            var filePath = document.GetFullPath();
-            var markdown = Path.GetExtension(filePath).Equals(".xlsx", StringComparison.OrdinalIgnoreCase)
-                ? TutorialExcelMarkdownExporter.ExportMarkdown(filePath, document.Title)
-                : await LoadTutorialMarkdownAsync(document);
+            var markdown = await LoadTutorialMarkdownAsync(document);
             var html = GitHubMarkdownHtmlRenderer.RenderDocument(markdown, document.SourceUrl, document.Title);
             _tutorialHtmlCache[key] = html;
             return html;
@@ -170,6 +173,199 @@ namespace Subtitle_draft_GMTPC
             using (var reader = new StreamReader(stream, true))
             {
                 return await reader.ReadToEndAsync();
+            }
+        }
+
+        private async Task LoadTutorialShortcutsExcelAsync(bool forceRefresh)
+        {
+            if (_isTutorialShortcutsExcelLoading)
+            {
+                return;
+            }
+
+            if (_tutorialShortcutsExcelInitialized && !forceRefresh)
+            {
+                return;
+            }
+
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tutorials", "Shortcuts", "shortcut MMT - Vietnamese.xlsx");
+            if (!File.Exists(filePath))
+            {
+                TxtTutorialsExcelStatus.Text = "Không tìm thấy file shortcut Excel.";
+                if (BrowserTutorialShortcutsExcel != null)
+                {
+                    BrowserTutorialShortcutsExcel.NavigateToString(BuildTutorialPlaceholderHtml("Shortcuts Excel", "Không tìm thấy file shortcut MMT - Vietnamese.xlsx."));
+                }
+                return;
+            }
+
+            try
+            {
+                _isTutorialShortcutsExcelLoading = true;
+                TxtTutorialsExcelStatus.Text = "Đang tải workbook Excel...";
+
+                var workbook = await Task.Run(() => TutorialExcelMarkdownExporter.LoadWorkbook(filePath, "Shortcuts Excel"));
+                _tutorialShortcutsExcelWorkbook = workbook;
+                _tutorialShortcutsExcelHtmlCache.Clear();
+                _tutorialShortcutsExcelInitialized = true;
+
+                PopulateTutorialShortcutsExcelSheetTabs();
+                RenderCurrentTutorialShortcutsExcelSheet();
+            }
+            catch (Exception ex)
+            {
+                TxtTutorialsExcelStatus.Text = "Không thể tải workbook Excel.";
+                if (BrowserTutorialShortcutsExcel != null)
+                {
+                    BrowserTutorialShortcutsExcel.NavigateToString(BuildTutorialPlaceholderHtml("Shortcuts Excel", "Lỗi tải workbook: " + ex.Message));
+                }
+            }
+            finally
+            {
+                _isTutorialShortcutsExcelLoading = false;
+            }
+        }
+
+        private void PopulateTutorialShortcutsExcelSheetTabs()
+        {
+            if (TutorialShortcutsExcelSheetTabControl == null)
+            {
+                return;
+            }
+
+            var selectedSheetName = GetSelectedTutorialShortcutsExcelSheetName();
+            TutorialShortcutsExcelSheetTabControl.Items.Clear();
+
+            if (_tutorialShortcutsExcelWorkbook == null || _tutorialShortcutsExcelWorkbook.Sheets.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var sheet in _tutorialShortcutsExcelWorkbook.Sheets)
+            {
+                TutorialShortcutsExcelSheetTabControl.Items.Add(new TabItem
+                {
+                    Header = sheet.Name,
+                    Tag = sheet.Name
+                });
+            }
+
+            SelectTutorialShortcutsExcelSheet(selectedSheetName);
+        }
+
+        private void SelectTutorialShortcutsExcelSheet(string sheetName)
+        {
+            if (TutorialShortcutsExcelSheetTabControl == null || TutorialShortcutsExcelSheetTabControl.Items.Count == 0)
+            {
+                return;
+            }
+
+            for (var i = 0; i < TutorialShortcutsExcelSheetTabControl.Items.Count; i++)
+            {
+                var tabItem = TutorialShortcutsExcelSheetTabControl.Items[i] as TabItem;
+                if (tabItem == null)
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(sheetName) ||
+                    string.Equals(Convert.ToString(tabItem.Tag), sheetName, StringComparison.OrdinalIgnoreCase))
+                {
+                    TutorialShortcutsExcelSheetTabControl.SelectedIndex = i;
+                    return;
+                }
+            }
+
+            TutorialShortcutsExcelSheetTabControl.SelectedIndex = 0;
+        }
+
+        private void RenderCurrentTutorialShortcutsExcelSheet()
+        {
+            if (_tutorialShortcutsExcelWorkbook == null || BrowserTutorialShortcutsExcel == null)
+            {
+                return;
+            }
+
+            var sheet = GetSelectedTutorialShortcutsExcelSheet();
+            if (sheet == null)
+            {
+                BrowserTutorialShortcutsExcel.NavigateToString(BuildTutorialPlaceholderHtml("Shortcuts Excel", "Không có sheet nào để hiển thị."));
+                return;
+            }
+
+            var html = GetTutorialShortcutsExcelSheetHtml(sheet);
+            BrowserTutorialShortcutsExcel.NavigateToString(html);
+            TxtTutorialsExcelStatus.Text = string.Format(
+                "Workbook có {0} sheet{1}. Đang xem: {2}",
+                _tutorialShortcutsExcelWorkbook.Sheets.Count,
+                _tutorialShortcutsExcelWorkbook.Sheets.Count == 1 ? string.Empty : "s",
+                sheet.Name);
+        }
+
+        private TutorialExcelMarkdownExporter.TutorialExcelSheetDocument GetSelectedTutorialShortcutsExcelSheet()
+        {
+            var sheetName = GetSelectedTutorialShortcutsExcelSheetName();
+            if (string.IsNullOrWhiteSpace(sheetName) || _tutorialShortcutsExcelWorkbook == null)
+            {
+                return _tutorialShortcutsExcelWorkbook != null && _tutorialShortcutsExcelWorkbook.Sheets.Count > 0
+                    ? _tutorialShortcutsExcelWorkbook.Sheets[0]
+                    : null;
+            }
+
+            for (var i = 0; i < _tutorialShortcutsExcelWorkbook.Sheets.Count; i++)
+            {
+                var sheet = _tutorialShortcutsExcelWorkbook.Sheets[i];
+                if (string.Equals(sheet.Name, sheetName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return sheet;
+                }
+            }
+
+            return _tutorialShortcutsExcelWorkbook.Sheets.Count > 0 ? _tutorialShortcutsExcelWorkbook.Sheets[0] : null;
+        }
+
+        private string GetSelectedTutorialShortcutsExcelSheetName()
+        {
+            if (TutorialShortcutsExcelSheetTabControl == null || TutorialShortcutsExcelSheetTabControl.SelectedItem == null)
+            {
+                return string.Empty;
+            }
+
+            var selectedTab = TutorialShortcutsExcelSheetTabControl.SelectedItem as TabItem;
+            return selectedTab != null ? Convert.ToString(selectedTab.Tag ?? selectedTab.Header) : string.Empty;
+        }
+
+        private string GetTutorialShortcutsExcelSheetHtml(TutorialExcelMarkdownExporter.TutorialExcelSheetDocument sheet)
+        {
+            if (_tutorialShortcutsExcelWorkbook == null || sheet == null)
+            {
+                return BuildTutorialPlaceholderHtml("Shortcuts Excel", "Không có dữ liệu Excel.");
+            }
+
+            string html;
+            if (!_tutorialShortcutsExcelHtmlCache.TryGetValue(sheet.Name, out html))
+            {
+                html = GitHubMarkdownHtmlRenderer.RenderDocument(
+                    sheet.Markdown,
+                    _tutorialShortcutsExcelWorkbook.SourceUrl,
+                    sheet.Name);
+                _tutorialShortcutsExcelHtmlCache[sheet.Name] = html;
+            }
+
+            return html;
+        }
+
+        private void TutorialShortcutsExcelSheetTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isTutorialsLoading)
+            {
+                return;
+            }
+
+            RenderCurrentTutorialShortcutsExcelSheet();
+            if (_isTutorialSearchPanelOpen)
+            {
+                ApplyTutorialSearch(resetIndex: true);
             }
         }
 
@@ -365,6 +561,12 @@ namespace Subtitle_draft_GMTPC
             }
 
             var mainHeader = Convert.ToString(selectedMainTab.Header);
+            if (string.Equals(mainHeader, "Shortcuts Excel", StringComparison.OrdinalIgnoreCase))
+            {
+                var selectedSheet = GetSelectedTutorialShortcutsExcelSheet();
+                return selectedSheet != null ? selectedSheet.Name : mainHeader;
+            }
+
             if (!string.Equals(mainHeader, "Shortcuts", StringComparison.OrdinalIgnoreCase))
             {
                 return mainHeader;
@@ -554,6 +756,11 @@ namespace Subtitle_draft_GMTPC
             if (string.Equals(mainHeader, "Workflow", StringComparison.OrdinalIgnoreCase))
             {
                 return BrowserTutorialWorkflow;
+            }
+
+            if (string.Equals(mainHeader, "Shortcuts Excel", StringComparison.OrdinalIgnoreCase))
+            {
+                return BrowserTutorialShortcutsExcel;
             }
 
             var selectedShortcutsTab = TutorialShortcutsTabControl.SelectedItem as TabItem;

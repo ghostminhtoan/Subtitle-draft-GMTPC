@@ -15,13 +15,27 @@ namespace Subtitle_draft_GMTPC.Services
 
         public static string ExportMarkdown(string filePath, string title)
         {
+            var workbook = LoadWorkbook(filePath, title);
+            var markdown = new StringBuilder();
+            markdown.AppendLine("# " + (string.IsNullOrWhiteSpace(title) ? "Excel" : title));
+
+            foreach (var sheet in workbook.Sheets)
+            {
+                markdown.AppendLine();
+                markdown.Append(sheet.Markdown);
+            }
+
+            return markdown.ToString();
+        }
+
+        public static TutorialExcelWorkbookDocument LoadWorkbook(string filePath, string title)
+        {
+            var workbookDocument = new TutorialExcelWorkbookDocument(title, filePath);
+
             using (var archive = ZipFile.OpenRead(filePath))
             {
                 var sharedStrings = ReadSharedStrings(archive);
                 var sheets = ReadSheets(archive);
-
-                var markdown = new StringBuilder();
-                markdown.AppendLine("# " + (string.IsNullOrWhiteSpace(title) ? "Excel" : title));
 
                 for (var sheetIndex = 0; sheetIndex < sheets.Count; sheetIndex++)
                 {
@@ -32,17 +46,24 @@ namespace Subtitle_draft_GMTPC.Services
                         continue;
                     }
 
-                    if (sheets.Count > 1)
-                    {
-                        markdown.AppendLine();
-                        markdown.AppendLine("## " + CleanText(sheet.Name));
-                    }
-
-                    RenderRowsAsMarkdown(markdown, rows);
+                    var markdown = BuildSheetMarkdown(sheet, rows, sheets.Count > 1);
+                    workbookDocument.Sheets.Add(new TutorialExcelSheetDocument(sheet.Name, markdown));
                 }
-
-                return markdown.ToString();
             }
+
+            return workbookDocument;
+        }
+
+        private static string BuildSheetMarkdown(SheetInfo sheet, List<RowData> rows, bool includeSheetHeading)
+        {
+            var markdown = new StringBuilder();
+            if (includeSheetHeading)
+            {
+                markdown.AppendLine("## " + CleanText(sheet.Name));
+            }
+
+            RenderRowsAsMarkdown(markdown, rows);
+            return markdown.ToString().TrimEnd();
         }
 
         private static void RenderRowsAsMarkdown(StringBuilder markdown, List<RowData> rows)
@@ -464,6 +485,43 @@ namespace Subtitle_draft_GMTPC.Services
             public string Name { get; }
 
             public string TargetPath { get; }
+        }
+
+        internal sealed class TutorialExcelWorkbookDocument
+        {
+            public TutorialExcelWorkbookDocument(string title, string filePath)
+            {
+                Title = title;
+                FilePath = filePath;
+                Sheets = new List<TutorialExcelSheetDocument>();
+            }
+
+            public string Title { get; }
+
+            public string FilePath { get; }
+
+            public List<TutorialExcelSheetDocument> Sheets { get; }
+
+            public string SourceUrl
+            {
+                get
+                {
+                    return new Uri(Path.GetFullPath(FilePath)).AbsoluteUri;
+                }
+            }
+        }
+
+        internal sealed class TutorialExcelSheetDocument
+        {
+            public TutorialExcelSheetDocument(string name, string markdown)
+            {
+                Name = name;
+                Markdown = markdown;
+            }
+
+            public string Name { get; }
+
+            public string Markdown { get; }
         }
 
         private sealed class RowData

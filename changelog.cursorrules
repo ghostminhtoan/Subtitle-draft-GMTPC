@@ -602,5 +602,6 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - Tải nội dung Tutorials từ file local thay vì link GitHub
 - Đồng bộ source link Tutorials sang repo Subtitle-draft-GMTPC hiện tại
 - Hiển thị file Excel Tutorials/Shortcuts/shortcut MMT - Vietnamese.xlsx trong Tutorials
+- Tách file Excel sang tab Shortcuts Excel với tab sheet ở phía dưới
 
 ---

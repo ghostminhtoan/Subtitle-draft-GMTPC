@@ -739,6 +739,50 @@
                                 </TabItem>
                             </TabControl>
                         </TabItem>
+
+                        <TabItem Header="Shortcuts Excel">
+                            <Grid Margin="6">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Border Grid.Row="0" Style="{StaticResource PanelBorderStyle}" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="Shortcuts Excel"
+                                                   Foreground="#FFFFFF"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="TxtTutorialsExcelStatus"
+                                                   Text="Đang chuẩn bị tải workbook Excel..."
+                                                   Foreground="#A9B7D0"
+                                                   FontSize="12"
+                                                   Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Row="1" Style="{StaticResource PanelBorderStyle}">
+                                    <WebBrowser x:Name="BrowserTutorialShortcutsExcel"
+                                                Navigating="TutorialBrowser_Navigating"
+                                                LoadCompleted="TutorialBrowser_LoadCompleted"/>
+                                </Border>
+
+                                <Border Grid.Row="2"
+                                        Background="#1E1E1E"
+                                        BorderBrush="#3E3E42"
+                                        BorderThickness="1"
+                                        CornerRadius="4"
+                                        Margin="0,8,0,0">
+                                    <TabControl x:Name="TutorialShortcutsExcelSheetTabControl"
+                                                Background="#1E1E1E"
+                                                BorderBrush="#3E3E42"
+                                                BorderThickness="1"
+                                                TabStripPlacement="Bottom"
+                                                SelectionChanged="TutorialShortcutsExcelSheetTabControl_SelectionChanged"/>
+                                </Border>
+                            </Grid>
+                        </TabItem>
                     </TabControl>
 
                     <Border Grid.Row="2"
