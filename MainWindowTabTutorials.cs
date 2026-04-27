@@ -577,6 +577,8 @@ namespace Subtitle_draft_GMTPC
 
         private sealed class TutorialDocumentDefinition
         {
+            private const string GitHubRepoBaseUrl = "https://github.com/ghostminhtoan/Subtitle-draft-GMTPC/blob/master/";
+
             public TutorialDocumentDefinition(string title, string relativePath)
             {
                 Title = title;
@@ -596,8 +598,22 @@ namespace Subtitle_draft_GMTPC
             {
                 get
                 {
-                    return new Uri(GetFullPath()).AbsoluteUri;
+                    return BuildGitHubBlobUrl(RelativePath);
                 }
+            }
+
+            private static string BuildGitHubBlobUrl(string relativePath)
+            {
+                var normalizedPath = (relativePath ?? string.Empty).Replace('\\', '/');
+                var segments = normalizedPath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                var encodedSegments = new List<string>(segments.Length);
+
+                foreach (var segment in segments)
+                {
+                    encodedSegments.Add(Uri.EscapeDataString(segment));
+                }
+
+                return GitHubRepoBaseUrl + string.Join("/", encodedSegments);
             }
         }
 
