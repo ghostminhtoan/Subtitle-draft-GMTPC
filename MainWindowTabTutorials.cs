@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
+using Microsoft.Web.WebView2.Core;
 using Subtitle_draft_GMTPC.Services;
 
 namespace Subtitle_draft_GMTPC
@@ -36,6 +37,9 @@ namespace Subtitle_draft_GMTPC
 
         private const string TutorialShortcutsExcelRawUrl =
             "https://raw.githubusercontent.com/ghostminhtoan/Subtitle-draft-GMTPC/master/Tutorials/Shortcuts/shortcut%20MMT%20-%20Vietnamese.xlsx";
+
+        private const string TutorialShortcutsExcelOneDriveUrl =
+            "https://1drv.ms/x/c/d1ed72b79f8c17a6/IQDAswI2f9DlRrB8kq7G-4YSATja50yTHTFJE1rkAhUBMTQ?e=QU0aAY";
 
         #endregion
 
@@ -209,40 +213,28 @@ namespace Subtitle_draft_GMTPC
             try
             {
                 _isTutorialShortcutsExcelLoading = true;
-                TxtTutorialsExcelStatus.Text = "Đang tải workbook Excel...";
+                TxtTutorialsExcelStatus.Text = "Đang mở workbook Excel từ OneDrive...";
 
-                using (var request = new HttpRequestMessage(HttpMethod.Get, TutorialShortcutsExcelRawUrl))
+                if (BrowserTutorialShortcutsExcel == null)
                 {
-                    if (forceRefresh)
-                    {
-                        request.Headers.CacheControl = new CacheControlHeaderValue
-                        {
-                            NoCache = true,
-                            NoStore = true,
-                            MaxAge = TimeSpan.Zero
-                        };
-                        request.Headers.Pragma.ParseAdd("no-cache");
-                    }
-
-                    using (var response = await _tutorialsHttpClient.SendAsync(request))
-                    {
-                        response.EnsureSuccessStatusCode();
-                        using (var stream = await response.Content.ReadAsStreamAsync())
-                        using (var memory = new MemoryStream())
-                        {
-                            await stream.CopyToAsync(memory);
-                            memory.Position = 0;
-                            _tutorialShortcutsExcelWorkbook = await Task.Run(() =>
-                                TutorialExcelMarkdownExporter.LoadWorkbook(memory, "Shortcuts Excel", TutorialShortcutsExcelBlobUrl));
-                        }
-                    }
+                    throw new InvalidOperationException("Không tìm thấy khung hiển thị workbook Excel.");
                 }
 
-                _tutorialShortcutsExcelHtmlCache.Clear();
-                _tutorialShortcutsExcelInitialized = true;
+                await BrowserTutorialShortcutsExcel.EnsureCoreWebView2Async();
 
-                PopulateTutorialShortcutsExcelSheetTabs();
-                RenderCurrentTutorialShortcutsExcelSheet();
+                if (forceRefresh &&
+                    BrowserTutorialShortcutsExcel.CoreWebView2 != null &&
+                    BrowserTutorialShortcutsExcel.Source != null)
+                {
+                    BrowserTutorialShortcutsExcel.CoreWebView2.Reload();
+                }
+                else
+                {
+                    BrowserTutorialShortcutsExcel.Source = new System.Uri(TutorialShortcutsExcelOneDriveUrl);
+                }
+
+                _tutorialShortcutsExcelInitialized = true;
+                TxtTutorialsExcelStatus.Text = "Đã gửi yêu cầu mở workbook OneDrive...";
             }
             catch (Exception ex)
             {
@@ -399,6 +391,19 @@ namespace Subtitle_draft_GMTPC
             {
                 ApplyTutorialSearch(resetIndex: true);
             }
+        }
+
+        private void BrowserTutorialShortcutsExcel_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
+        {
+            if (e.IsSuccess)
+            {
+                TxtTutorialsExcelStatus.Text = string.Format(
+                    "Workbook OneDrive đã sẵn sàng lúc {0:HH:mm:ss}.",
+                    DateTime.Now);
+                return;
+            }
+
+            TxtTutorialsExcelStatus.Text = "Không thể mở workbook Excel từ OneDrive.";
         }
 
         private void ShowTutorialLoadingState()
@@ -788,11 +793,6 @@ namespace Subtitle_draft_GMTPC
             if (string.Equals(mainHeader, "Workflow", StringComparison.OrdinalIgnoreCase))
             {
                 return BrowserTutorialWorkflow;
-            }
-
-            if (string.Equals(mainHeader, "Shortcuts Excel", StringComparison.OrdinalIgnoreCase))
-            {
-                return BrowserTutorialShortcutsExcel;
             }
 
             var selectedShortcutsTab = TutorialShortcutsTabControl.SelectedItem as TabItem;

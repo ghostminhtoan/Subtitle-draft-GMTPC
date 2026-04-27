@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Subtitle_draft_GMTPC"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d"
         Title="Subtitle draft GMTPC - Phụ đề .SRT / .ASS"
         Height="800" Width="900"
@@ -763,9 +764,8 @@
                                 </Border>
 
                                 <Border Grid.Row="1" Style="{StaticResource PanelBorderStyle}">
-                                    <WebBrowser x:Name="BrowserTutorialShortcutsExcel"
-                                                Navigating="TutorialBrowser_Navigating"
-                                                LoadCompleted="TutorialBrowser_LoadCompleted"/>
+                                    <wv2:WebView2 x:Name="BrowserTutorialShortcutsExcel"
+                                                  NavigationCompleted="BrowserTutorialShortcutsExcel_NavigationCompleted"/>
                                 </Border>
 
                                 <Border Grid.Row="2"
@@ -773,7 +773,8 @@
                                         BorderBrush="#3E3E42"
                                         BorderThickness="1"
                                         CornerRadius="4"
-                                        Margin="0,8,0,0">
+                                        Margin="0,8,0,0"
+                                        Visibility="Collapsed">
                                     <TabControl x:Name="TutorialShortcutsExcelSheetTabControl"
                                                 Background="#1E1E1E"
                                                 BorderBrush="#3E3E42"
@@ -793,12 +794,12 @@
                             Margin="8,0,8,8">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <TextBlock Text="Nguồn: " Foreground="#808080" FontSize="12"/>
-                            <TextBlock Text="Tutorials local"
+                            <TextBlock Text="Tutorials local + OneDrive workbook"
                                        Foreground="#4DA3FF"
                                        FontSize="12"
                                        FontWeight="SemiBold"/>
                             <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
-                            <TextBlock Text="Render Markdown local với bảng, in đậm, bullet và ảnh"
+                            <TextBlock Text="Tab .md vẫn render Markdown, riêng Shortcuts Excel hiển thị workbook trực tiếp"
                                        Foreground="#808080"
                                        FontSize="12"/>
                         </StackPanel>
