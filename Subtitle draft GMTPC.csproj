@@ -58,5 +58,7 @@
     <Reference Include="System.Management" />
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
 </Project>

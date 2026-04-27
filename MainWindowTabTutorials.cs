@@ -58,7 +58,7 @@ namespace Subtitle_draft_GMTPC
                     "shortcut-default",
                     new TutorialDocumentDefinition(
                         "Default Shortcuts",
-                        Path.Combine("Tutorials", "Shortcuts", "shortcut MMT - Vietnamese.md"))
+                        Path.Combine("Tutorials", "Shortcuts", "shortcut MMT - Vietnamese.xlsx"))
                 },
                 {
                     "shortcut-translate-new",
@@ -149,7 +149,10 @@ namespace Subtitle_draft_GMTPC
                 return cachedHtml;
             }
 
-            var markdown = await LoadTutorialMarkdownAsync(document);
+            var filePath = document.GetFullPath();
+            var markdown = Path.GetExtension(filePath).Equals(".xlsx", StringComparison.OrdinalIgnoreCase)
+                ? TutorialExcelMarkdownExporter.ExportMarkdown(filePath, document.Title)
+                : await LoadTutorialMarkdownAsync(document);
             var html = GitHubMarkdownHtmlRenderer.RenderDocument(markdown, document.SourceUrl, document.Title);
             _tutorialHtmlCache[key] = html;
             return html;
