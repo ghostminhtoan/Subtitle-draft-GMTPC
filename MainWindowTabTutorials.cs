@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using Microsoft.Web.WebView2.Core;
+using Microsoft.Web.WebView2.Wpf;
 using Subtitle_draft_GMTPC.Services;
 
 namespace Subtitle_draft_GMTPC
@@ -22,7 +23,6 @@ namespace Subtitle_draft_GMTPC
 
         private readonly Dictionary<string, TutorialDocumentDefinition> _tutorialDocuments = CreateTutorialDocuments();
         private readonly Dictionary<string, string> _tutorialHtmlCache = new Dictionary<string, string>();
-        private readonly Dictionary<string, string> _tutorialShortcutsExcelHtmlCache = new Dictionary<string, string>();
         private bool _isTutorialsLoading = false;
         private bool _isTutorialShortcutsExcelLoading = false;
         private bool _tutorialsInitialized = false;
@@ -30,13 +30,6 @@ namespace Subtitle_draft_GMTPC
         private bool _isTutorialSearchPanelOpen = false;
         private bool _tutorialSearchSuppressTextChanged = false;
         private string _tutorialSearchText = string.Empty;
-        private TutorialExcelMarkdownExporter.TutorialExcelWorkbookDocument _tutorialShortcutsExcelWorkbook;
-
-        private const string TutorialShortcutsExcelBlobUrl =
-            "https://github.com/ghostminhtoan/Subtitle-draft-GMTPC/blob/master/Tutorials/Shortcuts/shortcut%20MMT%20-%20Vietnamese.xlsx";
-
-        private const string TutorialShortcutsExcelRawUrl =
-            "https://raw.githubusercontent.com/ghostminhtoan/Subtitle-draft-GMTPC/master/Tutorials/Shortcuts/shortcut%20MMT%20-%20Vietnamese.xlsx";
 
         private const string TutorialShortcutsExcelOneDriveUrl =
             "https://1drv.ms/x/c/d1ed72b79f8c17a6/IQDAswI2f9DlRrB8kq7G-4YSATja50yTHTFJE1rkAhUBMTQ?e=QU0aAY";
@@ -250,149 +243,6 @@ namespace Subtitle_draft_GMTPC
             }
         }
 
-        private void PopulateTutorialShortcutsExcelSheetTabs()
-        {
-            if (TutorialShortcutsExcelSheetTabControl == null)
-            {
-                return;
-            }
-
-            var selectedSheetName = GetSelectedTutorialShortcutsExcelSheetName();
-            TutorialShortcutsExcelSheetTabControl.Items.Clear();
-
-            if (_tutorialShortcutsExcelWorkbook == null || _tutorialShortcutsExcelWorkbook.Sheets.Count == 0)
-            {
-                return;
-            }
-
-            foreach (var sheet in _tutorialShortcutsExcelWorkbook.Sheets)
-            {
-                TutorialShortcutsExcelSheetTabControl.Items.Add(new TabItem
-                {
-                    Header = sheet.Name,
-                    Tag = sheet.Name
-                });
-            }
-
-            SelectTutorialShortcutsExcelSheet(selectedSheetName);
-        }
-
-        private void SelectTutorialShortcutsExcelSheet(string sheetName)
-        {
-            if (TutorialShortcutsExcelSheetTabControl == null || TutorialShortcutsExcelSheetTabControl.Items.Count == 0)
-            {
-                return;
-            }
-
-            for (var i = 0; i < TutorialShortcutsExcelSheetTabControl.Items.Count; i++)
-            {
-                var tabItem = TutorialShortcutsExcelSheetTabControl.Items[i] as TabItem;
-                if (tabItem == null)
-                {
-                    continue;
-                }
-
-                if (string.IsNullOrWhiteSpace(sheetName) ||
-                    string.Equals(Convert.ToString(tabItem.Tag), sheetName, StringComparison.OrdinalIgnoreCase))
-                {
-                    TutorialShortcutsExcelSheetTabControl.SelectedIndex = i;
-                    return;
-                }
-            }
-
-            TutorialShortcutsExcelSheetTabControl.SelectedIndex = 0;
-        }
-
-        private void RenderCurrentTutorialShortcutsExcelSheet()
-        {
-            if (_tutorialShortcutsExcelWorkbook == null || BrowserTutorialShortcutsExcel == null)
-            {
-                return;
-            }
-
-            var sheet = GetSelectedTutorialShortcutsExcelSheet();
-            if (sheet == null)
-            {
-                BrowserTutorialShortcutsExcel.NavigateToString(BuildTutorialPlaceholderHtml("Shortcuts Excel", "Không có sheet nào để hiển thị."));
-                return;
-            }
-
-            var html = GetTutorialShortcutsExcelSheetHtml(sheet);
-            BrowserTutorialShortcutsExcel.NavigateToString(html);
-            TxtTutorialsExcelStatus.Text = string.Format(
-                "Workbook có {0} sheet{1}. Đang xem: {2}",
-                _tutorialShortcutsExcelWorkbook.Sheets.Count,
-                _tutorialShortcutsExcelWorkbook.Sheets.Count == 1 ? string.Empty : "s",
-                sheet.Name);
-        }
-
-        private TutorialExcelMarkdownExporter.TutorialExcelSheetDocument GetSelectedTutorialShortcutsExcelSheet()
-        {
-            var sheetName = GetSelectedTutorialShortcutsExcelSheetName();
-            if (string.IsNullOrWhiteSpace(sheetName) || _tutorialShortcutsExcelWorkbook == null)
-            {
-                return _tutorialShortcutsExcelWorkbook != null && _tutorialShortcutsExcelWorkbook.Sheets.Count > 0
-                    ? _tutorialShortcutsExcelWorkbook.Sheets[0]
-                    : null;
-            }
-
-            for (var i = 0; i < _tutorialShortcutsExcelWorkbook.Sheets.Count; i++)
-            {
-                var sheet = _tutorialShortcutsExcelWorkbook.Sheets[i];
-                if (string.Equals(sheet.Name, sheetName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return sheet;
-                }
-            }
-
-            return _tutorialShortcutsExcelWorkbook.Sheets.Count > 0 ? _tutorialShortcutsExcelWorkbook.Sheets[0] : null;
-        }
-
-        private string GetSelectedTutorialShortcutsExcelSheetName()
-        {
-            if (TutorialShortcutsExcelSheetTabControl == null || TutorialShortcutsExcelSheetTabControl.SelectedItem == null)
-            {
-                return string.Empty;
-            }
-
-            var selectedTab = TutorialShortcutsExcelSheetTabControl.SelectedItem as TabItem;
-            return selectedTab != null ? Convert.ToString(selectedTab.Tag ?? selectedTab.Header) : string.Empty;
-        }
-
-        private string GetTutorialShortcutsExcelSheetHtml(TutorialExcelMarkdownExporter.TutorialExcelSheetDocument sheet)
-        {
-            if (_tutorialShortcutsExcelWorkbook == null || sheet == null)
-            {
-                return BuildTutorialPlaceholderHtml("Shortcuts Excel", "Không có dữ liệu Excel.");
-            }
-
-            string html;
-            if (!_tutorialShortcutsExcelHtmlCache.TryGetValue(sheet.Name, out html))
-            {
-                html = GitHubMarkdownHtmlRenderer.RenderDocument(
-                    sheet.Markdown,
-                    _tutorialShortcutsExcelWorkbook.SourceUrl,
-                    sheet.Name);
-                _tutorialShortcutsExcelHtmlCache[sheet.Name] = html;
-            }
-
-            return html;
-        }
-
-        private void TutorialShortcutsExcelSheetTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_isTutorialsLoading)
-            {
-                return;
-            }
-
-            RenderCurrentTutorialShortcutsExcelSheet();
-            if (_isTutorialSearchPanelOpen)
-            {
-                ApplyTutorialSearch(resetIndex: true);
-            }
-        }
-
         private void BrowserTutorialShortcutsExcel_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
             if (e.IsSuccess)
@@ -400,6 +250,7 @@ namespace Subtitle_draft_GMTPC
                 TxtTutorialsExcelStatus.Text = string.Format(
                     "Workbook OneDrive đã sẵn sàng lúc {0:HH:mm:ss}.",
                     DateTime.Now);
+                ReapplyTutorialSearchToCurrentBrowser();
                 return;
             }
 
@@ -490,6 +341,7 @@ namespace Subtitle_draft_GMTPC
                 return;
             }
 
+            UpdateTutorialSearchModeForCurrentTab();
             TxtTutorialsStatus.Text = "Đang xem: " + GetCurrentTutorialTitle();
             ReapplyTutorialSearchToCurrentBrowser();
         }
@@ -584,6 +436,19 @@ namespace Subtitle_draft_GMTPC
             ApplyTutorialSearch(resetIndex: true);
         }
 
+        private void UpdateTutorialSearchModeForCurrentTab()
+        {
+            var excelActive = IsShortcutsExcelTabActive();
+            if (ChkTutorialRegex != null)
+            {
+                ChkTutorialRegex.IsEnabled = !excelActive;
+                if (excelActive && ChkTutorialRegex.IsChecked == true)
+                {
+                    ChkTutorialRegex.IsChecked = false;
+                }
+            }
+        }
+
         private string GetCurrentTutorialTitle()
         {
             if (TutorialsTabControl.SelectedItem == null)
@@ -598,12 +463,6 @@ namespace Subtitle_draft_GMTPC
             }
 
             var mainHeader = Convert.ToString(selectedMainTab.Header);
-            if (string.Equals(mainHeader, "Shortcuts Excel", StringComparison.OrdinalIgnoreCase))
-            {
-                var selectedSheet = GetSelectedTutorialShortcutsExcelSheet();
-                return selectedSheet != null ? selectedSheet.Name : mainHeader;
-            }
-
             if (!string.Equals(mainHeader, "Shortcuts", StringComparison.OrdinalIgnoreCase))
             {
                 return mainHeader;
@@ -653,18 +512,18 @@ namespace Subtitle_draft_GMTPC
             BtnToggleTutorialSearch.Content = "🔎 Tìm trong Tutorials";
         }
 
-        private void ClearTutorialSearch()
+        private async void ClearTutorialSearch()
         {
             _tutorialSearchSuppressTextChanged = true;
             TxtTutorialSearchBox.Text = string.Empty;
             _tutorialSearchSuppressTextChanged = false;
             _tutorialSearchText = string.Empty;
             TxtTutorialSearchStatus.Text = string.Empty;
-            InvokeTutorialSearchScript("tutorialSearchClear");
+            await ClearTutorialSearchAsync();
             TxtTutorialSearchBox.Focus();
         }
 
-        private void NavigateTutorialSearch(bool forward)
+        private async void NavigateTutorialSearch(bool forward)
         {
             if (string.IsNullOrWhiteSpace(TxtTutorialSearchBox.Text))
             {
@@ -673,29 +532,37 @@ namespace Subtitle_draft_GMTPC
             }
 
             _tutorialSearchText = TxtTutorialSearchBox.Text;
-            var scriptName = forward ? "tutorialSearchNext" : "tutorialSearchPrev";
-            var result = InvokeTutorialSearchScript(scriptName);
+            var result = IsShortcutsExcelTabActive()
+                ? await NavigateTutorialShortcutsExcelSearchAsync(forward)
+                : InvokeTutorialSearchScript(forward ? "tutorialSearchNext" : "tutorialSearchPrev");
             UpdateTutorialSearchStatus(result);
         }
 
-        private void ApplyTutorialSearch(bool resetIndex)
+        private async void ApplyTutorialSearch(bool resetIndex)
         {
             _tutorialSearchText = TxtTutorialSearchBox.Text;
 
             if (string.IsNullOrWhiteSpace(_tutorialSearchText))
             {
                 TxtTutorialSearchStatus.Text = string.Empty;
-                InvokeTutorialSearchScript("tutorialSearchClear");
+                await ClearTutorialSearchAsync();
                 return;
             }
 
-            var result = InvokeTutorialSearchScript(
-                "tutorialSearchApply",
-                _tutorialSearchText,
-                ChkTutorialMatchCase.IsChecked == true,
-                ChkTutorialWholeWord.IsChecked == true,
-                ChkTutorialRegex.IsChecked == true,
-                resetIndex);
+            var result = IsShortcutsExcelTabActive()
+                ? await ApplyTutorialShortcutsExcelSearchAsync(
+                    _tutorialSearchText,
+                    ChkTutorialMatchCase.IsChecked == true,
+                    ChkTutorialWholeWord.IsChecked == true,
+                    ChkTutorialRegex.IsChecked == true,
+                    resetIndex)
+                : InvokeTutorialSearchScript(
+                    "tutorialSearchApply",
+                    _tutorialSearchText,
+                    ChkTutorialMatchCase.IsChecked == true,
+                    ChkTutorialWholeWord.IsChecked == true,
+                    ChkTutorialRegex.IsChecked == true,
+                    resetIndex);
 
             UpdateTutorialSearchStatus(result);
         }
@@ -727,6 +594,90 @@ namespace Subtitle_draft_GMTPC
             {
                 return null;
             }
+        }
+
+        private async Task<string> ApplyTutorialShortcutsExcelSearchAsync(
+            string searchText,
+            bool matchCase,
+            bool wholeWord,
+            bool useRegex,
+            bool resetIndex)
+        {
+            var webView = GetCurrentTutorialExcelWebView();
+            if (webView?.CoreWebView2 == null)
+            {
+                return null;
+            }
+
+            var find = webView.CoreWebView2.Find;
+            if (resetIndex)
+            {
+                find.Stop();
+            }
+
+            var options = webView.CoreWebView2.Environment.CreateFindOptions();
+            options.FindTerm = searchText ?? string.Empty;
+            options.IsCaseSensitive = matchCase;
+            options.ShouldMatchWord = wholeWord;
+            options.ShouldHighlightAllMatches = true;
+            options.SuppressDefaultFindDialog = true;
+
+            await find.StartAsync(options);
+            return BuildTutorialShortcutsExcelFindResult(find);
+        }
+
+        private async Task<string> NavigateTutorialShortcutsExcelSearchAsync(bool forward)
+        {
+            var webView = GetCurrentTutorialExcelWebView();
+            if (webView?.CoreWebView2 == null)
+            {
+                return null;
+            }
+
+            var find = webView.CoreWebView2.Find;
+            if (find.MatchCount <= 0)
+            {
+                return await ApplyTutorialShortcutsExcelSearchAsync(
+                    TxtTutorialSearchBox.Text,
+                    ChkTutorialMatchCase.IsChecked == true,
+                    ChkTutorialWholeWord.IsChecked == true,
+                    ChkTutorialRegex.IsChecked == true,
+                    resetIndex: true);
+            }
+
+            if (forward)
+            {
+                find.FindNext();
+            }
+            else
+            {
+                find.FindPrevious();
+            }
+
+            return BuildTutorialShortcutsExcelFindResult(find);
+        }
+
+        private Task ClearTutorialSearchAsync()
+        {
+            var webView = GetCurrentTutorialExcelWebView();
+            if (webView?.CoreWebView2 != null)
+            {
+                webView.CoreWebView2.Find.Stop();
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private static string BuildTutorialShortcutsExcelFindResult(CoreWebView2Find find)
+        {
+            if (find == null)
+            {
+                return null;
+            }
+
+            var total = find.MatchCount;
+            var current = find.ActiveMatchIndex < 0 ? 0 : find.ActiveMatchIndex;
+            return "ok|" + total + "|" + current + "|Shortcuts Excel";
         }
 
         private void UpdateTutorialSearchStatus(string result)
@@ -795,7 +746,7 @@ namespace Subtitle_draft_GMTPC
                 return BrowserTutorialWorkflow;
             }
 
-            var selectedShortcutsTab = TutorialShortcutsTabControl.SelectedItem as TabItem;
+            var selectedShortcutsTab = TutorialShortcutsTabControl != null ? TutorialShortcutsTabControl.SelectedItem as TabItem : null;
             var shortcutsHeader = selectedShortcutsTab != null ? Convert.ToString(selectedShortcutsTab.Header) : "Default Shortcuts";
 
             switch (shortcutsHeader)
@@ -811,6 +762,30 @@ namespace Subtitle_draft_GMTPC
                 default:
                     return BrowserTutorialShortcutDefault;
             }
+        }
+
+        private WebView2 GetCurrentTutorialExcelWebView()
+        {
+            var selectedMainTab = TutorialsTabControl.SelectedItem as TabItem;
+            if (selectedMainTab == null)
+            {
+                return null;
+            }
+
+            return string.Equals(Convert.ToString(selectedMainTab.Header), "Shortcuts Excel", StringComparison.OrdinalIgnoreCase)
+                ? BrowserTutorialShortcutsExcel
+                : null;
+        }
+
+        private bool IsShortcutsExcelTabActive()
+        {
+            var selectedMainTab = TutorialsTabControl.SelectedItem as TabItem;
+            if (selectedMainTab == null)
+            {
+                return false;
+            }
+
+            return string.Equals(Convert.ToString(selectedMainTab.Header), "Shortcuts Excel", StringComparison.OrdinalIgnoreCase);
         }
 
         #endregion

@@ -560,7 +560,7 @@
                     </Grid.RowDefinitions>
 
                     <Border Grid.Row="0" Style="{StaticResource PanelBorderStyle}"
-                            Background="#1F2330" BorderBrush="#3F4E6A" Margin="8,8,8,4">
+                            Background="#1F2330" BorderBrush="#3F4E6A" Margin="8,4,8,2">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -571,22 +571,26 @@
                                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                                     <Button x:Name="BtnToggleTutorialSearch" Content="🔎 Tìm trong Tutorials"
                                             Style="{StaticResource AccentButtonStyle}"
+                                            Padding="10,4"
+                                            FontSize="12"
                                             Margin="0,0,8,0"
                                             Click="BtnToggleTutorialSearch_Click"/>
                                     <Button x:Name="BtnRefreshTutorials" Content="🔄 Tải lại từ Tutorials"
                                             Style="{StaticResource AccentButtonStyle}"
+                                            Padding="10,4"
+                                            FontSize="12"
                                             Click="BtnRefreshTutorials_Click"/>
                                 </StackPanel>
                                 <StackPanel>
                                     <TextBlock Text="Tutorials"
                                                Foreground="#FFFFFF"
-                                               FontSize="18"
+                                               FontSize="16"
                                                FontWeight="SemiBold"/>
                                     <TextBlock x:Name="TxtTutorialsStatus"
                                                Text="Đang chuẩn bị tải nội dung từ Tutorials..."
                                                Foreground="#A9B7D0"
-                                               FontSize="12"
-                                               Margin="0,4,0,0"/>
+                                               FontSize="11"
+                                               Margin="0,2,0,0"/>
                                 </StackPanel>
                             </DockPanel>
 
@@ -596,74 +600,74 @@
                                     BorderBrush="#324257"
                                     BorderThickness="1"
                                     CornerRadius="6"
-                                    Padding="10"
-                                    Margin="0,10,0,0"
+                                    Padding="8"
+                                    Margin="0,6,0,0"
                                     Visibility="Collapsed">
                                 <WrapPanel>
                                     <TextBlock Text="Find:"
                                                Foreground="#E0E0E0"
-                                               FontSize="12"
+                                               FontSize="11"
                                                VerticalAlignment="Center"
-                                               Margin="0,0,8,0"/>
+                                               Margin="0,0,6,0"/>
                                     <TextBox x:Name="TxtTutorialSearchBox"
-                                             Width="260"
-                                             Height="28"
-                                             FontSize="13"
+                                             Width="240"
+                                             Height="26"
+                                             FontSize="12"
                                              Background="#2D2D2D"
                                              Foreground="#E0E0E0"
                                              BorderBrush="#4A5C74"
                                              BorderThickness="1"
-                                             Padding="8,4"
+                                             Padding="7,3"
                                              TextChanged="TxtTutorialSearchBox_TextChanged"
                                              KeyDown="TxtTutorialSearchBox_KeyDown"/>
                                     <Button x:Name="BtnTutorialSearchPrev"
                                             Content="◀ Previous"
                                             Style="{StaticResource AccentButtonStyle}"
-                                            Padding="10,4"
-                                            FontSize="12"
+                                            Padding="8,3"
+                                            FontSize="11"
                                             Margin="8,0,0,0"
                                             Click="BtnTutorialSearchPrev_Click"/>
                                     <Button x:Name="BtnTutorialSearchNext"
                                             Content="Next ▶"
                                             Style="{StaticResource AccentButtonStyle}"
-                                            Padding="10,4"
-                                            FontSize="12"
+                                            Padding="8,3"
+                                            FontSize="11"
                                             Margin="4,0,0,0"
                                             Click="BtnTutorialSearchNext_Click"/>
                                     <Button x:Name="BtnTutorialSearchClear"
                                             Content="✕ Clear"
                                             Style="{StaticResource AccentButtonStyle}"
-                                            Padding="10,4"
-                                            FontSize="12"
+                                            Padding="8,3"
+                                            FontSize="11"
                                             Margin="4,0,0,0"
                                             Click="BtnTutorialSearchClear_Click"/>
                                     <CheckBox x:Name="ChkTutorialMatchCase"
                                               Content="Match case"
                                               Foreground="#D6DFEA"
                                               VerticalAlignment="Center"
-                                              Margin="12,0,0,0"
+                                              Margin="10,0,0,0"
                                               Checked="TutorialSearchOption_Changed"
                                               Unchecked="TutorialSearchOption_Changed"/>
                                     <CheckBox x:Name="ChkTutorialWholeWord"
                                               Content="Whole word"
                                               Foreground="#D6DFEA"
                                               VerticalAlignment="Center"
-                                              Margin="12,0,0,0"
+                                              Margin="10,0,0,0"
                                               Checked="TutorialSearchOption_Changed"
                                               Unchecked="TutorialSearchOption_Changed"/>
                                     <CheckBox x:Name="ChkTutorialRegex"
                                               Content="Regex"
                                               Foreground="#D6DFEA"
                                               VerticalAlignment="Center"
-                                              Margin="12,0,0,0"
+                                              Margin="10,0,0,0"
                                               Checked="TutorialSearchOption_Changed"
                                               Unchecked="TutorialSearchOption_Changed"/>
                                     <TextBlock x:Name="TxtTutorialSearchStatus"
-                                               Text=""
-                                               Foreground="#9CCBFF"
-                                               FontSize="12"
-                                               VerticalAlignment="Center"
-                                               Margin="12,0,0,0"/>
+                                              Text=""
+                                              Foreground="#9CCBFF"
+                                              FontSize="11"
+                                              VerticalAlignment="Center"
+                                              Margin="10,0,0,0"/>
                                 </WrapPanel>
                             </Border>
                         </Grid>
@@ -768,20 +772,6 @@
                                                   NavigationCompleted="BrowserTutorialShortcutsExcel_NavigationCompleted"/>
                                 </Border>
 
-                                <Border Grid.Row="2"
-                                        Background="#1E1E1E"
-                                        BorderBrush="#3E3E42"
-                                        BorderThickness="1"
-                                        CornerRadius="4"
-                                        Margin="0,8,0,0"
-                                        Visibility="Collapsed">
-                                    <TabControl x:Name="TutorialShortcutsExcelSheetTabControl"
-                                                Background="#1E1E1E"
-                                                BorderBrush="#3E3E42"
-                                                BorderThickness="1"
-                                                TabStripPlacement="Bottom"
-                                                SelectionChanged="TutorialShortcutsExcelSheetTabControl_SelectionChanged"/>
-                                </Border>
                             </Grid>
                         </TabItem>
                     </TabControl>
