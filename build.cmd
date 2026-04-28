@@ -82,23 +82,18 @@ if %ERRORLEVEL% NEQ 0 (
 )
 echo.
 
-:: Copy runtime dependencies to root so the app can run from a portable folder.
-echo Copying runtime dependencies to root folder...
-copy /Y "bin\Debug\net48\Microsoft.Web.WebView2.Core.dll" "Microsoft.Web.WebView2.Core.dll" >nul
-copy /Y "bin\Debug\net48\Microsoft.Web.WebView2.WinForms.dll" "Microsoft.Web.WebView2.WinForms.dll" >nul
-copy /Y "bin\Debug\net48\Microsoft.Web.WebView2.Wpf.dll" "Microsoft.Web.WebView2.Wpf.dll" >nul
-copy /Y "bin\Debug\net48\WebView2Loader.dll" "WebView2Loader.dll" >nul
+:: Keep the root folder clean and portable: only copy the app executable and
+:: light metadata that may still be useful during debugging.
+echo Cleaning old WebView2 runtime artifacts from root folder...
+if exist "Microsoft.Web.WebView2.Core.dll" del /Q "Microsoft.Web.WebView2.Core.dll"
+if exist "Microsoft.Web.WebView2.WinForms.dll" del /Q "Microsoft.Web.WebView2.WinForms.dll"
+if exist "Microsoft.Web.WebView2.Wpf.dll" del /Q "Microsoft.Web.WebView2.Wpf.dll"
+if exist "WebView2Loader.dll" del /Q "WebView2Loader.dll"
+if exist "Subtitle draft GMTPC.exe.WebView2" rmdir /S /Q "Subtitle draft GMTPC.exe.WebView2"
+if exist "runtimes" rmdir /S /Q "runtimes"
 copy /Y "bin\Debug\net48\Subtitle draft GMTPC.exe.config" "Subtitle draft GMTPC.exe.config" >nul
 copy /Y "bin\Debug\net48\Subtitle draft GMTPC.pdb" "Subtitle draft GMTPC.pdb" >nul
-if exist "bin\Debug\net48\Subtitle draft GMTPC.exe.WebView2" (
-    if exist "Subtitle draft GMTPC.exe.WebView2" rmdir /S /Q "Subtitle draft GMTPC.exe.WebView2"
-    xcopy /E /I /Y "bin\Debug\net48\Subtitle draft GMTPC.exe.WebView2" "Subtitle draft GMTPC.exe.WebView2" >nul
-)
-if exist "bin\Debug\net48\runtimes" (
-    if exist "runtimes" rmdir /S /Q "runtimes"
-    xcopy /E /I /Y "bin\Debug\net48\runtimes" "runtimes" >nul
-)
-echo [OK] Runtime dependencies copied to root.
+echo [OK] Portable root cleaned.
 echo.
 :: Append portable payload to the root exe so it can self-extract when copied alone.
 echo Embedding portable payload into exe...

@@ -1,8 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Navigation;
 
 namespace Subtitle_draft_GMTPC
 {
@@ -15,64 +13,20 @@ namespace Subtitle_draft_GMTPC
 
         public string WorkbookUrl { get; set; }
 
-        public WebBrowser WorkbookBrowser
-        {
-            get { return ExcelBrowser; }
-        }
-
         public void ReloadWorkbook()
         {
-            NavigateWorkbook();
+            OpenWorkbookExternalBrowser();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             try
             {
-                NavigateWorkbook();
+                OpenWorkbookExternalBrowser();
             }
             catch (Exception ex)
             {
                 TxtStatus.Text = "Không thể mở workbook: " + ex.Message;
-            }
-        }
-
-        private void ExcelBrowser_LoadCompleted(object sender, NavigationEventArgs e)
-        {
-            TxtStatus.Text = "Workbook OneDrive đã sẵn sàng lúc " + DateTime.Now.ToString("HH:mm:ss") + ".";
-        }
-
-        private void ExcelBrowser_Navigating(object sender, NavigatingCancelEventArgs e)
-        {
-            if (e.Uri == null)
-            {
-                return;
-            }
-
-            var target = e.Uri.AbsoluteUri;
-            if (string.Equals(target, "about:blank", StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            var expected = BuildViewerUrl(WorkbookUrl);
-            if (string.Equals(target, expected, StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            e.Cancel = true;
-
-            try
-            {
-                Process.Start(new ProcessStartInfo(target)
-                {
-                    UseShellExecute = true
-                });
-            }
-            catch (Exception ex)
-            {
-                TxtStatus.Text = "Không thể mở liên kết: " + ex.Message;
             }
         }
 
@@ -82,6 +36,11 @@ namespace Subtitle_draft_GMTPC
         }
 
         private void BtnOpenExternalBrowser_Click(object sender, RoutedEventArgs e)
+        {
+            OpenWorkbookExternalBrowser();
+        }
+
+        private void OpenWorkbookExternalBrowser()
         {
             if (string.IsNullOrWhiteSpace(WorkbookUrl))
             {
@@ -95,23 +54,12 @@ namespace Subtitle_draft_GMTPC
                 {
                     UseShellExecute = true
                 });
-                TxtStatus.Text = "Đã mở workbook trong trình duyệt mặc định.";
+                TxtStatus.Text = "Đã mở workbook trong trình duyệt mặc định lúc " + DateTime.Now.ToString("HH:mm:ss") + ".";
             }
             catch (Exception ex)
             {
                 TxtStatus.Text = "Không thể mở trình duyệt: " + ex.Message;
             }
-        }
-
-        private void NavigateWorkbook()
-        {
-            if (string.IsNullOrWhiteSpace(WorkbookUrl))
-            {
-                TxtStatus.Text = "Chưa có workbook để mở.";
-                return;
-            }
-
-            ExcelBrowser.Navigate(BuildViewerUrl(WorkbookUrl));
         }
 
         private static string BuildViewerUrl(string workbookUrl)

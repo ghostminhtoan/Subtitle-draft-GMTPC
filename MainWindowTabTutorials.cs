@@ -224,7 +224,7 @@ namespace Subtitle_draft_GMTPC
             try
             {
                 _isTutorialShortcutsExcelLoading = true;
-                TxtTutorialsExcelStatus.Text = "Đang mở workbook Excel từ OneDrive...";
+                TxtTutorialsExcelStatus.Text = "Đang mở workbook Excel trong trình duyệt mặc định...";
 
                 var popup = EnsureTutorialsWorkbookPopupWindow();
                 popup.WorkbookUrl = TutorialShortcutsExcelOneDriveUrl;
@@ -234,7 +234,7 @@ namespace Subtitle_draft_GMTPC
                 }
 
                 _tutorialShortcutsExcelInitialized = true;
-                TxtTutorialsExcelStatus.Text = "Workbook OneDrive sẵn sàng để mở popup.";
+                TxtTutorialsExcelStatus.Text = "Workbook OneDrive sẵn sàng để mở bằng trình duyệt.";
             }
             catch (Exception ex)
             {

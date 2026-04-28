@@ -4,7 +4,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Subtitle_draft_GMTPC"
-        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d"
         Title="Subtitle draft GMTPC - Phụ đề .SRT / .ASS"
         Height="800" Width="900"
@@ -724,7 +723,7 @@
                                             Padding="16"
                                             Margin="0,14,0,0">
                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                            <TextBlock Text="Workbook OneDrive đang mở trong một cửa sổ popup modeless."
+                                            <TextBlock Text="Workbook OneDrive sẽ mở bằng trình duyệt mặc định."
                                                        Foreground="#E0E0E0"
                                                        FontSize="13"
                                                        TextAlignment="Center"
@@ -756,7 +755,7 @@
                                        FontSize="12"
                                        FontWeight="SemiBold"/>
                             <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
-                            <TextBlock Text="Tab .md load từ GitHub, riêng Shortcuts Excel hiển thị workbook trực tiếp"
+                            <TextBlock Text="Tab .md load từ GitHub, riêng Shortcuts Excel mở bằng trình duyệt"
                                        Foreground="#808080"
                                        FontSize="12"/>
                         </StackPanel>
@@ -889,7 +888,7 @@
                 </Grid>
             </TabItem>
 
-            <!-- Tab 3: Translate (AI via WebView2) -->
+            <!-- Tab 3: Translate (AI via browser) -->
             <TabItem Header="🌐 Translate">
                 <Grid>
                     <Grid.RowDefinitions>
