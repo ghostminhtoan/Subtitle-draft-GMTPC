@@ -1,8 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Windows;
-using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.Wpf;
-using Subtitle_draft_GMTPC.Services;
+using System.Windows.Controls;
+using System.Windows.Navigation;
 
 namespace Subtitle_draft_GMTPC
 {
@@ -15,33 +15,21 @@ namespace Subtitle_draft_GMTPC
 
         public string WorkbookUrl { get; set; }
 
-        public WebView2 WorkbookBrowser
+        public WebBrowser WorkbookBrowser
         {
             get { return ExcelBrowser; }
         }
 
         public void ReloadWorkbook()
         {
-            if (ExcelBrowser?.CoreWebView2 != null && ExcelBrowser.Source != null)
-            {
-                ExcelBrowser.CoreWebView2.Reload();
-            }
-            else if (!string.IsNullOrWhiteSpace(WorkbookUrl))
-            {
-                ExcelBrowser.Source = new Uri(WorkbookUrl);
-            }
+            NavigateWorkbook();
         }
 
-        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             try
             {
-                var environment = await WebView2EnvironmentProvider.GetEnvironmentAsync();
-                await ExcelBrowser.EnsureCoreWebView2Async(environment);
-                if (!string.IsNullOrWhiteSpace(WorkbookUrl))
-                {
-                    ExcelBrowser.Source = new Uri(WorkbookUrl);
-                }
+                NavigateWorkbook();
             }
             catch (Exception ex)
             {
@@ -49,16 +37,86 @@ namespace Subtitle_draft_GMTPC
             }
         }
 
-        private void ExcelBrowser_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
+        private void ExcelBrowser_LoadCompleted(object sender, NavigationEventArgs e)
         {
-            TxtStatus.Text = e.IsSuccess
-                ? string.Format("Workbook OneDrive đã sẵn sàng lúc {0:HH:mm:ss}.", DateTime.Now)
-                : "Không thể tải workbook từ OneDrive.";
+            TxtStatus.Text = "Workbook OneDrive đã sẵn sàng lúc " + DateTime.Now.ToString("HH:mm:ss") + ".";
+        }
+
+        private void ExcelBrowser_Navigating(object sender, NavigatingCancelEventArgs e)
+        {
+            if (e.Uri == null)
+            {
+                return;
+            }
+
+            var target = e.Uri.AbsoluteUri;
+            if (string.Equals(target, "about:blank", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            var expected = BuildViewerUrl(WorkbookUrl);
+            if (string.Equals(target, expected, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            e.Cancel = true;
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(target)
+                {
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                TxtStatus.Text = "Không thể mở liên kết: " + ex.Message;
+            }
         }
 
         private void Window_Closed(object sender, EventArgs e)
         {
             Owner = null;
+        }
+
+        private void BtnOpenExternalBrowser_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(WorkbookUrl))
+            {
+                TxtStatus.Text = "Chưa có workbook để mở.";
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(BuildViewerUrl(WorkbookUrl))
+                {
+                    UseShellExecute = true
+                });
+                TxtStatus.Text = "Đã mở workbook trong trình duyệt mặc định.";
+            }
+            catch (Exception ex)
+            {
+                TxtStatus.Text = "Không thể mở trình duyệt: " + ex.Message;
+            }
+        }
+
+        private void NavigateWorkbook()
+        {
+            if (string.IsNullOrWhiteSpace(WorkbookUrl))
+            {
+                TxtStatus.Text = "Chưa có workbook để mở.";
+                return;
+            }
+
+            ExcelBrowser.Navigate(BuildViewerUrl(WorkbookUrl));
+        }
+
+        private static string BuildViewerUrl(string workbookUrl)
+        {
+            return "https://view.officeapps.live.com/op/view.aspx?src=" + Uri.EscapeDataString(workbookUrl ?? string.Empty);
         }
     }
 }

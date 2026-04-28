@@ -9,8 +9,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
-using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.Wpf;
 using Subtitle_draft_GMTPC.Services;
 
 namespace Subtitle_draft_GMTPC
@@ -630,10 +628,10 @@ namespace Subtitle_draft_GMTPC
             if (IsShortcutsExcelTabActive())
             {
                 OpenTutorialsWorkbookPopup();
+                TxtTutorialSearchStatus.Text = "Workbook Excel đang mở bằng trình duyệt; hãy dùng Ctrl+F của trình duyệt để tìm.";
+                return;
             }
-            var result = IsShortcutsExcelTabActive()
-                ? await NavigateTutorialShortcutsExcelSearchAsync(forward)
-                : InvokeTutorialSearchScript(forward ? "tutorialSearchNext" : "tutorialSearchPrev");
+            var result = InvokeTutorialSearchScript(forward ? "tutorialSearchNext" : "tutorialSearchPrev");
             UpdateTutorialSearchStatus(result);
         }
 
@@ -651,21 +649,16 @@ namespace Subtitle_draft_GMTPC
             if (IsShortcutsExcelTabActive())
             {
                 OpenTutorialsWorkbookPopup();
+                TxtTutorialSearchStatus.Text = "Workbook Excel đang mở bằng trình duyệt; hãy dùng Ctrl+F của trình duyệt để tìm.";
+                return;
             }
-            var result = IsShortcutsExcelTabActive()
-                ? await ApplyTutorialShortcutsExcelSearchAsync(
-                    _tutorialSearchText,
-                    ChkTutorialMatchCase.IsChecked == true,
-                    ChkTutorialWholeWord.IsChecked == true,
-                    ChkTutorialRegex.IsChecked == true,
-                    resetIndex)
-                : InvokeTutorialSearchScript(
-                    "tutorialSearchApply",
-                    _tutorialSearchText,
-                    ChkTutorialMatchCase.IsChecked == true,
-                    ChkTutorialWholeWord.IsChecked == true,
-                    ChkTutorialRegex.IsChecked == true,
-                    resetIndex);
+            var result = InvokeTutorialSearchScript(
+                "tutorialSearchApply",
+                _tutorialSearchText,
+                ChkTutorialMatchCase.IsChecked == true,
+                ChkTutorialWholeWord.IsChecked == true,
+                ChkTutorialRegex.IsChecked == true,
+                resetIndex);
 
             UpdateTutorialSearchStatus(result);
         }
@@ -678,6 +671,11 @@ namespace Subtitle_draft_GMTPC
             }
 
             ApplyTutorialSearch(resetIndex: true);
+        }
+
+        private Task ClearTutorialSearchAsync()
+        {
+            return Task.CompletedTask;
         }
 
         private string InvokeTutorialSearchScript(string scriptName, params object[] args)
@@ -697,90 +695,6 @@ namespace Subtitle_draft_GMTPC
             {
                 return null;
             }
-        }
-
-        private async Task<string> ApplyTutorialShortcutsExcelSearchAsync(
-            string searchText,
-            bool matchCase,
-            bool wholeWord,
-            bool useRegex,
-            bool resetIndex)
-        {
-            var webView = GetCurrentTutorialExcelWebView();
-            if (webView?.CoreWebView2 == null)
-            {
-                return null;
-            }
-
-            var find = webView.CoreWebView2.Find;
-            if (resetIndex)
-            {
-                find.Stop();
-            }
-
-            var options = webView.CoreWebView2.Environment.CreateFindOptions();
-            options.FindTerm = searchText ?? string.Empty;
-            options.IsCaseSensitive = matchCase;
-            options.ShouldMatchWord = wholeWord;
-            options.ShouldHighlightAllMatches = true;
-            options.SuppressDefaultFindDialog = true;
-
-            await find.StartAsync(options);
-            return BuildTutorialShortcutsExcelFindResult(find);
-        }
-
-        private async Task<string> NavigateTutorialShortcutsExcelSearchAsync(bool forward)
-        {
-            var webView = GetCurrentTutorialExcelWebView();
-            if (webView?.CoreWebView2 == null)
-            {
-                return null;
-            }
-
-            var find = webView.CoreWebView2.Find;
-            if (find.MatchCount <= 0)
-            {
-                return await ApplyTutorialShortcutsExcelSearchAsync(
-                    TxtTutorialSearchBox.Text,
-                    ChkTutorialMatchCase.IsChecked == true,
-                    ChkTutorialWholeWord.IsChecked == true,
-                    ChkTutorialRegex.IsChecked == true,
-                    resetIndex: true);
-            }
-
-            if (forward)
-            {
-                find.FindNext();
-            }
-            else
-            {
-                find.FindPrevious();
-            }
-
-            return BuildTutorialShortcutsExcelFindResult(find);
-        }
-
-        private Task ClearTutorialSearchAsync()
-        {
-            var webView = GetCurrentTutorialExcelWebView();
-            if (webView?.CoreWebView2 != null)
-            {
-                webView.CoreWebView2.Find.Stop();
-            }
-
-            return Task.CompletedTask;
-        }
-
-        private static string BuildTutorialShortcutsExcelFindResult(CoreWebView2Find find)
-        {
-            if (find == null)
-            {
-                return null;
-            }
-
-            var total = find.MatchCount;
-            var current = find.ActiveMatchIndex < 0 ? 0 : find.ActiveMatchIndex;
-            return "ok|" + total + "|" + current + "|Shortcuts Excel";
         }
 
         private void UpdateTutorialSearchStatus(string result)
@@ -853,13 +767,6 @@ namespace Subtitle_draft_GMTPC
             }
 
             return BrowserTutorialOverview;
-        }
-
-        private WebView2 GetCurrentTutorialExcelWebView()
-        {
-            return _tutorialsWorkbookPopupWindow != null && _tutorialsWorkbookPopupWindow.IsVisible
-                ? _tutorialsWorkbookPopupWindow.WorkbookBrowser
-                : null;
         }
 
         private bool IsShortcutsExcelTabActive()
