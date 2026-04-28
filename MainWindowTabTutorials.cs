@@ -123,7 +123,7 @@ namespace Subtitle_draft_GMTPC
             {
                 _isTutorialsLoading = true;
                 BtnRefreshTutorials.IsEnabled = false;
-                TxtTutorialsStatus.Text = "Đang tải tài liệu từ thư mục Tutorials...";
+                TxtTutorialsStatus.Text = "Đang tải tài liệu từ GitHub...";
 
                 ShowTutorialLoadingState();
 
@@ -156,7 +156,7 @@ namespace Subtitle_draft_GMTPC
             }
             catch (Exception ex)
             {
-                TxtTutorialsStatus.Text = "Không thể tải tutorials từ thư mục Tutorials.";
+                TxtTutorialsStatus.Text = "Không thể tải tutorials từ GitHub.";
                 ShowTutorialErrorState(ex.Message);
             }
             finally
@@ -173,24 +173,41 @@ namespace Subtitle_draft_GMTPC
                 return cachedHtml;
             }
 
-            var markdown = await LoadTutorialMarkdownAsync(document);
+            var markdown = await LoadTutorialMarkdownAsync(document, forceRefresh);
             var html = GitHubMarkdownHtmlRenderer.RenderDocument(markdown, document.SourceUrl, document.Title);
             _tutorialHtmlCache[key] = html;
             return html;
         }
 
-        private static async Task<string> LoadTutorialMarkdownAsync(TutorialDocumentDefinition document)
+        private async Task<string> LoadTutorialMarkdownAsync(TutorialDocumentDefinition document, bool forceRefresh)
         {
-            var filePath = document.GetFullPath();
-            if (!File.Exists(filePath))
+            try
             {
-                throw new FileNotFoundException("Không tìm thấy file tutorial.", filePath);
+                return await LoadTutorialMarkdownFromGitHubAsync(document, forceRefresh);
             }
-
-            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (var reader = new StreamReader(stream, true))
+            catch
             {
-                return await reader.ReadToEndAsync();
+                var filePath = document.GetFullPath();
+                if (!File.Exists(filePath))
+                {
+                    throw;
+                }
+
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var reader = new StreamReader(stream, true))
+                {
+                    return await reader.ReadToEndAsync();
+                }
+            }
+        }
+
+        private async Task<string> LoadTutorialMarkdownFromGitHubAsync(TutorialDocumentDefinition document, bool forceRefresh)
+        {
+            var requestUrl = document.RawSourceUrl + (forceRefresh ? "?t=" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() : string.Empty);
+            using (var response = await _tutorialsHttpClient.GetAsync(requestUrl))
+            {
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsStringAsync();
             }
         }
 
@@ -913,6 +930,7 @@ namespace Subtitle_draft_GMTPC
         private sealed class TutorialDocumentDefinition
         {
             private const string GitHubRepoBaseUrl = "https://github.com/ghostminhtoan/Subtitle-draft-GMTPC/blob/master/";
+            private const string GitHubRawBaseUrl = "https://raw.githubusercontent.com/ghostminhtoan/Subtitle-draft-GMTPC/master/";
 
             public TutorialDocumentDefinition(string title, string relativePath)
             {
@@ -937,6 +955,14 @@ namespace Subtitle_draft_GMTPC
                 }
             }
 
+            public string RawSourceUrl
+            {
+                get
+                {
+                    return BuildGitHubRawUrl(RelativePath);
+                }
+            }
+
             private static string BuildGitHubBlobUrl(string relativePath)
             {
                 var normalizedPath = (relativePath ?? string.Empty).Replace('\\', '/');
@@ -949,6 +975,20 @@ namespace Subtitle_draft_GMTPC
                 }
 
                 return GitHubRepoBaseUrl + string.Join("/", encodedSegments);
+            }
+
+            private static string BuildGitHubRawUrl(string relativePath)
+            {
+                var normalizedPath = (relativePath ?? string.Empty).Replace('\\', '/');
+                var segments = normalizedPath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                var encodedSegments = new List<string>(segments.Length);
+
+                foreach (var segment in segments)
+                {
+                    encodedSegments.Add(Uri.EscapeDataString(segment));
+                }
+
+                return GitHubRawBaseUrl + string.Join("/", encodedSegments);
             }
         }
 

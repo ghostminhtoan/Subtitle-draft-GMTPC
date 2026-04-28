@@ -751,12 +751,12 @@
                             Margin="8,0,8,8">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <TextBlock Text="Nguồn: " Foreground="#808080" FontSize="12"/>
-                            <TextBlock Text="Tutorials local + OneDrive workbook"
+                            <TextBlock Text="Tutorials GitHub + OneDrive workbook"
                                        Foreground="#4DA3FF"
                                        FontSize="12"
                                        FontWeight="SemiBold"/>
                             <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
-                            <TextBlock Text="Tab .md vẫn render Markdown, riêng Shortcuts Excel hiển thị workbook trực tiếp"
+                            <TextBlock Text="Tab .md load từ GitHub, riêng Shortcuts Excel hiển thị workbook trực tiếp"
                                        Foreground="#808080"
                                        FontSize="12"/>
                         </StackPanel>

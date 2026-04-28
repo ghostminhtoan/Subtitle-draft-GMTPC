@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
+using Subtitle_draft_GMTPC.Services;
 
 namespace Subtitle_draft_GMTPC
 {
@@ -35,7 +36,8 @@ namespace Subtitle_draft_GMTPC
         {
             try
             {
-                await ExcelBrowser.EnsureCoreWebView2Async();
+                var environment = await WebView2EnvironmentProvider.GetEnvironmentAsync();
+                await ExcelBrowser.EnsureCoreWebView2Async(environment);
                 if (!string.IsNullOrWhiteSpace(WorkbookUrl))
                 {
                     ExcelBrowser.Source = new Uri(WorkbookUrl);
