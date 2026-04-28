@@ -31,8 +31,8 @@ namespace Subtitle_draft_GMTPC
         private bool _tutorialSearchSuppressTextChanged = false;
         private string _tutorialSearchText = string.Empty;
 
-        private const string TutorialShortcutsExcelOneDriveUrl =
-            "https://1drv.ms/x/c/d1ed72b79f8c17a6/IQDAswI2f9DlRrB8kq7G-4YSATja50yTHTFJE1rkAhUBMTQ?e=QU0aAY";
+        private const string TutorialShortcutsExcelGoogleSheetsUrl =
+            "https://docs.google.com/spreadsheets/d/1N-OoZzvmfz5Qag48z3Yq9_L-JhY8WIn491QR-5vjb8A/edit?usp=sharing";
 
         #endregion
 
@@ -224,17 +224,17 @@ namespace Subtitle_draft_GMTPC
             try
             {
                 _isTutorialShortcutsExcelLoading = true;
-                TxtTutorialsExcelStatus.Text = "Đang mở workbook Excel trong trình duyệt mặc định...";
+                TxtTutorialsExcelStatus.Text = "Đang tải workbook Google Sheets vào trong app...";
 
                 var popup = EnsureTutorialsWorkbookPopupWindow();
-                popup.WorkbookUrl = TutorialShortcutsExcelOneDriveUrl;
+                popup.WorkbookUrl = TutorialShortcutsExcelGoogleSheetsUrl;
                 if (forceRefresh)
                 {
                     popup.ReloadWorkbook();
                 }
 
                 _tutorialShortcutsExcelInitialized = true;
-                TxtTutorialsExcelStatus.Text = "Workbook OneDrive sẵn sàng để mở bằng trình duyệt.";
+                TxtTutorialsExcelStatus.Text = "Workbook Google Sheets đã sẵn sàng.";
             }
             catch (Exception ex)
             {
@@ -798,7 +798,7 @@ namespace Subtitle_draft_GMTPC
                 _tutorialsWorkbookPopupWindow = new TutorialsWorkbookPopupWindow
                 {
                     Owner = this,
-                    WorkbookUrl = TutorialShortcutsExcelOneDriveUrl
+                    WorkbookUrl = TutorialShortcutsExcelGoogleSheetsUrl
                 };
                 _tutorialsWorkbookPopupWindow.Closed += TutorialsWorkbookPopupWindow_Closed;
             }
@@ -809,7 +809,7 @@ namespace Subtitle_draft_GMTPC
         private void OpenTutorialsWorkbookPopup()
         {
             var popup = EnsureTutorialsWorkbookPopupWindow();
-            popup.WorkbookUrl = TutorialShortcutsExcelOneDriveUrl;
+            popup.WorkbookUrl = TutorialShortcutsExcelGoogleSheetsUrl;
 
             if (!popup.IsVisible)
             {

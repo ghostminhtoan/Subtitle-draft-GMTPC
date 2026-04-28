@@ -723,7 +723,7 @@
                                             Padding="16"
                                             Margin="0,14,0,0">
                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                            <TextBlock Text="Workbook OneDrive sẽ mở bằng trình duyệt mặc định."
+                                            <TextBlock Text="Workbook Google Sheets sẽ mở bằng trình duyệt mặc định."
                                                        Foreground="#E0E0E0"
                                                        FontSize="13"
                                                        TextAlignment="Center"
@@ -750,7 +750,7 @@
                             Margin="8,0,8,8">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <TextBlock Text="Nguồn: " Foreground="#808080" FontSize="12"/>
-                            <TextBlock Text="Tutorials GitHub + OneDrive workbook"
+                            <TextBlock Text="Tutorials GitHub + Google Sheets workbook"
                                        Foreground="#4DA3FF"
                                        FontSize="12"
                                        FontWeight="SemiBold"/>
