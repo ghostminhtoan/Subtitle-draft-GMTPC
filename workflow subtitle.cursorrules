@@ -1,265 +1,54 @@
 # Quy Tắc Workflow - Subtitle Draft GMTPC (C# WPF)
 
-## 🚀 Hướng Dẫn Nhanh
-- **Thêm tính năng**: Xác định tab → Mở `MainWindowTab[Tên].cs` → Code vào Region phù hợp
-- **Sửa lỗi**: Nhìn tên control (`Txt*`, `Btn*`) → Mở file tab tương ứng → Sửa → Build
-- **File >500 dòng**: Tách Region thành file mới
-- **Luôn luôn**: `taskkill "Subtitle draft GMTPC.exe"` → Build → Copy exe ra root → Update changelog → Git commit → Git push
-- **Luôn luôn**: Nếu không có diff sau khi build/copy thì vẫn phải tạo `git commit --allow-empty`, sau đó vẫn `git push`
+## Hướng dẫn nhanh
+- Thêm tính năng: xác định tab -> mở `MainWindowTab[Tên].cs` -> code vào đúng region
+- Sửa lỗi: nhìn tên control (`Txt*`, `Btn*`) -> mở file tab tương ứng -> sửa -> build
+- File >500 dòng: tách region sang file mới
+- Luôn luôn: `taskkill "Subtitle draft GMTPC.exe"` -> build -> copy exe ra root -> update changelog -> git commit -> git push
+- Luôn luôn: nếu không có diff sau khi build/copy thì vẫn phải `git commit --allow-empty`, sau đó vẫn `git push`
+- Luôn luôn: file `Subtitle draft GMTPC.exe` phải được commit/push dù chỉ khác biệt binary, không được bỏ riêng exe ra khỏi commit
 
-**Checklist**: Đúng file? ✅ Đặt tên Region chuẩn? ✅ Prefix `_` cho fields? ✅ Try-Catch? ✅ Build sạch? ✅ Copy exe ra root? ✅ Update changelog? ✅ Commit?
+## Cấu trúc dự án
+- Loại: ứng dụng C# WPF
+- Framework: .NET Framework 4.8
+- Kiến trúc: `MainWindow.xaml` + các file partial class code-behind
 
----
+## Quy tắc bắt buộc
+- `MainWindow.xaml.cs` chỉ giữ imports + class declaration rỗng
+- Không bao giờ để logic vào `MainWindow.xaml.cs`
+- Code của mỗi tab phải nằm trong `MainWindowTab[Tên].cs`
+- Code dùng chung phải nằm trong `MainWindowSystem[Tên].cs`
+- Không trùng tên fields/methods giữa các file
+- Dùng prefix `_` cho toàn bộ private fields
+- Dùng `#region` để nhóm code logic
+- Namespace bắt buộc: `Subtitle_draft_GMTPC`
+- Class bắt buộc: `public partial class MainWindow : Window`
 
-## Cấu Trúc Dự Án
-- **Loại**: Ứng dụng C# WPF | **Framework**: .NET Framework 4.8
-- **Kiến trúc**: MainWindow.xaml (UI) + Các file Partial Class (code-behind)
+## Quy tắc build và publish
+- Sau mỗi lần code xong: `taskkill` -> build -> copy exe -> update changelog -> commit -> push
+- Build ra `bin/Debug/net48/Subtitle draft GMTPC.exe`
+- Sau build phải copy exe mới ra root project
+- Changelog phải được cập nhật sau build thành công
+- Nếu không có thay đổi ngoài binary thì vẫn commit và push bình thường
+- Nếu commit rỗng thì vẫn dùng `--allow-empty`
 
-```
-├── Models/ & Services/          # Model dữ liệu & logic nghiệp vụ
-├── MainWindowTab*.cs           # 14 file tab (300-600 dòng mỗi file)
-├── MainWindowSystem*.cs        # 1 file hệ thống (global events, settings)
-├── AppSettings.cs              # Wrapper cho Properties.Settings
-├── Properties/                 # AssemblyInfo, Settings
-└── MainWindow.xaml.cs          # Chỉ giữ core (imports + class declaration)
-```
+## Quy tắc file
+- Không đưa logic vào `MainWindow.xaml.cs`
+- File tab phải theo pattern `MainWindowTab[Tên].cs`
+- File hệ thống phải theo pattern `MainWindowSystem[Tên].cs`
+- Nếu tab chưa có file thì tạo file mới và thêm vào `.csproj`
 
-**File Tab**: SubtitleMerge, SubtitleDraft, DialogueOnly, Translate, AssFontAdjust, HardwareInfo, ZeroTime, KaraokeVietnamese, KaraokeEnglish, KaraokeMerge, KaraokeSync, SearchFonts, Effect
+## Quy tắc an toàn
+- Luôn try-catch cho thao tác I/O và UI quan trọng
+- Không để app crash khi input sai
+- Dispose tài nguyên đúng cách
+- File lớn phải xử lý async hoặc streaming
 
-**File Hệ Thống**: GlobalEvents (trong MainWindowSystemGlobalEvents.cs)
+## Quy tắc changelog
+- Sau mỗi lần build thành công bắt buộc update `changelog.cursorrules`
+- Mục mới phải thêm ở đầu file
+- Định dạng:
+  - `## [YYYY-MM-DD HH:MM:SS AM/PM DayOfWeek]`
+  - `### Changed / Fixed / Added`
+  - `- Mô tả thay đổi`
 
----
-
-## ⚡ Quy Tắc Tách File (BẮT BUỘC)
-
-### MainWindow.xaml.cs - Chỉ giữ lại:
-- Imports và class declaration rỗng
-- **KHÔNG BAO GIỜ** code logic vào đây
-
-### File Tab - `MainWindowTab[Tên].cs`
-Chứa TOÀN BỘ code của tab: fields (prefix `_[tênTab]`), event handlers, methods cập nhật UI, toast, logic nghiệp vụ
-
-**Mẫu cấu trúc**:
-```csharp
-using System;
-using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Controls;
-using System.Threading.Tasks;
-using Subtitle_draft_GMTPC.Models;
-using Subtitle_draft_GMTPC.Services;
-
-namespace Subtitle_draft_GMTPC
-{
-    public partial class MainWindow : Window
-    {
-        #region "Tên Tab - Fields"
-        private List<string> _tenTabData = new List<string>();
-        private bool _isTabUpdating = false;
-        #endregion
-
-        #region "Tên Tab - Event Handlers"
-        private void BtnAction_Click(object sender, RoutedEventArgs e)
-        {
-            try { /* logic */ }
-            catch (Exception ex) { /* xử lý lỗi */ }
-            finally { _isTabUpdating = false; }
-        }
-        #endregion
-
-        #region "Tên Tab - Display/Toast/Helpers"
-        private void UpdateDisplays() { /* ... */ }
-        private async void ShowToast(string msg) { /* ... */ }
-        #endregion
-    }
-}
-```
-
-### File Hệ Thống - `MainWindowSystem[Tên].cs`
-Code dùng chung giữa nhiều tab (GlobalEvents, Settings)
-
-### ⚠️ Quy tắc:
-- **KHÔNG** trùng tên fields/methods giữa các file
-- **KHÔNG** duplicate code giữa file Tab và file System
-- **DÙNG** prefix `_` cho TẤT CẢ private fields
-- **DÙNG** `#region` / `#endregion` để nhóm code logic
-- **Mục tiêu**: 300-500 dòng/file | **Tối đa**: 700 dòng (PHẢI tách)
-- **Namespace**: Tất cả file phải trong `namespace Subtitle_draft_GMTPC`
-- **Class**: `public partial class MainWindow : Window`
-
----
-
-## Giao Tiếp Giữa Các Tab
-
-**Pattern 1: Truy cập trực tiếp** (Đơn giản): `var content = TxtOriginal.Text;` (từ tab khác)
-
-**Pattern 2: Bridge Methods** (Tốt hơn): Tạo methods trong file hệ thống
-
-**Pattern 3: Events** (Tốt nhất): `event Action<string> SubtitleContentChanged;` → `+=` handler
-
-**Quy tắc**: File hệ thống **KHÔNG BAO GIỜ** gọi file Tab. Tránh phụ thuộc vòng tròn.
-
----
-
-## 🛡️ Xử Lý Lỗi
-
-**Lỗi Tab**: Dùng Try-Catch-Finally cục bộ + toast của tab
-**Lỗi Hệ Thống**: Try-Catch + MessageBox cho lỗi nghiêm trọng
-
-**Checklist**: Có Finally? ✅ Thân thiện với user? ✅ Có log? ✅ Không crash khi input sai? ✅ Dispose resources?
-
----
-
-## ⚡ Quy Tắc Hiệu Suất
-
-1. **Debounce TextChanged**: 100-200ms dùng `DispatcherTimer`
-2. **File lớn**: Xử lý streaming, KHÔNG load file >10MB vào memory
-3. **UI Virtualization**: Bật cho ListBox/ListView/DataGrid
-4. **Quản lý memory**: Clear collections khi đổi tab, dispose bằng `using`
-5. **Async**: TẤT CẢ I/O phải là async (`await File.ReadAllTextAsync`, `Task.Run` cho xử lý nặng)
-6. **Kích thước file**: Mục tiêu 300-500 dòng, tối đa 700 dòng
-
----
-
-## Quy Ước Code
-
-**C#**:
-- `PascalCase` cho methods, properties, public members
-- `camelCase` cho biến local, parameters
-- `_prefix` cho private fields (vd: `_isUpdating`, `_engLines`)
-- Hậu tố `Async` cho methods bất đồng bộ
-- Event handlers: `void MethodName(object sender, RoutedEventArgs e)`
-- Dùng `var` khi kiểu dữ liệu đã rõ ràng
-- Dùng string interpolation `$"..."` thay vì `string.Format`
-- Dùng `?.` và `??` cho null checking
-
-**Đặt tên Region**: `"Tên Tab - Danh mục"` (vd: `"Subtitle Merge - Fields"`)
-
-**WPF**: Pattern MVVM-lite, code-behind, các controls được đặt tên với prefix:
-- `Txt*` = TextBox
-- `Btn*` = Button
-- `Cmb*` = ComboBox
-- `Lst*` = ListBox
-- `Toast*` = Toast notification elements
-
-**Encoding file**: Ưu tiên UTF-8, hỗ trợ định dạng .srt/.vtt/.ass/.sub
-
----
-
-## ⚠️ QUY TẮC BẮT BUỘC VỀ FILE
-
-### 🚫 KHÔNG BAO GIỜ code trong `MainWindow.xaml.cs` (chỉ để imports + class declaration rỗng)
-
-### 📌 Nhận Diện Tab Từ Input User:
-- `@MainWindowTabDialogueOnly.cs` → Code vào file đó
-- "Tab Karaoke" → Tìm file `MainWindowTabKaraoke*.cs`
-- "Subtitle Merge" → `MainWindowTabSubtitleMerge.cs`
-- "Tab Effect" → `MainWindowTabEffect.cs`
-
-**Nếu tab tồn tại** → Mở và code | **Nếu chưa** → Tạo file mới + thêm vào `.csproj`
-
----
-
-## 📝 Quy Tắc EMOJI (BẮT BUỘC)
-Luôn luôn dùng emoji để phản hồi chat. Emoji phải thật phong phú, mỗi một lần emoji là phải có 2 emoji liên tục kế bên nhau.
-
-## 📝 Quy Tắc Changelog (BẮT BUỘC)
-
-**⚠️ SAU MỖI LẦN BUILD THÀNH CÔNG**: BẮT BUỘC update `changelog.cursorrules`
-
-**Định dạng**:
-```
-## [YYYY-MM-DD HH:MM:SS AM/PM DayOfWeek]
-### Changed / Fixed / Added
-- [Mô tả thay đổi]
-```
-
-**Quy tắc**:
-- Thêm entry MỚI ở ĐẦU file (sau header)
-- Thứ tự: MỚI nhất ở trên → CŨ nhất ở dưới
-- Commit changelog cùng với code
-- **KHÔNG BAO GIỜ** bỏ qua bước này sau khi build
-
----
-
-## 📊 Định Nghĩa Subtitle Metrics
-
-### CPS (Characters Per Second) - Số ký tự mỗi giây
-```
-CPS = Tổng số ký tự / Thời lượng (giây)
-```
-
-**⚠️ QUAN TRỌNG - Bỏ qua Punctuation (Dấu câu)**: Khi tính CPS, KHÔNG đếm các ký tự punctuation:
-- Punctuation bỏ qua: `()[]-:;,.!?'"`
-- Ví dụ: `Ray chỉ có trạng thái như Rem bị ăn mất cả tên lẫn ký ức.`
-  - **KHÔNG bỏ punctuation**: 57 ký tự
-  - **BỎ punctuation**: 42 ký tự (chỉ đếm chữ cái, số, space)
-- Mục đích: CPS phản ánh tốc độ đọc THỰC TẾ, không bị ảnh hưởng bởi dấu câu
-
-**Các chế độ đếm ký tự** (tham chiếu từ Aegisub):
-- `Count all characters` - Đếm tất cả
-- `Count all except space, CPS only` - Bỏ space (chỉ dùng cho CPS)
-- `Count all except space` - Bỏ space
-- `CJK 1, Latin 0.5` - CJK=1, Latin=0.5
-- `CJK 1, Latin 0.5, space 0` - CJK=1, Latin=0.5, bỏ space
-- `No space or punctuation` - Bỏ space + punctuation (khuyến nghị cho CPS)
-- `No space or punctuation, CPS only` - Bỏ space + punctuation (chỉ dùng cho CPS)
-
-### CPL (Characters Per Line) - Số ký tự mỗi dòng
-```
-CPL = Tổng số ký tự trong một dòng subtitle
-```
-- Giới hạn thường dùng: 35-42 ký tự/dòng (tiếng Việt/Latin)
-- Mục đích: Đảm bảo subtitle dễ đọc, không quá dài trên một dòng
-
-### Gap (Khoảng cách thời gian) - Thời gian giữa các dòng
-```
-Gap = StartTime(dòng dưới) - EndTime(dòng trên)
-```
-- Đơn vị: mili giây (ms)
-- Ví dụ: Dòng 1 kết thúc lúc `0:01:05.33`, dòng 2 bắt đầu lúc `0:01:06.00` → Gap = 670ms
-- **Min gap**: Thời gian nghỉ tối thiểu giữa 2 dòng (thường 100-200ms)
-- Mục đích: Tạo khoảng nghỉ cho người đọc, tránh subtitle chồng lấn
-
----
-
-## 🤖 Quy Tắc Workflow Tự Động (BẮT BUỘC)
-
-### 🔄 Trigger Kill App → Build → Copy → Commit → Push Sau Mỗi Lần Code
-**Khi nào**: Bất kỳ khi nào hoàn thành code changes (sau mỗi edit file)
-**Workflow tự động**:
-1. **Taskkill app đang chạy**: Chạy `taskkill /IM "Subtitle draft GMTPC.exe" /F` để giải phóng file exe trước khi build
-2. **Auto Build**: Chạy `dotnet build` → tạo file `.exe` trong `bin/Debug/net48/`
-3. **Copy exe to root**: Copy file `Subtitle draft GMTPC.exe` từ `bin/Debug/net48/` → root project
-4. **Force commit exe**: Commit BẮT BUỘC file exe cùng với code changes
-   - Message: `"Build & update exe: [timestamp]"`
-   - **KHÔNG BAO GIỜ** commit code mà không có exe file
-   - Nếu Git không phát hiện thay đổi nào thì vẫn phải `git commit --allow-empty` để giữ đúng workflow auto commit
-5. **Push lên remote**: Sau mỗi commit, BẮT BUỘC chạy `git push`
-
-**Quy tắc**:
-- **Sau mỗi lần code** = trigger full workflow tự động
-- Thứ tự BẮT BUỘC: `taskkill` → `build` → `copy to root` → `git commit` → `git push`
-- **KHÔNG** bỏ qua bước `taskkill` nếu app đang chạy và đang lock file exe
-- File exe PHẢI có trong repo để đảm bảo version consistency
-- Nếu build fail → **DỪNG LẠI** → fix error → build lại → copy lại → commit → push
-- Kể cả khi không có khác biệt file sau build/copy, vẫn phải tạo commit rỗng thay vì bỏ qua commit
-- Kể cả khi commit rỗng, vẫn phải `git push` để đảm bảo remote đồng bộ workflow
-
----
-
-## 📋 Tham Khảo Nhanh
-
-**Pattern đặt tên file**:
-- `MainWindowTab[Tên].cs` = Code tab | `MainWindowSystem[Tên].cs` = Code dùng chung
-- `_[tênTab][Data]` = Fields | `Update[TênTab]Display()` = Methods UI | `ShowToast[TênTab]()` = Notifications
-
-**Build**:
-- **Build qua Visual Studio Code** (task build hoặc terminal)
-- `build.cmd` là file build thủ công dự phòng - **KHÔNG ĐỤNG VÀO**
-- Sau khi build ra `.exe` → **BẮT BUỘC** copy file exe mới ra root project
-- Sau build → Copy exe ra root → Update changelog → Commit → Push
-
-**Workflow**: Code → `taskkill "Subtitle draft GMTPC.exe"` → Build → Copy exe ra root → Update changelog → Commit (hoặc `--allow-empty` nếu không có diff) → Push
-
----

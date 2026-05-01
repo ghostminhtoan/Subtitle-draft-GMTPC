@@ -4,6 +4,15 @@ echo Building Subtitle draft GMTPC (C# Debug)
 echo ========================================
 echo.
 
+echo Generating build stamp source...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$stamp = (Get-Date).ToUniversalTime().ToString('o'); $content = @('namespace Subtitle_draft_GMTPC.Services', '{', '    internal static partial class BuildStampInfo', '    {', ('        public const string Utc = ""{0}"";' -f $stamp), '    }', '}'); Set-Content -Path 'Services\BuildStampInfo.g.cs' -Value $content -Encoding UTF8"
+if %ERRORLEVEL% NEQ 0 (
+    echo [WARNING] Failed to generate BuildStampInfo.g.cs.
+) else (
+    echo [OK] BuildStampInfo.g.cs generated.
+)
+echo.
+
 :: Find the newest Visual Studio MSBuild first. SDK-style projects such as this one
 :: need the matching MSBuild/.NET SDK resolver, so old Build Tools paths can fail.
 set "MSBUILD="
@@ -72,6 +81,15 @@ echo Build successful!
 echo ========================================
 echo.
 
+echo Writing build stamp...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$stamp = (Get-Item 'bin\Debug\net48\Subtitle draft GMTPC.exe').LastWriteTimeUtc.ToString('o'); Set-Content -Path 'BuildStamp.txt' -Value $stamp -Encoding UTF8"
+if %ERRORLEVEL% NEQ 0 (
+    echo [WARNING] Failed to write BuildStamp.txt.
+) else (
+    echo [OK] BuildStamp.txt written.
+)
+echo.
+
 :: Copy exe to root folder
 echo Copying exe to root folder...
 copy /Y "bin\Debug\net48\Subtitle draft GMTPC.exe" "Subtitle draft GMTPC.exe" >nul
@@ -93,6 +111,7 @@ if exist "Subtitle draft GMTPC.exe.WebView2" rmdir /S /Q "Subtitle draft GMTPC.e
 if exist "runtimes" rmdir /S /Q "runtimes"
 copy /Y "bin\Debug\net48\Subtitle draft GMTPC.exe.config" "Subtitle draft GMTPC.exe.config" >nul
 copy /Y "bin\Debug\net48\Subtitle draft GMTPC.pdb" "Subtitle draft GMTPC.pdb" >nul
+copy /Y "BuildStamp.txt" "BuildStamp.txt" >nul
 echo [OK] Portable root cleaned.
 echo.
 :: Append portable payload to the root exe so it can self-extract when copied alone.

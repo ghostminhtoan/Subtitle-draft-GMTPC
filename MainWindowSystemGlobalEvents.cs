@@ -145,18 +145,16 @@ namespace Subtitle_draft_GMTPC
         CmbFontSize.SelectedIndex = 0; // Default to 1
     }
 
-    private void ApplyBuildStampToFooterLabels()
-    {
-        try
+        private void ApplyBuildStampToFooterLabels()
         {
-            var executablePath = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
-            var buildTime = File.GetLastWriteTime(executablePath);
-            var buildStamp = buildTime.ToString("yyyy-MM-dd hh.mm.ss tt dddd", new CultureInfo("en-US"));
-
-            foreach (var textBlock in FindVisualChildren<TextBlock>(this))
+            try
             {
-                if (textBlock == null || textBlock.Text == null)
+                var buildStamp = BuildStampProvider.GetBuildStampText();
+
+                foreach (var textBlock in FindVisualChildren<TextBlock>(this))
                 {
+                    if (textBlock == null || textBlock.Text == null)
+                    {
                     continue;
                 }
 

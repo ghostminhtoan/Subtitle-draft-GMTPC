@@ -8,6 +8,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-05-01 10:32:57 AM Friday]
+
+### Fixed - Build Stamp Is Now Baked Into the Exe at Build Time
+- Bỏ cách lấy build time từ thời điểm mở app hoặc từ timestamp file ngoài runtime.
+- Build script giờ sinh `BuildStampInfo.g.cs` trước khi build để stamp được nhúng vào exe và không đổi mỗi lần mở.
+- Vẫn giữ fallback từ `BuildStamp.txt` và file exe để không phá luồng cũ, nhưng ưu tiên stamp được bake sẵn trong bản build.
+
+---
 ## [2026-04-27 10:58:00 AM Sunday]
 
 ### Changed - Tutorials Links Now Point to Tutorials Folder in Source Repo

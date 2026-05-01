@@ -39,6 +39,9 @@ function Copy-Folder {
 Copy-Folder -From (Join-Path $SourceRoot 'Tutorials') -To (Join-Path $payloadStage 'Tutorials')
 Copy-Folder -From (Join-Path $SourceRoot 'Prompt') -To (Join-Path $payloadStage 'Prompt')
 Copy-Folder -From (Join-Path $SourceRoot 'english word rules karaoke') -To (Join-Path $payloadStage 'english word rules karaoke')
+if (Test-Path (Join-Path $SourceRoot 'BuildStamp.txt')) {
+    Copy-Item -Path (Join-Path $SourceRoot 'BuildStamp.txt') -Destination (Join-Path $payloadStage 'BuildStamp.txt') -Force
+}
 
 foreach ($file in @(
     'Microsoft.Web.WebView2.Core.dll',

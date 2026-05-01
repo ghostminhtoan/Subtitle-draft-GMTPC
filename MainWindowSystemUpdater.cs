@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using Subtitle_draft_GMTPC.Services;
 
 namespace Subtitle_draft_GMTPC
 {
@@ -46,7 +47,7 @@ namespace Subtitle_draft_GMTPC
                 BtnUpdateLatestVersion.Content = "⏳ Checking...";
 
                 var currentExePath = Process.GetCurrentProcess().MainModule.FileName;
-                var currentBuildTimeUtc = File.GetLastWriteTimeUtc(currentExePath);
+                var currentBuildTimeUtc = BuildStampProvider.GetBuildTimeUtc();
                 var latestServerTimeUtc = await GetLatestServerBuildTimeUtcAsync();
 
                 if (latestServerTimeUtc <= currentBuildTimeUtc)
