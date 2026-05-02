@@ -1,3 +1,5 @@
+using System.Configuration;
+using System.Diagnostics;
 using System.Windows;
 
 namespace Subtitle_draft_GMTPC
@@ -8,6 +10,97 @@ namespace Subtitle_draft_GMTPC
     public static class AppSettings
     {
         private static Properties.Settings Settings => Properties.Settings.Default;
+
+        static AppSettings()
+        {
+            RegisterTranslateTabSettings();
+        }
+
+        private static void RegisterTranslateTabSettings()
+        {
+            RegisterStringSetting("SentencePromptName1", "Prompt 1");
+            RegisterStringSetting("SentencePromptName2", "Prompt 2");
+            RegisterStringSetting("SentencePromptName3", "Prompt 3");
+            RegisterStringSetting("SentencePromptName4", "Prompt 4");
+            RegisterStringSetting("SentencePromptName5", "Prompt 5");
+            RegisterStringSetting("SentencePromptContent1", "");
+            RegisterStringSetting("SentencePromptContent2", "");
+            RegisterStringSetting("SentencePromptContent3", "");
+            RegisterStringSetting("SentencePromptContent4", "");
+            RegisterStringSetting("SentencePromptContent5", "");
+
+            RegisterStringSetting("OneWordPromptName1", "Prompt 1");
+            RegisterStringSetting("OneWordPromptName2", "Prompt 2");
+            RegisterStringSetting("OneWordPromptName3", "Prompt 3");
+            RegisterStringSetting("OneWordPromptName4", "Prompt 4");
+            RegisterStringSetting("OneWordPromptName5", "Prompt 5");
+            RegisterStringSetting("OneWordPromptContent1", "");
+            RegisterStringSetting("OneWordPromptContent2", "");
+            RegisterStringSetting("OneWordPromptContent3", "");
+            RegisterStringSetting("OneWordPromptContent4", "");
+            RegisterStringSetting("OneWordPromptContent5", "");
+        }
+
+        private static void RegisterStringSetting(string key, string defaultValue)
+        {
+            if (Settings.Properties[key] != null)
+            {
+                return;
+            }
+
+            var property = new SettingsProperty(key)
+            {
+                PropertyType = typeof(string),
+                Provider = Settings.Providers["LocalFileSettingsProvider"],
+                DefaultValue = defaultValue,
+                IsReadOnly = false,
+                SerializeAs = SettingsSerializeAs.String
+            };
+            property.Attributes.Add(typeof(UserScopedSettingAttribute), new UserScopedSettingAttribute());
+            property.Attributes.Add(typeof(DefaultSettingValueAttribute), new DefaultSettingValueAttribute(defaultValue));
+            property.Attributes.Add(typeof(DebuggerNonUserCodeAttribute), new DebuggerNonUserCodeAttribute());
+            Settings.Properties.Add(property);
+        }
+
+        public static string GetString(string key, string fallback = "")
+        {
+            var value = Settings[key] as string;
+            return value ?? fallback;
+        }
+
+        public static void SetString(string key, string value)
+        {
+            Settings[key] = value ?? string.Empty;
+        }
+
+        public static void MigrateLegacyTranslatePrompts()
+        {
+            MigrateStringValue("SentencePromptName1", PromptName1);
+            MigrateStringValue("SentencePromptName2", PromptName2);
+            MigrateStringValue("SentencePromptName3", PromptName4);
+            MigrateStringValue("SentencePromptName4", PromptName5);
+            MigrateStringValue("OneWordPromptName1", PromptName3);
+
+            MigrateStringValue("SentencePromptContent1", PromptContent1);
+            MigrateStringValue("SentencePromptContent2", PromptContent2);
+            MigrateStringValue("SentencePromptContent3", PromptContent4);
+            MigrateStringValue("SentencePromptContent4", PromptContent5);
+            MigrateStringValue("OneWordPromptContent1", PromptContent3);
+        }
+
+        private static void MigrateStringValue(string key, string legacyValue)
+        {
+            if (string.IsNullOrWhiteSpace(legacyValue))
+            {
+                return;
+            }
+
+            var currentValue = GetString(key, string.Empty);
+            if (string.IsNullOrWhiteSpace(currentValue) || currentValue.StartsWith("Prompt "))
+            {
+                SetString(key, legacyValue);
+            }
+        }
 
         public static string TranslatePrompt
         {

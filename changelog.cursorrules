@@ -8,6 +8,16 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-05-02 06:56:13 PM Saturday]
+
+### Changed - Split Translate Into Sentence And One Word Tabs
+- Tách tab `Translate` cũ thành hai tab riêng: `Translate Sentence` và `Translate One Word`.
+- Mỗi tab có 5 profile riêng, profile cũ 1-2 được giữ cho Sentence và profile cũ 3 được chuyển sang One Word profile 1.
+- Phân nhóm màu cho các nút bên phải: save/load prompt, copy/open chat.qwen.ai, load default, và các nút profile 1-5.
+- Đổi tên hiển thị profile theo dạng `số thứ tự + tên` để dễ nhận diện hơn.
+- Mở rộng settings để lưu riêng bộ prompt cho từng tab và cập nhật search/word-wrap cho cả hai ô prompt mới.
+
+---
 ## [2026-05-01 10:32:57 AM Friday]
 
 ### Fixed - Build Stamp Is Now Baked Into the Exe at Build Time

@@ -65,13 +65,12 @@ namespace Subtitle_draft_GMTPC
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        LoadSettings();
         InitFontSizes();
         ApplyBuildStampToFooterLabels();
         LoadHardwareInfo();
         InitializeTutorialsAsync();
         InitializeDefaultPrompts();
-        LoadAllPrompts();
+        LoadSettings();
         InitializeEffectDebounce();
         InitializeTextToSubtitleDebounce();
         LoadKaraokeEngSplitRules();
@@ -209,7 +208,8 @@ namespace Subtitle_draft_GMTPC
                          TxtOriginal, TxtTimeCode, TxtConnectGap, TxtResult,
                          TxtDialogueInput, TxtDialogueOutput, TxtDialogueManual, TxtDialogueMerged,
                          TxtStylesInput, TxtStylesOutput,
-                         TxtTranslateInput, TxtPrompt,
+                         TxtTranslateSentenceInput, TxtTranslateSentencePrompt,
+                         TxtTranslateOneWordInput, TxtTranslateOneWordPrompt,
                          TxtKaraokeInput, TxtKaraokeEditable,
                          TxtZeroInput, TxtZeroOutput,
                          TxtKaraokeEngInput, TxtKaraokeEngEditable,
@@ -440,7 +440,13 @@ namespace Subtitle_draft_GMTPC
             // Tab Translate
             else if (header.Contains("Translate"))
             {
-                TextBox[] textboxes = new[] { TxtTranslateInput, TxtPrompt };
+                TextBox[] textboxes = new[]
+                {
+                    TxtTranslateSentenceInput,
+                    TxtTranslateSentencePrompt,
+                    TxtTranslateOneWordInput,
+                    TxtTranslateOneWordPrompt
+                };
                 foreach (var tb in textboxes)
                 {
                     if (tb != null && tb.IsFocused)
@@ -685,10 +691,7 @@ namespace Subtitle_draft_GMTPC
     {
         try
         {
-            if (!string.IsNullOrEmpty(AppSettings.TranslatePrompt))
-            {
-                TxtPrompt.Text = AppSettings.TranslatePrompt;
-            }
+            LoadAllPrompts();
         }
         catch
         {
@@ -699,8 +702,7 @@ namespace Subtitle_draft_GMTPC
     {
         try
         {
-            AppSettings.TranslatePrompt = TxtPrompt.Text.Trim();
-            AppSettings.Save();
+            SaveAllPrompts();
         }
         catch
         {

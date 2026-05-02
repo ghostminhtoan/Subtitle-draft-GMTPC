@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Threading.Tasks;
 using Subtitle_draft_GMTPC.Models;
 using Subtitle_draft_GMTPC.Services;
 
@@ -14,91 +14,86 @@ namespace Subtitle_draft_GMTPC
     {
         #region Translate - Fields
 
+        private enum TranslateProfileGroup
+        {
+            Sentence,
+            OneWord
+        }
+
+        private sealed class TranslateTabContext
+        {
+            public TranslateProfileGroup Group;
+            public TextBox InputBox;
+            public TextBlock InputFormatTextBlock;
+            public TextBox PromptBox;
+            public TextBlock StatusTextBlock;
+            public Border ToastBorder;
+            public TextBlock ToastText;
+            public Button[] PromptButtons;
+            public List<SubtitleLine> Lines = new List<SubtitleLine>();
+            public SubtitleFormat Format = SubtitleFormat.Unknown;
+            public bool IsUpdating;
+            public bool IsPromptLoading;
+            public int SelectedPromptId = 1;
+        }
+
         private static readonly HttpClient _promptHttpClient = CreatePromptHttpClient();
 
-        private List<SubtitleLine> _translateLines = new List<SubtitleLine>();
-        private SubtitleFormat _translateFormat = SubtitleFormat.Unknown;
-        private bool _isTranslateUpdating = false;
-        private bool _isPromptLoading = false;
-        private int _selectedPromptId = 1;
+        private TranslateTabContext _sentenceTranslateTab;
+        private TranslateTabContext _oneWordTranslateTab;
 
-        private const string Prompt1DefaultUrl = "https://raw.githubusercontent.com/ghostminhtoan/Subtitle-draft-GMTPC/master/Prompt/1.%20Anime.md";
-        private const string Prompt2DefaultUrl = "https://raw.githubusercontent.com/ghostminhtoan/Subtitle-draft-GMTPC/master/Prompt/2.%20Film.md";
-        private const string Prompt3DefaultUrl = "https://raw.githubusercontent.com/ghostminhtoan/Subtitle-draft-GMTPC/master/Prompt/3.%20Anime%20one%20word.md";
+        private const string SentencePrompt1DefaultUrl = "https://raw.githubusercontent.com/ghostminhtoan/Subtitle-draft-GMTPC/master/Prompt/1.%20Anime.md";
+        private const string SentencePrompt2DefaultUrl = "https://raw.githubusercontent.com/ghostminhtoan/Subtitle-draft-GMTPC/master/Prompt/2.%20Film.md";
+        private const string OneWordPrompt1DefaultUrl = "https://raw.githubusercontent.com/ghostminhtoan/Subtitle-draft-GMTPC/master/Prompt/3.%20Anime%20one%20word.md";
 
         #endregion
 
         #region Translate - Event Handlers
 
-        private void TxtTranslateInput_TextChanged(object sender, TextChangedEventArgs e)
+        private void TxtTranslateSentenceInput_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (_isTranslateUpdating) return;
-            try
-            {
-                _isTranslateUpdating = true;
-                var content = SubtitleParser.SanitizeContent(TxtTranslateInput.Text);
-                if (string.IsNullOrWhiteSpace(content))
-                {
-                    _translateLines.Clear();
-                    _translateFormat = SubtitleFormat.Unknown;
-                    TxtTranslateInputFormat.Text = "";
-                    return;
-                }
-                _translateFormat = SubtitleParser.DetectFormat(content);
-                _translateLines = SubtitleParser.Parse(content);
-                TxtTranslateInputFormat.Text = string.Format("({0} - {1} dòng)", _translateFormat.ToString().ToUpper(), _translateLines.Count);
-            }
-            catch (Exception ex)
-            {
-                TxtTranslateInputFormat.Text = string.Format("(Lỗi: {0})", ex.Message);
-            }
-            finally
-            {
-                _isTranslateUpdating = false;
-            }
+            HandleTranslateInputChanged(GetSentenceTranslateContext());
         }
 
-        private void TxtPrompt_LostFocus(object sender, RoutedEventArgs e)
+        private void TxtTranslateOneWordInput_TextChanged(object sender, TextChangedEventArgs e)
         {
-            SaveSettings();
+            HandleTranslateInputChanged(GetOneWordTranslateContext());
         }
 
-        private void BtnOpenQwen_Click(object sender, RoutedEventArgs e)
+        private void TxtTranslateSentencePrompt_LostFocus(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                System.Diagnostics.Process.Start("https://chat.qwen.ai/");
-                TxtTranslateStatus.Text = "✅ Đã mở chat.qwen.ai trên trình duyệt!";
-            }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-            }
+            SavePromptEditorContent(GetSentenceTranslateContext());
         }
 
-        private void BtnCopyForPaste_Click(object sender, RoutedEventArgs e)
+        private void TxtTranslateOneWordPrompt_LostFocus(object sender, RoutedEventArgs e)
         {
-            var inputText = TxtTranslateInput.Text;
-            if (string.IsNullOrWhiteSpace(inputText))
-            {
-                TxtTranslateStatus.Text = "⚠️ Vui lòng nhập phụ đề vào Panel 1!";
-                return;
-            }
-            var prompt = TxtPrompt.Text.Trim();
-            if (string.IsNullOrWhiteSpace(prompt))
-            {
-                TxtTranslateStatus.Text = "⚠️ Vui lòng nhập prompt!";
-                return;
-            }
-            SaveSettings();
-            Clipboard.SetText(prompt + Environment.NewLine + Environment.NewLine + inputText);
-            TxtTranslateStatus.Text = "📋 Đã copy Prompt + Subtitle vào clipboard!";
+            SavePromptEditorContent(GetOneWordTranslateContext());
+        }
+
+        private void BtnOpenQwenSentence_Click(object sender, RoutedEventArgs e)
+        {
+            OpenQwen(GetSentenceTranslateContext());
+        }
+
+        private void BtnOpenQwenOneWord_Click(object sender, RoutedEventArgs e)
+        {
+            OpenQwen(GetOneWordTranslateContext());
+        }
+
+        private void BtnCopyForPasteSentence_Click(object sender, RoutedEventArgs e)
+        {
+            CopyPromptAndInputToClipboard(GetSentenceTranslateContext());
+        }
+
+        private void BtnCopyForPasteOneWord_Click(object sender, RoutedEventArgs e)
+        {
+            CopyPromptAndInputToClipboard(GetOneWordTranslateContext());
         }
 
         /// <summary>
-        /// Khi click vào nút prompt → dán nội dung prompt vào TxtPrompt
+        /// Khi click vào nút prompt -> tải nội dung prompt vào ô editor của tab tương ứng.
         /// </summary>
-        private async void BtnPrompt_Click(object sender, RoutedEventArgs e)
+        private async void BtnSentencePrompt_Click(object sender, RoutedEventArgs e)
         {
             var btn = sender as Button;
             if (btn == null) return;
@@ -109,207 +104,375 @@ namespace Subtitle_draft_GMTPC
                 return;
             }
 
-            await LoadPromptForSelectionAsync(promptId, promptId <= 3, true);
+            await LoadPromptForSelectionAsync(GetSentenceTranslateContext(), promptId, promptId <= 2, true);
+        }
+
+        private async void BtnOneWordPrompt_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as Button;
+            if (btn == null) return;
+
+            int promptId;
+            if (!int.TryParse(btn.Tag == null ? null : btn.Tag.ToString(), out promptId))
+            {
+                return;
+            }
+
+            await LoadPromptForSelectionAsync(GetOneWordTranslateContext(), promptId, promptId == 1, true);
         }
 
         /// <summary>
         /// Load the default source for the currently selected prompt.
         /// </summary>
-        private async void BtnLoadDefaultPrompt_Click(object sender, RoutedEventArgs e)
+        private async void BtnLoadDefaultSentencePrompt_Click(object sender, RoutedEventArgs e)
         {
-            await LoadPromptForSelectionAsync(_selectedPromptId, true, false);
+            var context = GetSentenceTranslateContext();
+            await LoadPromptForSelectionAsync(context, context.SelectedPromptId, true, false);
+        }
+
+        private async void BtnLoadDefaultOneWordPrompt_Click(object sender, RoutedEventArgs e)
+        {
+            var context = GetOneWordTranslateContext();
+            await LoadPromptForSelectionAsync(context, context.SelectedPromptId, true, false);
         }
 
         /// <summary>
         /// Rename the currently selected prompt.
         /// </summary>
-        private void BtnRenamePrompt_Click(object sender, RoutedEventArgs e)
+        private void BtnRenameSentencePrompt_Click(object sender, RoutedEventArgs e)
         {
-            var currentPromptId = _selectedPromptId;
-            var currentName = GetPromptNameById(currentPromptId);
+            RenameSelectedPrompt(GetSentenceTranslateContext());
+        }
+
+        private void BtnRenameOneWordPrompt_Click(object sender, RoutedEventArgs e)
+        {
+            RenameSelectedPrompt(GetOneWordTranslateContext());
+        }
+
+        /// <summary>
+        /// Save the current editor content into the selected prompt slot.
+        /// </summary>
+        private void BtnSaveSentencePrompts_Click(object sender, RoutedEventArgs e)
+        {
+            SavePromptEditorContent(GetSentenceTranslateContext());
+        }
+
+        private void BtnSaveOneWordPrompts_Click(object sender, RoutedEventArgs e)
+        {
+            SavePromptEditorContent(GetOneWordTranslateContext());
+        }
+
+        /// <summary>
+        /// Load the saved local content for the currently selected prompt.
+        /// </summary>
+        private void BtnLoadSentencePrompts_Click(object sender, RoutedEventArgs e)
+        {
+            LoadPromptEditorContent(GetSentenceTranslateContext());
+        }
+
+        private void BtnLoadOneWordPrompts_Click(object sender, RoutedEventArgs e)
+        {
+            LoadPromptEditorContent(GetOneWordTranslateContext());
+        }
+
+        #endregion
+
+        #region Translate - Prompt Management
+
+        private void InitializeDefaultPrompts()
+        {
+            AppSettings.MigrateLegacyTranslatePrompts();
+
+            EnsureDefaultPrompt(GetSentenceTranslateContext(), 1, "Anime", GetDefaultAnimePrompt());
+            EnsureDefaultPrompt(GetSentenceTranslateContext(), 2, "Film", GetDefaultFilmPrompt());
+            EnsureDefaultPrompt(GetSentenceTranslateContext(), 3, null, null);
+            EnsureDefaultPrompt(GetSentenceTranslateContext(), 4, null, null);
+            EnsureDefaultPrompt(GetSentenceTranslateContext(), 5, null, null);
+
+            EnsureDefaultPrompt(GetOneWordTranslateContext(), 1, "Anime One Word", GetDefaultAnimeOneWordPrompt());
+            EnsureDefaultPrompt(GetOneWordTranslateContext(), 2, null, null);
+            EnsureDefaultPrompt(GetOneWordTranslateContext(), 3, null, null);
+            EnsureDefaultPrompt(GetOneWordTranslateContext(), 4, null, null);
+            EnsureDefaultPrompt(GetOneWordTranslateContext(), 5, null, null);
+
+            AppSettings.Save();
+        }
+
+        private void LoadAllPrompts()
+        {
+            _ = LoadAllPromptsAsync();
+        }
+
+        private async Task LoadAllPromptsAsync()
+        {
+            var sentenceContext = GetSentenceTranslateContext();
+            var oneWordContext = GetOneWordTranslateContext();
+
+            UpdatePromptButtonDisplay(sentenceContext);
+            UpdatePromptButtonDisplay(oneWordContext);
+
+            await LoadPromptForSelectionAsync(sentenceContext, sentenceContext.SelectedPromptId, sentenceContext.SelectedPromptId <= 2, false);
+            await LoadPromptForSelectionAsync(oneWordContext, oneWordContext.SelectedPromptId, oneWordContext.SelectedPromptId == 1, false);
+        }
+
+        private void SaveAllPrompts()
+        {
+            SavePromptEditorContent(GetSentenceTranslateContext());
+            SavePromptEditorContent(GetOneWordTranslateContext());
+        }
+
+        private TranslateTabContext GetSentenceTranslateContext()
+        {
+            EnsureTranslateTabContexts();
+            return _sentenceTranslateTab;
+        }
+
+        private TranslateTabContext GetOneWordTranslateContext()
+        {
+            EnsureTranslateTabContexts();
+            return _oneWordTranslateTab;
+        }
+
+        private void EnsureTranslateTabContexts()
+        {
+            if (_sentenceTranslateTab != null && _oneWordTranslateTab != null)
+            {
+                return;
+            }
+
+            _sentenceTranslateTab = new TranslateTabContext
+            {
+                Group = TranslateProfileGroup.Sentence,
+                InputBox = TxtTranslateSentenceInput,
+                InputFormatTextBlock = TxtTranslateSentenceInputFormat,
+                PromptBox = TxtTranslateSentencePrompt,
+                StatusTextBlock = TxtTranslateSentenceStatus,
+                ToastBorder = ToastBorderTranslateSentence,
+                ToastText = ToastTextTranslateSentence,
+                PromptButtons = new[] { BtnSentencePrompt1, BtnSentencePrompt2, BtnSentencePrompt3, BtnSentencePrompt4, BtnSentencePrompt5 }
+            };
+
+            _oneWordTranslateTab = new TranslateTabContext
+            {
+                Group = TranslateProfileGroup.OneWord,
+                InputBox = TxtTranslateOneWordInput,
+                InputFormatTextBlock = TxtTranslateOneWordInputFormat,
+                PromptBox = TxtTranslateOneWordPrompt,
+                StatusTextBlock = TxtTranslateOneWordStatus,
+                ToastBorder = ToastBorderTranslateOneWord,
+                ToastText = ToastTextTranslateOneWord,
+                PromptButtons = new[] { BtnOneWordPrompt1, BtnOneWordPrompt2, BtnOneWordPrompt3, BtnOneWordPrompt4, BtnOneWordPrompt5 }
+            };
+        }
+
+        private void HandleTranslateInputChanged(TranslateTabContext context)
+        {
+            if (context == null || context.IsUpdating)
+            {
+                return;
+            }
+
+            try
+            {
+                context.IsUpdating = true;
+                var content = SubtitleParser.SanitizeContent(context.InputBox.Text);
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    context.Lines.Clear();
+                    context.Format = SubtitleFormat.Unknown;
+                    context.InputFormatTextBlock.Text = "";
+                    return;
+                }
+
+                context.Format = SubtitleParser.DetectFormat(content);
+                context.Lines = SubtitleParser.Parse(content);
+                context.InputFormatTextBlock.Text = string.Format("({0} - {1} dòng)", context.Format.ToString().ToUpper(), context.Lines.Count);
+            }
+            catch (Exception ex)
+            {
+                context.InputFormatTextBlock.Text = string.Format("(Lỗi: {0})", ex.Message);
+            }
+            finally
+            {
+                context.IsUpdating = false;
+            }
+        }
+
+        private void OpenQwen(TranslateTabContext context)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start("https://chat.qwen.ai/");
+                context.StatusTextBlock.Text = "✅ Đã mở chat.qwen.ai trên trình duyệt!";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CopyPromptAndInputToClipboard(TranslateTabContext context)
+        {
+            var inputText = context.InputBox.Text;
+            if (string.IsNullOrWhiteSpace(inputText))
+            {
+                context.StatusTextBlock.Text = "⚠️ Vui lòng nhập phụ đề vào Panel 1!";
+                return;
+            }
+
+            var prompt = context.PromptBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(prompt))
+            {
+                context.StatusTextBlock.Text = "⚠️ Vui lòng nhập prompt!";
+                return;
+            }
+
+            SavePromptEditorContent(context);
+            Clipboard.SetText(prompt + Environment.NewLine + Environment.NewLine + inputText);
+            context.StatusTextBlock.Text = "📋 Đã copy Prompt + Subtitle vào clipboard!";
+        }
+
+        private void RenameSelectedPrompt(TranslateTabContext context)
+        {
+            var currentPromptId = context.SelectedPromptId;
+            var currentName = GetPromptNameById(context.Group, currentPromptId);
             var newName = Microsoft.VisualBasic.Interaction.InputBox(
                 string.Format("Đổi tên cho Prompt {0} (hiện tại: {1}):", currentPromptId, currentName),
                 "Rename Prompt", currentName);
 
             if (!string.IsNullOrWhiteSpace(newName))
             {
-                SetPromptNameById(currentPromptId, newName.Trim());
-                UpdatePromptButtonDisplay();
+                SetPromptNameById(context.Group, currentPromptId, newName.Trim());
+                UpdatePromptButtonDisplay(context);
                 AppSettings.Save();
-                TxtTranslateStatus.Text = string.Format("✅ Đã rename Prompt {0} thành: {1}", currentPromptId, newName.Trim());
+                context.StatusTextBlock.Text = string.Format("✅ Đã rename Prompt {0} thành: {1}", currentPromptId, newName.Trim());
             }
         }
 
-        /// <summary>
-        /// Save the current editor content into the selected prompt slot.
-        /// </summary>
-        private void BtnSavePrompts_Click(object sender, RoutedEventArgs e)
+        private void SavePromptEditorContent(TranslateTabContext context)
         {
-            var promptId = _selectedPromptId;
-            var currentContent = TxtPrompt.Text.Trim();
+            var promptId = context.SelectedPromptId;
+            var currentContent = context.PromptBox.Text.Trim();
+
+            SetPromptContentById(context.Group, promptId, currentContent);
 
             if (string.IsNullOrWhiteSpace(currentContent))
             {
-                SetPromptContentById(promptId, "");
-                TxtTranslateStatus.Text = string.Format("🧹 Đã clear Prompt {0}!", promptId);
+                context.StatusTextBlock.Text = string.Format("🧹 Đã clear Prompt {0}!", promptId);
             }
             else
             {
-                SetPromptContentById(promptId, currentContent);
-                TxtTranslateStatus.Text = string.Format("💾 Đã save nội dung vào Prompt {0}: {1}", promptId, GetPromptNameById(promptId));
+                context.StatusTextBlock.Text = string.Format("💾 Đã save nội dung vào Prompt {0}: {1}", promptId, GetPromptNameById(context.Group, promptId));
             }
 
             AppSettings.Save();
-            UpdatePromptButtonDisplay();
+            UpdatePromptButtonDisplay(context);
         }
 
-        /// <summary>
-        /// Load the saved local content for the currently selected prompt.
-        /// </summary>
-        private void BtnLoadPrompts_Click(object sender, RoutedEventArgs e)
+        private void LoadPromptEditorContent(TranslateTabContext context)
         {
-            var promptId = _selectedPromptId;
-            var content = GetPromptContentById(promptId);
-            TxtPrompt.Text = content ?? string.Empty;
-            TxtTranslateStatus.Text = string.IsNullOrWhiteSpace(content)
+            var promptId = context.SelectedPromptId;
+            var content = GetPromptContentById(context.Group, promptId);
+            context.PromptBox.Text = content ?? string.Empty;
+            context.StatusTextBlock.Text = string.IsNullOrWhiteSpace(content)
                 ? string.Format("🧹 Prompt {0} đang trống, đã clear ô nhập!", promptId)
-                : string.Format("📂 Đã load Prompt {0}: {1}", promptId, GetPromptNameById(promptId));
-            UpdatePromptButtonDisplay();
-        }
-        #endregion
-
-        #region Translate - Prompt Management
-
-        /// <summary>
-        /// Lấy thông tin prompt theo ID (1-5)
-        /// </summary>
-        private PromptItem GetPromptById(int id)
-        {
-            var name = GetPromptNameById(id);
-            var content = GetPromptContentById(id);
-            return new PromptItem(id, name, content);
+                : string.Format("📂 Đã load Prompt {0}: {1}", promptId, GetPromptNameById(context.Group, promptId));
+            UpdatePromptButtonDisplay(context);
         }
 
-        private string GetPromptNameById(int id)
+        private void UpdatePromptButtonDisplay(TranslateTabContext context)
         {
-            switch (id)
+            for (int i = 1; i <= context.PromptButtons.Length; i++)
             {
-                case 1: return AppSettings.PromptName1;
-                case 2: return AppSettings.PromptName2;
-                case 3: return AppSettings.PromptName3;
-                case 4: return AppSettings.PromptName4;
-                case 5: return AppSettings.PromptName5;
-                default: return string.Format("Prompt {0}", id);
+                var button = context.PromptButtons[i - 1];
+                if (button != null)
+                {
+                    button.Content = FormatPromptButtonContent(context, i);
+                }
             }
         }
 
-        private string GetPromptContentById(int id)
+        private string FormatPromptButtonContent(TranslateTabContext context, int id)
         {
-            switch (id)
+            var label = string.Format("{0}. {1}", id, GetPromptNameById(context.Group, id));
+            return id == context.SelectedPromptId ? "▶ " + label : label;
+        }
+
+        private void EnsureDefaultPrompt(TranslateTabContext context, int id, string preferredName, string preferredContent)
+        {
+            var currentName = GetPromptNameById(context.Group, id);
+            if (string.IsNullOrWhiteSpace(currentName) || currentName == DefaultPromptName(id))
             {
-                case 1: return AppSettings.PromptContent1;
-                case 2: return AppSettings.PromptContent2;
-                case 3: return AppSettings.PromptContent3;
-                case 4: return AppSettings.PromptContent4;
-                case 5: return AppSettings.PromptContent5;
-                default: return "";
+                if (!string.IsNullOrWhiteSpace(preferredName))
+                {
+                    SetPromptNameById(context.Group, id, preferredName);
+                }
+                else if (string.IsNullOrWhiteSpace(currentName))
+                {
+                    SetPromptNameById(context.Group, id, DefaultPromptName(id));
+                }
+
+                if (preferredContent != null)
+                {
+                    SetPromptContentById(context.Group, id, preferredContent);
+                }
+                else if (string.IsNullOrWhiteSpace(GetPromptContentById(context.Group, id)))
+                {
+                    SetPromptContentById(context.Group, id, string.Empty);
+                }
+            }
+            else if (string.IsNullOrWhiteSpace(currentName))
+            {
+                SetPromptNameById(context.Group, id, DefaultPromptName(id));
             }
         }
 
-        private void SetPromptNameById(int id, string name)
+        private string DefaultPromptName(int id)
         {
-            switch (id)
+            return string.Format("Prompt {0}", id);
+        }
+
+        private string GetPromptSettingKey(TranslateProfileGroup group, bool isName, int id)
+        {
+            var prefix = group == TranslateProfileGroup.Sentence ? "SentencePrompt" : "OneWordPrompt";
+            return prefix + (isName ? "Name" : "Content") + id;
+        }
+
+        private string GetPromptNameById(TranslateProfileGroup group, int id)
+        {
+            return AppSettings.GetString(GetPromptSettingKey(group, true, id), DefaultPromptName(id));
+        }
+
+        private string GetPromptContentById(TranslateProfileGroup group, int id)
+        {
+            return AppSettings.GetString(GetPromptSettingKey(group, false, id), string.Empty);
+        }
+
+        private void SetPromptNameById(TranslateProfileGroup group, int id, string name)
+        {
+            AppSettings.SetString(GetPromptSettingKey(group, true, id), name);
+        }
+
+        private void SetPromptContentById(TranslateProfileGroup group, int id, string content)
+        {
+            AppSettings.SetString(GetPromptSettingKey(group, false, id), content);
+        }
+
+        private string GetPromptDefaultUrlById(TranslateProfileGroup group, int id)
+        {
+            if (group == TranslateProfileGroup.Sentence)
             {
-                case 1: AppSettings.PromptName1 = name; break;
-                case 2: AppSettings.PromptName2 = name; break;
-                case 3: AppSettings.PromptName3 = name; break;
-                case 4: AppSettings.PromptName4 = name; break;
-                case 5: AppSettings.PromptName5 = name; break;
-            }
-        }
-
-        private void SetPromptContentById(int id, string content)
-        {
-            switch (id)
-            {
-                case 1: AppSettings.PromptContent1 = content; break;
-                case 2: AppSettings.PromptContent2 = content; break;
-                case 3: AppSettings.PromptContent3 = content; break;
-                case 4: AppSettings.PromptContent4 = content; break;
-                case 5: AppSettings.PromptContent5 = content; break;
-            }
-        }
-
-        /// <summary>
-        /// Update the prompt buttons and highlight the selected prompt.
-        /// </summary>
-        private void UpdatePromptButtonDisplay()
-        {
-            BtnPrompt1.Content = FormatPromptButtonContent(1);
-            BtnPrompt2.Content = FormatPromptButtonContent(2);
-            BtnPrompt3.Content = FormatPromptButtonContent(3);
-            BtnPrompt4.Content = FormatPromptButtonContent(4);
-            BtnPrompt5.Content = FormatPromptButtonContent(5);
-        }
-
-        private string FormatPromptButtonContent(int id)
-        {
-            var label = string.Format("{0}. {1}", id, GetPromptNameById(id));
-            return id == _selectedPromptId ? "▶ " + label : label;
-        }
-
-        /// <summary>
-        /// Find the selected prompt id.
-        /// </summary>
-        private int FindCurrentPromptId()
-        {
-            return _selectedPromptId;
-        }
-
-        /// <summary>
-        /// Save all prompts to Settings.
-        /// </summary>
-        private void SaveAllPrompts()
-        {
-            AppSettings.Save();
-        }
-
-        /// <summary>
-        /// Refresh the prompt selector UI and default content.
-        /// </summary>
-        private void LoadAllPrompts()
-        {
-            UpdatePromptButtonDisplay();
-            _ = LoadPromptForSelectionAsync(_selectedPromptId, _selectedPromptId <= 3, false);
-        }
-
-        /// <summary>
-        /// Khá»Ÿi táº¡o prompts máº·c Ä‘á»‹nh (Anime vÃ  Film) náº¿u chÆ°a cÃ³
-        /// </summary>
-        private void InitializeDefaultPrompts()
-        {
-            // Prompt 1 - Anime
-            if (string.IsNullOrWhiteSpace(AppSettings.PromptName1) || AppSettings.PromptName1 == "Prompt 1")
-            {
-                AppSettings.PromptName1 = "Anime";
-                AppSettings.PromptContent1 = GetDefaultAnimePrompt();
+                if (id == 1) return SentencePrompt1DefaultUrl;
+                if (id == 2) return SentencePrompt2DefaultUrl;
+                return null;
             }
 
-            // Prompt 2 - Film
-            if (string.IsNullOrWhiteSpace(AppSettings.PromptName2) || AppSettings.PromptName2 == "Prompt 2")
+            if (group == TranslateProfileGroup.OneWord && id == 1)
             {
-                AppSettings.PromptName2 = "Film";
-                AppSettings.PromptContent2 = GetDefaultFilmPrompt();
+                return OneWordPrompt1DefaultUrl;
             }
 
-            // Prompt 3 - Anime One Word
-            if (string.IsNullOrWhiteSpace(AppSettings.PromptName3) || AppSettings.PromptName3 == "Prompt 3")
-            {
-                AppSettings.PromptName3 = "Anime One Word";
-                AppSettings.PromptContent3 = GetDefaultAnimeOneWordPrompt();
-            }
-
-            AppSettings.Save();
+            return null;
         }
 
         private static HttpClient CreatePromptHttpClient()
@@ -320,20 +483,9 @@ namespace Subtitle_draft_GMTPC
             return client;
         }
 
-        private string GetPromptDefaultUrlById(int id)
+        private async Task<string> LoadPromptDefaultContentAsync(TranslateProfileGroup group, int id)
         {
-            switch (id)
-            {
-                case 1: return Prompt1DefaultUrl;
-                case 2: return Prompt2DefaultUrl;
-                case 3: return Prompt3DefaultUrl;
-                default: return null;
-            }
-        }
-
-        private async Task<string> LoadPromptDefaultContentAsync(int id)
-        {
-            var url = GetPromptDefaultUrlById(id);
+            var url = GetPromptDefaultUrlById(group, id);
             if (string.IsNullOrWhiteSpace(url))
             {
                 return null;
@@ -357,40 +509,40 @@ namespace Subtitle_draft_GMTPC
             }
         }
 
-        private async Task LoadPromptForSelectionAsync(int promptId, bool useDefaultSource, bool updateSelection)
+        private async Task LoadPromptForSelectionAsync(TranslateTabContext context, int promptId, bool useDefaultSource, bool updateSelection)
         {
-            if (_isPromptLoading)
+            if (context.IsPromptLoading)
             {
                 return;
             }
 
             try
             {
-                _isPromptLoading = true;
+                context.IsPromptLoading = true;
                 if (updateSelection)
                 {
-                    _selectedPromptId = promptId;
+                    context.SelectedPromptId = promptId;
                 }
 
-                UpdatePromptButtonDisplay();
+                UpdatePromptButtonDisplay(context);
 
                 string content = null;
-                if (useDefaultSource && promptId <= 3)
+                if (useDefaultSource)
                 {
-                    content = await LoadPromptDefaultContentAsync(promptId);
+                    content = await LoadPromptDefaultContentAsync(context.Group, promptId);
                     if (!string.IsNullOrWhiteSpace(content))
                     {
-                        TxtPrompt.Text = content;
-                        TxtTranslateStatus.Text = string.Format("Loaded default Prompt {0}: {1}", promptId, GetPromptNameById(promptId));
+                        context.PromptBox.Text = content;
+                        context.StatusTextBlock.Text = string.Format("Loaded default Prompt {0}: {1}", promptId, GetPromptNameById(context.Group, promptId));
                         return;
                     }
                 }
 
-                content = GetPromptContentById(promptId);
-                TxtPrompt.Text = content ?? string.Empty;
-                TxtTranslateStatus.Text = string.IsNullOrWhiteSpace(content)
+                content = GetPromptContentById(context.Group, promptId);
+                context.PromptBox.Text = content ?? string.Empty;
+                context.StatusTextBlock.Text = string.IsNullOrWhiteSpace(content)
                     ? string.Format("Prompt {0} is empty.", promptId)
-                    : string.Format("Loaded Prompt {0}: {1}", promptId, GetPromptNameById(promptId));
+                    : string.Format("Loaded Prompt {0}: {1}", promptId, GetPromptNameById(context.Group, promptId));
             }
             catch (Exception ex)
             {
@@ -398,7 +550,7 @@ namespace Subtitle_draft_GMTPC
             }
             finally
             {
-                _isPromptLoading = false;
+                context.IsPromptLoading = false;
             }
         }
 
@@ -538,16 +690,29 @@ namespace Subtitle_draft_GMTPC
 
         #region Translate - Toast
 
-        private async void ShowToastTranslate(string message)
+        private async Task ShowToastTranslate(TranslateTabContext context, string message)
         {
-            ToastTextTranslate.Text = message;
-            ToastBorderTranslate.Visibility = Visibility.Visible;
+            if (context == null || context.ToastBorder == null || context.ToastText == null)
+            {
+                return;
+            }
+
+            context.ToastText.Text = message;
+            context.ToastBorder.Visibility = Visibility.Visible;
             await Task.Delay(2000);
-            ToastBorderTranslate.Visibility = Visibility.Collapsed;
+            context.ToastBorder.Visibility = Visibility.Collapsed;
+        }
+
+        private async void ShowToastSentenceTranslate(string message)
+        {
+            await ShowToastTranslate(GetSentenceTranslateContext(), message);
+        }
+
+        private async void ShowToastOneWordTranslate(string message)
+        {
+            await ShowToastTranslate(GetOneWordTranslateContext(), message);
         }
 
         #endregion
     }
 }
-
-

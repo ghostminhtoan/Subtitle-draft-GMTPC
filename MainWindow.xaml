@@ -888,8 +888,8 @@
                 </Grid>
             </TabItem>
 
-            <!-- Tab 3: Translate (AI via browser) -->
-            <TabItem Header="🌐 Translate">
+            <!-- Tab 3: Translate Sentence (AI via browser) -->
+            <TabItem Header="🌐 Translate Sentence">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -900,7 +900,6 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- PANEL 1: Input Subtitle -->
                     <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -910,17 +909,17 @@
 
                             <StackPanel Grid.Row="0" Orientation="Horizontal">
                                 <Label Content="📄 Input Subtitle (Paste vào đây)" Style="{StaticResource SectionLabelStyle}"/>
-                                <TextBlock x:Name="TxtTranslateInputFormat" Text="" Foreground="#808080" FontSize="11"
+                                <TextBlock x:Name="TxtTranslateSentenceInputFormat" Text="" Foreground="#808080" FontSize="11"
                                            VerticalAlignment="Center" Margin="8,0,0,0"/>
                             </StackPanel>
 
-                            <TextBox x:Name="TxtTranslateInput" Grid.Row="1"
+                            <TextBox x:Name="TxtTranslateSentenceInput" Grid.Row="1"
                                      Style="{StaticResource DarkTextBoxStyle}"
+                                     TextChanged="TxtTranslateSentenceInput_TextChanged"
                                      PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
                         </Grid>
                     </Border>
 
-                    <!-- PANEL 2: Translate Controls -->
                     <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -930,67 +929,73 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <!-- Toolbar actions -->
                             <WrapPanel Grid.Row="0" Margin="0,0,0,8" Orientation="Horizontal" HorizontalAlignment="Left">
-                                <Button x:Name="BtnOpenQwen" Content="🌐 Mở chat.qwen.ai"
+                                <Button x:Name="BtnOpenQwenSentence" Content="🌐 Mở chat.qwen.ai"
+                                        Background="#059669" Foreground="White" BorderBrush="#047857"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
-                                        Margin="0,0,6,0" Click="BtnOpenQwen_Click"/>
-                                <Button x:Name="BtnCopyForPaste" Content="📋 Copy Prompt+Subtitle"
+                                        Margin="0,0,6,0" Click="BtnOpenQwenSentence_Click"/>
+                                <Button x:Name="BtnCopyForPasteSentence" Content="📋 Copy Prompt+Subtitle"
+                                        Background="#059669" Foreground="White" BorderBrush="#047857"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
-                                        Margin="0,0,6,0" Click="BtnCopyForPaste_Click"/>
-                                <Button x:Name="BtnLoadDefaultPrompt" Content="↺ Load default"
+                                        Margin="0,0,6,0" Click="BtnCopyForPasteSentence_Click"/>
+                                <Button x:Name="BtnLoadDefaultSentencePrompt" Content="↺ Load default"
+                                        Background="#2563EB" Foreground="White" BorderBrush="#1D4ED8"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
-                                        Margin="0,0,6,0" Click="BtnLoadDefaultPrompt_Click"/>
-                                <Button x:Name="BtnSavePrompts" Content="💾 Save Prompts"
+                                        Margin="0,0,6,0" Click="BtnLoadDefaultSentencePrompt_Click"/>
+                                <Button x:Name="BtnSaveSentencePrompts" Content="💾 Save Prompts"
+                                        Background="#D97706" Foreground="White" BorderBrush="#B45309"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
-                                        Margin="0,0,6,0" Click="BtnSavePrompts_Click"/>
-                                <Button x:Name="BtnLoadPrompts" Content="📂 Load Prompts"
+                                        Margin="0,0,6,0" Click="BtnSaveSentencePrompts_Click"/>
+                                <Button x:Name="BtnLoadSentencePrompts" Content="📂 Load Prompts"
+                                        Background="#D97706" Foreground="White" BorderBrush="#B45309"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
-                                        Margin="0,0,6,0" Click="BtnLoadPrompts_Click"/>
-                                <Button x:Name="BtnRenamePrompt" Content="✏️ Rename"
+                                        Margin="0,0,6,0" Click="BtnLoadSentencePrompts_Click"/>
+                                <Button x:Name="BtnRenameSentencePrompt" Content="✏️ Rename"
+                                        Background="#6B7280" Foreground="White" BorderBrush="#4B5563"
                                         Style="{StaticResource AccentButtonStyle}" Padding="10,6" FontSize="12"
-                                        Click="BtnRenamePrompt_Click"/>
+                                        Click="BtnRenameSentencePrompt_Click"/>
                             </WrapPanel>
 
-                            <!-- Prompt selectors -->
                             <WrapPanel Grid.Row="1" Margin="0,0,0,8" Orientation="Horizontal" HorizontalAlignment="Left">
-                                <Button x:Name="BtnPrompt1" Content="1. Prompt 1"
+                                <Button x:Name="BtnSentencePrompt1" Content="1. Prompt 1"
+                                        Background="#7C3AED" Foreground="White" BorderBrush="#5B21B6"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
-                                        Margin="0,0,4,0" Click="BtnPrompt_Click" Tag="1"/>
-                                <Button x:Name="BtnPrompt2" Content="2. Prompt 2"
+                                        Margin="0,0,4,0" Click="BtnSentencePrompt_Click" Tag="1"/>
+                                <Button x:Name="BtnSentencePrompt2" Content="2. Prompt 2"
+                                        Background="#7C3AED" Foreground="White" BorderBrush="#5B21B6"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
-                                        Margin="0,0,4,0" Click="BtnPrompt_Click" Tag="2"/>
-                                <Button x:Name="BtnPrompt3" Content="3. Prompt 3"
+                                        Margin="0,0,4,0" Click="BtnSentencePrompt_Click" Tag="2"/>
+                                <Button x:Name="BtnSentencePrompt3" Content="3. Prompt 3"
+                                        Background="#7C3AED" Foreground="White" BorderBrush="#5B21B6"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
-                                        Margin="0,0,4,0" Click="BtnPrompt_Click" Tag="3"/>
-                                <Button x:Name="BtnPrompt4" Content="4. Prompt 4"
+                                        Margin="0,0,4,0" Click="BtnSentencePrompt_Click" Tag="3"/>
+                                <Button x:Name="BtnSentencePrompt4" Content="4. Prompt 4"
+                                        Background="#7C3AED" Foreground="White" BorderBrush="#5B21B6"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
-                                        Margin="0,0,4,0" Click="BtnPrompt_Click" Tag="4"/>
-                                <Button x:Name="BtnPrompt5" Content="5. Prompt 5"
+                                        Margin="0,0,4,0" Click="BtnSentencePrompt_Click" Tag="4"/>
+                                <Button x:Name="BtnSentencePrompt5" Content="5. Prompt 5"
+                                        Background="#7C3AED" Foreground="White" BorderBrush="#5B21B6"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
-                                        Margin="0,0,4,0" Click="BtnPrompt_Click" Tag="5"/>
+                                        Margin="0,0,4,0" Click="BtnSentencePrompt_Click" Tag="5"/>
                             </WrapPanel>
 
-                            <!-- Prompt input (expanded) -->
                             <Grid Grid.Row="2" Margin="0,0,0,6">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
                                 <Label Grid.Row="0" Content="💬 Prompt" Style="{StaticResource SectionLabelStyle}" Padding="0"/>
-                                <TextBox x:Name="TxtPrompt" Grid.Row="1" Style="{StaticResource DarkTextBoxStyle}"
+                                <TextBox x:Name="TxtTranslateSentencePrompt" Grid.Row="1" Style="{StaticResource DarkTextBoxStyle}"
                                          TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" Padding="6"
-                                         LostFocus="TxtPrompt_LostFocus"
+                                         LostFocus="TxtTranslateSentencePrompt_LostFocus"
                                          PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
                             </Grid>
 
-                            <!-- Status -->
-                            <TextBlock x:Name="TxtTranslateStatus" Grid.Row="3" HorizontalAlignment="Left"
+                            <TextBlock x:Name="TxtTranslateSentenceStatus" Grid.Row="3" HorizontalAlignment="Left"
                                        VerticalAlignment="Center" Foreground="#808080" FontSize="11"/>
                         </Grid>
                     </Border>
 
-                    <!-- Footer: Author info -->
                     <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                             Background="#1A1A1A" BorderBrush="#3E3E42" BorderThickness="0,1,0,0"
                             Padding="12,8">
@@ -998,18 +1003,148 @@
                             <TextBlock Text="Tác giả: " Foreground="#808080" FontSize="12"/>
                             <TextBlock Text="Ma Minh Toàn 1993" Foreground="#0078D4" FontSize="12" FontWeight="SemiBold"/>
                             <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
-                            <TextBlock Text="AI Translate GMTPC" Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="Translate Sentence" Foreground="#808080" FontSize="12"/>
                             <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
                             <TextBlock Text="Dịch phụ đề bằng AI (chat.qwen.ai)" Foreground="#808080" FontSize="12"/>
                         </StackPanel>
                     </Border>
 
-                    <!-- Toast Notification -->
-                    <Border x:Name="ToastBorderTranslate" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                    <Border x:Name="ToastBorderTranslateSentence" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                             HorizontalAlignment="Center" VerticalAlignment="Top"
                             Visibility="Collapsed" Style="{StaticResource ToastBorderStyle}"
                             Margin="0,20,0,0" MinWidth="300" MaxWidth="500">
-                        <TextBlock x:Name="ToastTextTranslate" Text="" Foreground="#FFFFFF" FontSize="14"
+                        <TextBlock x:Name="ToastTextTranslateSentence" Text="" Foreground="#FFFFFF" FontSize="14"
+                                   TextAlignment="Center" TextWrapping="Wrap"/>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- Tab 4: Translate One Word (AI via browser) -->
+            <TabItem Header="🌐 Translate One Word">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                <Label Content="📄 Input Subtitle (Paste vào đây)" Style="{StaticResource SectionLabelStyle}"/>
+                                <TextBlock x:Name="TxtTranslateOneWordInputFormat" Text="" Foreground="#808080" FontSize="11"
+                                           VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            </StackPanel>
+
+                            <TextBox x:Name="TxtTranslateOneWordInput" Grid.Row="1"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     TextChanged="TxtTranslateOneWordInput_TextChanged"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <WrapPanel Grid.Row="0" Margin="0,0,0,8" Orientation="Horizontal" HorizontalAlignment="Left">
+                                <Button x:Name="BtnOpenQwenOneWord" Content="🌐 Mở chat.qwen.ai"
+                                        Background="#059669" Foreground="White" BorderBrush="#047857"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
+                                        Margin="0,0,6,0" Click="BtnOpenQwenOneWord_Click"/>
+                                <Button x:Name="BtnCopyForPasteOneWord" Content="📋 Copy Prompt+Subtitle"
+                                        Background="#059669" Foreground="White" BorderBrush="#047857"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
+                                        Margin="0,0,6,0" Click="BtnCopyForPasteOneWord_Click"/>
+                                <Button x:Name="BtnLoadDefaultOneWordPrompt" Content="↺ Load default"
+                                        Background="#2563EB" Foreground="White" BorderBrush="#1D4ED8"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
+                                        Margin="0,0,6,0" Click="BtnLoadDefaultOneWordPrompt_Click"/>
+                                <Button x:Name="BtnSaveOneWordPrompts" Content="💾 Save Prompts"
+                                        Background="#D97706" Foreground="White" BorderBrush="#B45309"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
+                                        Margin="0,0,6,0" Click="BtnSaveOneWordPrompts_Click"/>
+                                <Button x:Name="BtnLoadOneWordPrompts" Content="📂 Load Prompts"
+                                        Background="#D97706" Foreground="White" BorderBrush="#B45309"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
+                                        Margin="0,0,6,0" Click="BtnLoadOneWordPrompts_Click"/>
+                                <Button x:Name="BtnRenameOneWordPrompt" Content="✏️ Rename"
+                                        Background="#6B7280" Foreground="White" BorderBrush="#4B5563"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="10,6" FontSize="12"
+                                        Click="BtnRenameOneWordPrompt_Click"/>
+                            </WrapPanel>
+
+                            <WrapPanel Grid.Row="1" Margin="0,0,0,8" Orientation="Horizontal" HorizontalAlignment="Left">
+                                <Button x:Name="BtnOneWordPrompt1" Content="1. Prompt 1"
+                                        Background="#7C3AED" Foreground="White" BorderBrush="#5B21B6"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
+                                        Margin="0,0,4,0" Click="BtnOneWordPrompt_Click" Tag="1"/>
+                                <Button x:Name="BtnOneWordPrompt2" Content="2. Prompt 2"
+                                        Background="#7C3AED" Foreground="White" BorderBrush="#5B21B6"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
+                                        Margin="0,0,4,0" Click="BtnOneWordPrompt_Click" Tag="2"/>
+                                <Button x:Name="BtnOneWordPrompt3" Content="3. Prompt 3"
+                                        Background="#7C3AED" Foreground="White" BorderBrush="#5B21B6"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
+                                        Margin="0,0,4,0" Click="BtnOneWordPrompt_Click" Tag="3"/>
+                                <Button x:Name="BtnOneWordPrompt4" Content="4. Prompt 4"
+                                        Background="#7C3AED" Foreground="White" BorderBrush="#5B21B6"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
+                                        Margin="0,0,4,0" Click="BtnOneWordPrompt_Click" Tag="4"/>
+                                <Button x:Name="BtnOneWordPrompt5" Content="5. Prompt 5"
+                                        Background="#7C3AED" Foreground="White" BorderBrush="#5B21B6"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="11"
+                                        Margin="0,0,4,0" Click="BtnOneWordPrompt_Click" Tag="5"/>
+                            </WrapPanel>
+
+                            <Grid Grid.Row="2" Margin="0,0,0,6">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Label Grid.Row="0" Content="💬 Prompt" Style="{StaticResource SectionLabelStyle}" Padding="0"/>
+                                <TextBox x:Name="TxtTranslateOneWordPrompt" Grid.Row="1" Style="{StaticResource DarkTextBoxStyle}"
+                                         TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" Padding="6"
+                                         LostFocus="TxtTranslateOneWordPrompt_LostFocus"
+                                         PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
+                            </Grid>
+
+                            <TextBlock x:Name="TxtTranslateOneWordStatus" Grid.Row="3" HorizontalAlignment="Left"
+                                       VerticalAlignment="Center" Foreground="#808080" FontSize="11"/>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                            Background="#1A1A1A" BorderBrush="#3E3E42" BorderThickness="0,1,0,0"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="Tác giả: " Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="Ma Minh Toàn 1993" Foreground="#0078D4" FontSize="12" FontWeight="SemiBold"/>
+                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                            <TextBlock Text="Translate One Word" Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                            <TextBlock Text="Dịch phụ đề bằng AI (chat.qwen.ai)" Foreground="#808080" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border x:Name="ToastBorderTranslateOneWord" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center" VerticalAlignment="Top"
+                            Visibility="Collapsed" Style="{StaticResource ToastBorderStyle}"
+                            Margin="0,20,0,0" MinWidth="300" MaxWidth="500">
+                        <TextBlock x:Name="ToastTextTranslateOneWord" Text="" Foreground="#FFFFFF" FontSize="14"
                                    TextAlignment="Center" TextWrapping="Wrap"/>
                     </Border>
                 </Grid>
