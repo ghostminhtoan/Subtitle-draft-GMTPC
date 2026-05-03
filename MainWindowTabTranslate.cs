@@ -25,6 +25,7 @@ namespace Subtitle_draft_GMTPC
             public TranslateProfileGroup Group;
             public TextBox InputBox;
             public TextBlock InputFormatTextBlock;
+            public TextBox PlainTextBox;
             public TextBox PromptBox;
             public TextBlock StatusTextBlock;
             public Border ToastBorder;
@@ -87,7 +88,7 @@ namespace Subtitle_draft_GMTPC
 
         private void BtnCopyForPasteOneWord_Click(object sender, RoutedEventArgs e)
         {
-            CopyPromptAndInputToClipboard(GetOneWordTranslateContext());
+            CopyOneWordPromptSubtitlePlainTextToClipboard(GetOneWordTranslateContext());
         }
 
         /// <summary>
@@ -257,6 +258,7 @@ namespace Subtitle_draft_GMTPC
                 Group = TranslateProfileGroup.OneWord,
                 InputBox = TxtTranslateOneWordInput,
                 InputFormatTextBlock = TxtTranslateOneWordInputFormat,
+                PlainTextBox = TxtTranslateOneWordPlainText,
                 PromptBox = TxtTranslateOneWordPrompt,
                 StatusTextBlock = TxtTranslateOneWordStatus,
                 ToastBorder = ToastBorderTranslateOneWord,
@@ -330,6 +332,37 @@ namespace Subtitle_draft_GMTPC
             SavePromptEditorContent(context);
             Clipboard.SetText(prompt + Environment.NewLine + Environment.NewLine + inputText);
             context.StatusTextBlock.Text = "📋 Đã copy Prompt + Subtitle vào clipboard!";
+        }
+
+        private void CopyOneWordPromptSubtitlePlainTextToClipboard(TranslateTabContext context)
+        {
+            var prompt = context.PromptBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(prompt))
+            {
+                context.StatusTextBlock.Text = "⚠️ Vui lòng nhập prompt!";
+                return;
+            }
+
+            var subtitleInput = context.InputBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(subtitleInput))
+            {
+                context.StatusTextBlock.Text = "⚠️ Vui lòng nhập subtitle!";
+                return;
+            }
+
+            var plainText = context.PlainTextBox == null ? string.Empty : context.PlainTextBox.Text.Trim();
+
+            SavePromptEditorContent(context);
+            var clipboardText = prompt
+                + Environment.NewLine + Environment.NewLine
+                + "Đây là subtitle"
+                + Environment.NewLine + subtitleInput
+                + Environment.NewLine + Environment.NewLine
+                + "Đây là plaintext"
+                + Environment.NewLine + plainText;
+
+            Clipboard.SetText(clipboardText);
+            context.StatusTextBlock.Text = "📋 Đã copy Prompt + Subtitle + Plaintext vào clipboard!";
         }
 
         private void RenameSelectedPrompt(TranslateTabContext context)

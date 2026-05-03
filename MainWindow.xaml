@@ -1035,6 +1035,8 @@
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="2*"/>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
@@ -1048,6 +1050,24 @@
                                      Style="{StaticResource DarkTextBoxStyle}"
                                      TextChanged="TxtTranslateOneWordInput_TextChanged"
                                      PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
+
+                            <Border Grid.Row="2" Height="1" Background="#3E3E42" Margin="0,8"/>
+
+                            <Grid Grid.Row="3">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                    <Label Content="📝 Plaintext" Style="{StaticResource SectionLabelStyle}"/>
+                                </StackPanel>
+
+                                <TextBox x:Name="TxtTranslateOneWordPlainText" Grid.Row="1"
+                                         Style="{StaticResource DarkTextBoxStyle}"
+                                         TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" Padding="6"
+                                         PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
+                            </Grid>
                         </Grid>
                     </Border>
 
@@ -1065,7 +1085,7 @@
                                         Background="#059669" Foreground="White" BorderBrush="#047857"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
                                         Margin="0,0,6,0" Click="BtnOpenQwenOneWord_Click"/>
-                                <Button x:Name="BtnCopyForPasteOneWord" Content="📋 Copy Prompt+Subtitle"
+                                <Button x:Name="BtnCopyForPasteOneWord" Content="📋 Copy Qwen Format"
                                         Background="#059669" Foreground="White" BorderBrush="#047857"
                                         Style="{StaticResource AccentButtonStyle}" Padding="12,6" FontSize="12"
                                         Margin="0,0,6,0" Click="BtnCopyForPasteOneWord_Click"/>

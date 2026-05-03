@@ -8,6 +8,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-05-03 07:27:08 AM Sunday]
+
+### Changed - One Word Input Panel Now Has Subtitle And Plaintext Sections
+- Chia panel input của tab `Translate One Word` thành 2 vùng dọc: phần subtitle ở trên và phần plaintext ở dưới.
+- Nút copy cho `Translate One Word` giờ xuất theo format `Prompt -> Đây là subtitle -> input -> Đây là plaintext -> plaintext`.
+- Giữ nguyên tab `Translate Sentence` và chỉ áp dụng thay đổi này cho tab `One Word`.
+
+---
 ## [2026-05-02 06:56:13 PM Saturday]
 
 ### Changed - Split Translate Into Sentence And One Word Tabs

@@ -209,7 +209,7 @@ namespace Subtitle_draft_GMTPC
                          TxtDialogueInput, TxtDialogueOutput, TxtDialogueManual, TxtDialogueMerged,
                          TxtStylesInput, TxtStylesOutput,
                          TxtTranslateSentenceInput, TxtTranslateSentencePrompt,
-                         TxtTranslateOneWordInput, TxtTranslateOneWordPrompt,
+                         TxtTranslateOneWordInput, TxtTranslateOneWordPlainText, TxtTranslateOneWordPrompt,
                          TxtKaraokeInput, TxtKaraokeEditable,
                          TxtZeroInput, TxtZeroOutput,
                          TxtKaraokeEngInput, TxtKaraokeEngEditable,
@@ -445,6 +445,7 @@ namespace Subtitle_draft_GMTPC
                     TxtTranslateSentenceInput,
                     TxtTranslateSentencePrompt,
                     TxtTranslateOneWordInput,
+                    TxtTranslateOneWordPlainText,
                     TxtTranslateOneWordPrompt
                 };
                 foreach (var tb in textboxes)
