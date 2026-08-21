@@ -1,4 +1,4 @@
-﻿# Changelog - Subtitle Draft GMTPC
+# Changelog - Subtitle Draft GMTPC
 
 Tất cả thay đổi đáng chú ý của project sẽ được ghi lại trong file này.
 
@@ -6,6 +6,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - Entry đầu tiên (trên cùng, ngay sau header) = MỚI nhất
 - Entry cuối cùng (dưới cùng) = CŨ nhất
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
+
+---
+## [2026-08-21 09:38:00 AM Friday]
+
+### Added / Fixed - Subtitle Engine Optimization & Auto-Fix
+- Nâng cấp `SubtitleParser`: Thêm cơ chế `AutoFix` tự động sửa lỗi timeline ngược, rách thẻ tag format ASS và sắp xếp timeline chuẩn.
+- Bổ sung `ParseAsync` cho việc phân tích cú pháp phụ đề bất đồng bộ trên background task.
+- Sửa lỗi định dạng giây trong `FormatSrtTime` (`D2` thay vì `D3`) và dọn dẹp toàn bộ warning thừa của project.
 
 ---
 ## [2026-05-03 07:27:08 AM Sunday]

@@ -79,7 +79,7 @@ namespace Subtitle_draft_GMTPC.Models
             remaining = remaining % 60000;
             long seconds = remaining / 1000;
             long milliseconds = remaining;
-            return $"{hours:D2}:{minutes:D2}:{seconds:D3},{milliseconds:D3}";
+            return $"{hours:D2}:{minutes:D2}:{seconds:D2},{milliseconds:D3}";
         }
 
         /// <summary>

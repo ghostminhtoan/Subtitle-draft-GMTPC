@@ -20,7 +20,6 @@ namespace Subtitle_draft_GMTPC
         private bool _isEffectUpdating = false;
         private DispatcherTimer _effectDebounceTimer = new DispatcherTimer();
         private bool _effectPendingUpdate = false;
-        private string _currentEffectTag = "";
         private Models.AssTagType _currentEffectType = Models.AssTagType.Unknown;
         private string _currentEffectName = "";
 

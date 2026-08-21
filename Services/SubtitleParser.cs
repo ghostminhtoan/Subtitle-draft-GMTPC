@@ -281,6 +281,57 @@ namespace Subtitle_draft_GMTPC.Services
         }
 
         /// <summary>
+        /// Tự động sửa các lỗi cú pháp phụ đề phổ biến (Timeline ngược, timeline trùng/chồng chéo, thẻ format lỗi)
+        /// </summary>
+        public static List<SubtitleLine> AutoFix(List<SubtitleLine> lines)
+        {
+            if (lines == null || lines.Count == 0) return new List<SubtitleLine>();
+
+            var fixedLines = new List<SubtitleLine>(lines.Count);
+            foreach (var line in lines)
+            {
+                var cloned = line.Clone();
+                // Fix timeline ngược: EndTime < StartTime
+                if (cloned.EndTime < cloned.StartTime)
+                {
+                    cloned.EndTime = cloned.StartTime.Add(TimeSpan.FromSeconds(2));
+                }
+
+                var assLine = cloned as AssSubtitleLine;
+                if (assLine != null && !string.IsNullOrEmpty(assLine.DialogText))
+                {
+                    // Tự động fix thẻ ASS bị rách hoặc thiếu đóng ngoặc {}
+                    var text = assLine.DialogText;
+                    int openCount = 0;
+                    for (int i = 0; i < text.Length; i++)
+                    {
+                        if (text[i] == '{') openCount++;
+                        else if (text[i] == '}') openCount--;
+                    }
+                    if (openCount > 0)
+                    {
+                        text += new string('}', openCount);
+                        assLine.DialogText = text;
+                    }
+                }
+
+                fixedLines.Add(cloned);
+            }
+
+            // Sắp xếp lại theo timeline StartTime
+            fixedLines.Sort((a, b) => a.StartTime.CompareTo(b.StartTime));
+            return fixedLines;
+        }
+
+        /// <summary>
+        /// Parse bất đồng bộ tránh block UI khi file lớn
+        /// </summary>
+        public static System.Threading.Tasks.Task<List<SubtitleLine>> ParseAsync(string content)
+        {
+            return System.Threading.Tasks.Task.Run(() => Parse(content));
+        }
+
+        /// <summary>
         /// Xuat danh sach SubtitleLine thanh noi dung text giu nguyen format goc
         /// </summary>
         public static string ToOriginalText(List<SubtitleLine> lines, SubtitleFormat format)

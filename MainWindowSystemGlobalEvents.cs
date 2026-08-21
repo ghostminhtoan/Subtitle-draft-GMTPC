@@ -35,8 +35,6 @@ namespace Subtitle_draft_GMTPC
         private SearchManager _searchEffect = new SearchManager();
         private SearchManager _searchTextToSub = new SearchManager();
 
-        // Search TextBox hiện tại
-        private TextBox _currentSearchBox = null;
         private string _currentSearchText = "";
         private string _lastSearchText = "";
 
