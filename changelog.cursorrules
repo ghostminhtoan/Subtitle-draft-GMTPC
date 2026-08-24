@@ -13,7 +13,7 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 ### Added - Dialogue Normalize Sub-tab in Subtitle Tools
 - Thêm sub-tab `🔤 Dialogue Normalize` trong `🧰 Subtitle Tools` bên cạnh `💬 Dialogue`.
 - Panel 1: Input STT + Nội dung từng từ hoặc câu thủ công.
-- Panel 2: Tự động xóa STT, thêm `∞` ở đầu câu/sau dấu ngắt câu (`.`, `!`, `?`, `:`, `...`) và thêm `♫` ở giữa các từ thay thế khoảng trắng.
+- Panel 2: Tự động xóa STT, tự động xuống dòng trước ký tự `∞` ở đầu câu/sau dấu ngắt câu (`.`, `!`, `?`, `:`, `...`) và thêm `♫` ở giữa các từ thay thế khoảng trắng.
 - Panel 3: Nhận nội dung chỉnh sửa (hỗ trợ sửa trực tiếp hoặc paste từ ngoài).
 - Panel 4: Tự động ánh xạ và phục hồi lại STT ban đầu từ Panel 1 cho từng token đã edit.
 

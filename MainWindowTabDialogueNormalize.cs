@@ -158,11 +158,11 @@ namespace Subtitle_draft_GMTPC
                     }
                     else
                     {
-                        // Kiểm tra từ/ký tự trước đó kết thúc bằng dấu gì
+                        // Kiểm tra từ/ký tự trước đó kết thúc bằng dấu ngắt câu
                         string currentText = sbPanel2.ToString();
                         if (EndsWithSentenceBoundary(currentText))
                         {
-                            sbPanel2.Append("∞");
+                            sbPanel2.Append("\r\n∞");
                         }
                         else
                         {
