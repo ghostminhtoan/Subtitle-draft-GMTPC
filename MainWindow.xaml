@@ -1,4 +1,4 @@
-﻿<Window x:Class="Subtitle_draft_GMTPC.MainWindow"
+<Window x:Class="Subtitle_draft_GMTPC.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -883,6 +883,128 @@
                             Visibility="Collapsed" Style="{StaticResource ToastBorderStyle}"
                             Margin="0,20,0,0" MinWidth="300" MaxWidth="500">
                         <TextBlock x:Name="ToastTextDialogue" Text="" Foreground="#FFFFFF" FontSize="14"
+                                   TextAlignment="Center" TextWrapping="Wrap"/>
+                    </Border>
+                </Grid>
+            </TabItem>
+            
+            <!-- Sub-tab: Dialogue Normalize (Sentence & Word Segmentation) -->
+            <TabItem Header="🔤 Dialogue Normalize">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- PANEL 1: Input Dialogue (STT + Nội dung) -->
+                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                <Label Content="🔢 1. Input Dialogue (STT + Nội dung)" Style="{StaticResource SectionLabelStyle}"/>
+                                <TextBlock x:Name="TxtDialogueNormInputCount" Text="" Foreground="#808080" FontSize="11"
+                                           VerticalAlignment="Center" Margin="8,0,0,0"/>
+                            </StackPanel>
+
+                            <TextBox x:Name="TxtDialogueNormInput" Grid.Row="1"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     TextChanged="TxtDialogueNormInput_TextChanged"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- PANEL 2: Sentence Dialogue (∞ đầu câu, ♫ khoảng cách) -->
+                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Content="♾️ 2. Sentence Dialogue (Chuẩn hóa ∞ và ♫)" Style="{StaticResource SectionLabelStyle}"/>
+
+                            <TextBox x:Name="TxtDialogueNormSentence" Grid.Row="1"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     IsReadOnly="True"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
+
+                            <Button x:Name="BtnCopyDialogueNormSentence" Grid.Row="2" Content="📋 Copy Sentence"
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    HorizontalAlignment="Right" Margin="0,8,0,0"
+                                    Click="BtnCopyDialogueNormSentence_Click"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- PANEL 3: Edited Dialogue (Dán nội dung đã chỉnh sửa) -->
+                    <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Content="✏️ 3. Edited Dialogue (Sửa hoặc Paste từ Notepad)" Style="{StaticResource SectionLabelStyle}"/>
+
+                            <TextBox x:Name="TxtDialogueNormEdited" Grid.Row="1"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     TextChanged="TxtDialogueNormEdited_TextChanged"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- PANEL 4: Output Restored STT + Edited Text -->
+                    <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource PanelBorderStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Content="🎯 4. Output Dialogue (STT + Nội dung đã edit)" Style="{StaticResource SectionLabelStyle}"/>
+
+                            <TextBox x:Name="TxtDialogueNormOutput" Grid.Row="1"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     IsReadOnly="True"
+                                     PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
+
+                            <Button x:Name="BtnCopyDialogueNormOutput" Grid.Row="2" Content="📋 Copy Output"
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    HorizontalAlignment="Right" Margin="0,8,0,0"
+                                    Click="BtnCopyDialogueNormOutput_Click"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Footer: Author info -->
+                    <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                            Background="#1A1A1A" BorderBrush="#3E3E42" BorderThickness="0,1,0,0"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="Tác giả: " Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="Ma Minh Toàn 1993" Foreground="#0078D4" FontSize="12" FontWeight="SemiBold"/>
+                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                            <TextBlock Text="Dialogue Normalize GMTPC" Foreground="#808080" FontSize="12"/>
+                            <TextBlock Text="  |  " Foreground="#505050" FontSize="12"/>
+                            <TextBlock Text="Chuẩn hóa câu và ánh xạ STT phụ đề" Foreground="#808080" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Toast Notification (ẩn mặc định) -->
+                    <Border x:Name="ToastBorderDialogueNorm" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center" VerticalAlignment="Top"
+                            Visibility="Collapsed" Style="{StaticResource ToastBorderStyle}"
+                            Margin="0,20,0,0" MinWidth="300" MaxWidth="500">
+                        <TextBlock x:Name="ToastTextDialogueNorm" Text="" Foreground="#FFFFFF" FontSize="14"
                                    TextAlignment="Center" TextWrapping="Wrap"/>
                     </Border>
                 </Grid>

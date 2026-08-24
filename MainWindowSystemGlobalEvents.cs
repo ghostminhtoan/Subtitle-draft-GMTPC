@@ -22,6 +22,7 @@ namespace Subtitle_draft_GMTPC
         // Search managers cho mỗi tab
         private SearchManager _searchHardware = new SearchManager();
         private SearchManager _searchDialogue = new SearchManager();
+        private SearchManager _searchDialogueNorm = new SearchManager();
         private SearchManager _searchTranslate = new SearchManager();
         private SearchManager _searchFonts = new SearchManager();
         private SearchManager _searchAssFont = new SearchManager();
@@ -412,6 +413,29 @@ namespace Subtitle_draft_GMTPC
                 }
             }
             // Tab Dialogue
+            else if (header.Contains("Dialogue Normalize"))
+            {
+                TextBox[] textboxes = new[] { TxtDialogueNormInput, TxtDialogueNormSentence, TxtDialogueNormEdited, TxtDialogueNormOutput };
+                foreach (var tb in textboxes)
+                {
+                    if (tb != null && tb.IsFocused)
+                    {
+                        found = _searchDialogueNorm.SearchInTextBox(tb, _currentSearchText, findNext);
+                        if (found) break;
+                    }
+                }
+                if (!found)
+                {
+                    foreach (var tb in textboxes)
+                    {
+                        if (tb != null && tb.Text.ToLower().Contains(_currentSearchText.ToLower()))
+                        {
+                            found = _searchDialogueNorm.SearchInTextBox(tb, _currentSearchText, findNext);
+                            if (found) break;
+                        }
+                    }
+                }
+            }
             else if (header.Contains("Dialogue"))
             {
                 TextBox[] textboxes = new[] { TxtDialogueInput, TxtDialogueOutput, TxtDialogueManual, TxtDialogueMerged };
@@ -652,6 +676,7 @@ namespace Subtitle_draft_GMTPC
         }
 
         if (header.Contains("Hardware")) return _searchHardware;
+        if (header.Contains("Dialogue Normalize")) return _searchDialogueNorm;
         if (header.Contains("Dialogue")) return _searchDialogue;
         if (header.Contains("Translate")) return _searchTranslate;
         if (header.Contains("Search Fonts")) return _searchFonts;
