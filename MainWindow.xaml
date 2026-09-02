@@ -172,9 +172,9 @@
         <!-- Style cho TextBox theo Windows 11 Dark -->
         <Style x:Key="DarkTextBoxStyle" TargetType="TextBox">
             <Style.Resources>
-                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#FFD700"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#FFB800"/>
                 <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#000000"/>
-                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#FFD700"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#FFB800"/>
                 <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#000000"/>
             </Style.Resources>
             <Setter Property="Background" Value="#2D2D2D"/>
@@ -190,7 +190,7 @@
             <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="IsInactiveSelectionHighlightEnabled" Value="True"/>
-            <Setter Property="SelectionBrush" Value="#FFD700"/>
+            <Setter Property="SelectionBrush" Value="#FFB800"/>
             <Setter Property="SelectionOpacity" Value="0.85"/>
             <Setter Property="Template">
                 <Setter.Value>

@@ -13,13 +13,16 @@ namespace Subtitle_draft_GMTPC.Helpers
     /// </summary>
     public class TextHighlightAdorner : Adorner
     {
-        private static readonly Brush HighlightFillBrush = new SolidColorBrush(Color.FromArgb(190, 255, 215, 0)); // #FFD700 Gold/Yellow siêu sáng rực rỡ trên nền tối
-        private static readonly Pen HighlightBorderPen = new Pen(new SolidColorBrush(Color.FromRgb(255, 255, 255)), 1.5); // Viền trắng sáng tương phản cao
+        // Tông màu Amber Gold / Vàng hổ phách (#FFB800) bán trong suốt tạo độ tương phản hoàn hảo trên Dark Theme
+        private static readonly Brush HighlightFillBrush = new SolidColorBrush(Color.FromArgb(130, 255, 184, 0)); // Vàng hổ phách bán trong suốt
+        private static readonly Pen HighlightBorderPen = new Pen(new SolidColorBrush(Color.FromArgb(220, 255, 215, 0)), 1.2); // Viền vàng sáng rõ nét
+        private static readonly Brush HighlightTextBrush = new SolidColorBrush(Color.FromRgb(0, 0, 0)); // Chữ đen tương phản sắc nét
 
         static TextHighlightAdorner()
         {
             HighlightFillBrush.Freeze();
             HighlightBorderPen.Freeze();
+            HighlightTextBrush.Freeze();
         }
 
         private readonly TextBox _textBox;
@@ -117,7 +120,7 @@ namespace Subtitle_draft_GMTPC.Helpers
             if (start >= end)
                 return;
 
-            // Đảm bảo clip theo khung nhìn của TextBox
+            // Clip theo khung nhìn của TextBox
             drawingContext.PushClip(new RectangleGeometry(new Rect(0, 0, _textBox.ActualWidth, _textBox.ActualHeight)));
 
             try
@@ -126,6 +129,10 @@ namespace Subtitle_draft_GMTPC.Helpers
                 int endLine = _textBox.GetLineIndexFromCharacterIndex(Math.Max(start, end - 1));
 
                 if (startLine < 0 || endLine < 0) return;
+
+                var typeface = new Typeface(_textBox.FontFamily, _textBox.FontStyle, _textBox.FontWeight, _textBox.FontStretch);
+                double fontSize = _textBox.FontSize;
+                var pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
 
                 for (int line = startLine; line <= endLine; line++)
                 {
@@ -139,10 +146,8 @@ namespace Subtitle_draft_GMTPC.Helpers
                     if (segStart >= segEnd)
                         continue;
 
-                    // Lấy tọa độ mép trái của ký tự đầu tiên
+                    // Lấy tọa độ mép trái của ký tự đầu tiên và mép phải của ký tự cuối
                     Rect rStart = _textBox.GetRectFromCharacterIndex(segStart);
-                    
-                    // Lấy tọa độ mép phải của ký tự cuối cùng trong đoạn highlight
                     Rect rEndChar = _textBox.GetRectFromCharacterIndex(Math.Max(segStart, segEnd - 1));
 
                     double top = rStart.Top;
@@ -151,8 +156,30 @@ namespace Subtitle_draft_GMTPC.Helpers
                     double right = Math.Max(rEndChar.Right, left + 10);
                     double width = Math.Max(12, right - left);
 
+                    // 1. Vẽ nền vệt màu vàng hổ phách bán trong suốt kèm viền sáng sắc nét
                     Rect drawRect = new Rect(left, top, width, height);
-                    drawingContext.DrawRectangle(HighlightFillBrush, HighlightBorderPen, drawRect);
+                    drawingContext.DrawRoundedRectangle(HighlightFillBrush, HighlightBorderPen, drawRect, 2, 2);
+
+                    // 2. Vẽ lại đoạn text bôi đen bằng màu đen tương phản tuyệt đối nếu TextBox không có Native Selection
+                    if (!_textBox.IsFocused && segEnd > segStart)
+                    {
+                        string segText = _textBox.Text.Substring(segStart, segEnd - segStart);
+                        // Bỏ qua ký tự ngắt dòng khi format text
+                        segText = segText.Replace("\r", "").Replace("\n", "");
+                        if (!string.IsNullOrEmpty(segText))
+                        {
+                            var formattedText = new FormattedText(
+                                segText,
+                                System.Globalization.CultureInfo.CurrentCulture,
+                                FlowDirection.LeftToRight,
+                                typeface,
+                                fontSize,
+                                HighlightTextBrush,
+                                pixelsPerDip);
+
+                            drawingContext.DrawText(formattedText, new Point(left, top));
+                        }
+                    }
                 }
             }
             catch
