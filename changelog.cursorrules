@@ -8,6 +8,16 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 04:10:00 PM Wednesday]
+
+### Changed & Improved - VS Code Professional Dark Blue Highlight with Crisp White Text
+- **Chuyển đổi màu Highlight sang chuẩn VS Code Dark Blue (#264F78) & Chữ trắng sáng (#FFFFFF)**:
+  - Loại bỏ hoàn toàn tông màu vàng theo yêu cầu của người dùng để tránh cảm giác chói mắt và khó đọc văn bản phụ đề dài.
+  - Sử dụng màu nền highlight chuẩn của các IDE chuyên nghiệp: **VS Code Dark Blue (`#264F78` với Opacity 170/255 ~ 66%)** kèm viền xanh sáng tinh tế (`#0096FF`, 1.2px, bo góc 2px).
+  - Giữ nguyên màu chữ **trắng sáng nguyên bản (`#FFFFFF`)** tương phản hoàn hảo trên nền xanh tối, giúp mắt nhìn cực kỳ êm dịu, dễ đọc, rõ từng nét chữ và hòa nhập tự nhiên 100% với giao diện Dark Theme tổng thể của app.
+  - Đồng bộ `DarkTextBoxStyle` trong `MainWindow.xaml` với `SelectionBrush="#264F78"` và `HighlightTextBrushKey="#FFFFFF"`.
+
+---
 ## [2026-09-02 04:05:00 PM Wednesday]
 
 ### Improved & Fixed - Amber Gold High-Contrast Highlight & Sharp Text Contrast
