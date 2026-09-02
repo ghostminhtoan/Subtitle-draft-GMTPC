@@ -8,6 +8,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 02:07:00 PM Wednesday]
+
+### Fixed - BuildStamp Generation Syntax & String Quotation Escape
+- **Khắc phục lỗi biên dịch `CS1010` (Newline in constant) và `CS1002` (; expected) tại `BuildStampInfo.g.cs`**:
+  - Nguyên nhân: Lệnh nội suy chuỗi PowerShell trong script build khi escape quotation `\"\"{0}\"\"` bị lỗi ngắt chuỗi quote lúc ghi file.
+  - Khắc phục: Sửa script sinh mã trong `build.cmd` sử dụng `[System.IO.File]::WriteAllLines()` với cú pháp ghép chuỗi tường minh và format chuẩn UTF-8, đồng thời sửa cú pháp đóng chuỗi hằng số `Utc` trong [BuildStampInfo.g.cs](file:///c:/Users/Admin/source/repos/ghostminhtoan/Subtitle%20draft%20GMTPC%20CS/Services/BuildStampInfo.g.cs).
+
+---
 ## [2026-09-02 02:03:00 PM Wednesday]
 
 ### Improved - LightCyan High-Contrast Border for Multi-Panel Highlight

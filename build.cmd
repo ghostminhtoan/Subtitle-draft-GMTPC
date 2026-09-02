@@ -5,7 +5,7 @@ echo ========================================
 echo.
 
 echo Generating build stamp source...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$stamp = (Get-Date).ToUniversalTime().ToString('o'); $content = @('namespace Subtitle_draft_GMTPC.Services', '{', '    internal static partial class BuildStampInfo', '    {', ('        public const string Utc = ""{0}"";' -f $stamp), '    }', '}'); Set-Content -Path 'Services\BuildStampInfo.g.cs' -Value $content -Encoding UTF8"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$stamp = (Get-Date).ToUniversalTime().ToString('o'); $lines = @('namespace Subtitle_draft_GMTPC.Services', '{', '    internal static partial class BuildStampInfo', '    {', ('        public const string Utc = \"' + $stamp + '\";'), '    }', '}'); [System.IO.File]::WriteAllLines('Services\BuildStampInfo.g.cs', $lines, [System.Text.Encoding]::UTF8)"
 if %ERRORLEVEL% NEQ 0 (
     echo [WARNING] Failed to generate BuildStampInfo.g.cs.
 ) else (
