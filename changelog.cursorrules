@@ -8,6 +8,15 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 02:52:00 PM Wednesday]
+
+### Fixed - Search Result Auto-Scroll & Persistent Visual Highlight in Panel 1
+- **Khắc phục lỗi tìm kiếm không hiển thị kết quả trực quan trong Panel 1 (Input Lyrics)**:
+  - Khi người dùng nhập từ tìm kiếm trên thanh search (ví dụ `Tsubasa`), thanh tìm kiếm đang giữ Focus khiến TextBox ở Panel 1 bị mất focus.
+  - Đã tích hợp `TextHighlightAdorner.SetHighlight()` và `ScrollToLine()` trực tiếp vào `SearchManager.SearchInTextBox()`.
+  - Giờ đây khi tìm kiếm, từ tìm thấy trong Panel 1 sẽ được cuộn tự động (auto-scroll) ra vị trí dễ nhìn và bôi dải màu vàng sáng rực rỡ (`#FFD700`) ngay lập tức, đồng thời kích hoạt đồng bộ highlight các âm tiết tương ứng sang Panel 2 và 3.
+
+---
 ## [2026-09-02 02:39:00 PM Wednesday]
 
 ### Improved & Fixed - Vibrant Gold Highlight & Full Syllables Line Width Coverage
