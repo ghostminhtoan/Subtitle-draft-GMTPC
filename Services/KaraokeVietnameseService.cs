@@ -89,47 +89,32 @@ namespace Subtitle_draft_GMTPC.Services
             int curOutputCharIndex = 0;
             int curOutputLineIndex = 0;
 
-            int rawLineStart = 0;
-            var rawLines = lyrics.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            // Dùng Regex để duyệt từng dòng mà giữ nguyên đúng vị trí Index trong lyrics gốc
+            var lineMatches = Regex.Matches(lyrics, @"[^\r\n]+");
 
-            for (int r = 0; r < rawLines.Length; r++)
+            foreach (Match lineMatch in lineMatches)
             {
-                var rawLine = rawLines[r];
+                var rawLine = lineMatch.Value;
                 if (string.IsNullOrWhiteSpace(rawLine))
-                {
-                    rawLineStart += rawLine.Length;
-                    if (r < rawLines.Length - 1)
-                    {
-                        rawLineStart += (lyrics.Length > rawLineStart + 1 && lyrics[rawLineStart] == '\r' && lyrics[rawLineStart + 1] == '\n') ? 2 : 1;
-                    }
                     continue;
-                }
 
-                // Parse các từ trong dòng cùng với offset chính xác trong lyrics gốc
-                var wordsInLine = new List<Tuple<string, int, int>>(); // word, start, length
-                int pos = 0;
-                while (pos < rawLine.Length)
+                int rawLineStart = lineMatch.Index;
+
+                // Tách các từ trong dòng bằng Regex \S+
+                var wordMatches = Regex.Matches(rawLine, @"\S+");
+                if (wordMatches.Count == 0)
+                    continue;
+
+                for (int w = 0; w < wordMatches.Count; w++)
                 {
-                    while (pos < rawLine.Length && char.IsWhiteSpace(rawLine[pos])) pos++;
-                    if (pos >= rawLine.Length) break;
-
-                    int start = pos;
-                    while (pos < rawLine.Length && !char.IsWhiteSpace(rawLine[pos])) pos++;
-                    int len = pos - start;
-
-                    wordsInLine.Add(Tuple.Create(rawLine.Substring(start, len), rawLineStart + start, len));
-                }
-
-                for (int w = 0; w < wordsInLine.Count; w++)
-                {
-                    var wordTuple = wordsInLine[w];
-                    var word = wordTuple.Item1;
-                    var wordInputStart = wordTuple.Item2;
-                    var wordInputLen = wordTuple.Item3;
+                    var wm = wordMatches[w];
+                    var word = wm.Value;
+                    var wordInputStart = rawLineStart + wm.Index;
+                    var wordInputLen = wm.Length;
 
                     var isVietnamese = IsVietnameseWord(word);
                     var isFirstWordInLine = (w == 0);
-                    var isLastWordInLine = (w == wordsInLine.Count - 1);
+                    var isLastWordInLine = (w == wordMatches.Count - 1);
 
                     if (isVietnamese)
                     {
@@ -205,12 +190,6 @@ namespace Subtitle_draft_GMTPC.Services
                             curOutputLineIndex++;
                         }
                     }
-                }
-
-                rawLineStart += rawLine.Length;
-                if (r < rawLines.Length - 1)
-                {
-                    rawLineStart += (lyrics.Length > rawLineStart + 1 && lyrics[rawLineStart] == '\r' && lyrics[rawLineStart + 1] == '\n') ? 2 : 1;
                 }
             }
 

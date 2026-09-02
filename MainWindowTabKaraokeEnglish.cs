@@ -283,11 +283,21 @@ namespace Subtitle_draft_GMTPC
                 // Nếu có Mapping Result, tra cứu chính xác từ theo vị trí caret/selection
                 if (_currentKaraokeEngMappingResult != null && _currentKaraokeEngMappingResult.Mappings.Count > 0)
                 {
-                    // Tìm mapping bao phủ vị trí caret/selection
+                    // Tìm mapping bao phủ vị trí caret/selection (ưu tiên từ chứa caret)
                     var targetMappings = _currentKaraokeEngMappingResult.Mappings
-                        .Where(m => (selStart >= m.InputStart && selStart <= m.InputStart + m.InputLength) ||
+                        .Where(m => (selStart >= m.InputStart && selStart < m.InputStart + m.InputLength) ||
+                                    (selStart == m.InputStart + m.InputLength && selLen == 0) ||
                                     (m.InputStart >= selStart && m.InputStart < selStart + Math.Max(1, selLen)))
                         .ToList();
+
+                    if (targetMappings.Count == 0 && selLen == 0)
+                    {
+                        // Nếu caret ở khoảng trắng, tìm từ gần nhất liền kề
+                        targetMappings = _currentKaraokeEngMappingResult.Mappings
+                            .Where(m => Math.Abs(m.InputStart - selStart) <= 2 || Math.Abs(m.InputStart + m.InputLength - selStart) <= 2)
+                            .Take(1)
+                            .ToList();
+                    }
 
                     if (targetMappings.Count > 0)
                     {
@@ -345,10 +355,29 @@ namespace Subtitle_draft_GMTPC
                 int lineIndex = sourceBox.GetLineIndexFromCharacterIndex(caret);
                 if (lineIndex < 0) return;
 
+                // Lấy nội dung dòng và làm sạch (bỏ ký tự ∞ ở đầu và ♫ ở cuối)
+                string lineText = "";
+                int lineStart = sourceBox.GetCharacterIndexFromLineIndex(lineIndex);
+                int lineLen = sourceBox.GetLineLength(lineIndex);
+                if (lineStart >= 0 && lineLen > 0)
+                {
+                    lineText = sourceBox.Text.Substring(lineStart, lineLen).TrimEnd('\r', '\n').Trim();
+                }
+                string cleanWord = lineText.TrimStart('∞').TrimEnd('♫').Trim();
+
                 // Tra cứu ngược từ OutputLineIndex về Input
                 if (_currentKaraokeEngMappingResult != null && _currentKaraokeEngMappingResult.Mappings.Count > 0)
                 {
                     var map = _currentKaraokeEngMappingResult.Mappings.FirstOrDefault(m => m.OutputLineIndex == lineIndex);
+                    
+                    // Fallback nếu lineIndex bị lệch do người dùng sửa: tìm theo từ đã làm sạch bỏ ∞ và ♫
+                    if (map == null && !string.IsNullOrEmpty(cleanWord))
+                    {
+                        map = _currentKaraokeEngMappingResult.Mappings.FirstOrDefault(m => 
+                            m.SyllableText.Equals(cleanWord, StringComparison.OrdinalIgnoreCase) ||
+                            m.InputWord.Equals(cleanWord, StringComparison.OrdinalIgnoreCase));
+                    }
+
                     if (map != null)
                     {
                         // Highlight trực quan Panel 1 (Input)
