@@ -25,6 +25,7 @@ namespace Subtitle_draft_GMTPC.Helpers
         private readonly TextBox _textBox;
         private int _startCharIndex;
         private int _length;
+        private ScrollViewer _scrollViewer;
 
         public TextHighlightAdorner(TextBox textBox, int startCharIndex, int length) : base(textBox)
         {
@@ -32,12 +33,73 @@ namespace Subtitle_draft_GMTPC.Helpers
             _startCharIndex = Math.Max(0, startCharIndex);
             _length = Math.Max(0, length);
             IsHitTestVisible = false;
+
+            _textBox.AddHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler(OnTextBoxScrollChanged), true);
+            _textBox.SizeChanged += OnTextBoxSizeChanged;
+            _textBox.Loaded += OnTextBoxLoaded;
+            AttachScrollViewer();
+        }
+
+        private void AttachScrollViewer()
+        {
+            if (_scrollViewer != null) return;
+            _scrollViewer = FindVisualChild<ScrollViewer>(_textBox);
+            if (_scrollViewer != null)
+            {
+                _scrollViewer.ScrollChanged += OnTextBoxScrollChanged;
+            }
+        }
+
+        private void OnTextBoxLoaded(object sender, RoutedEventArgs e)
+        {
+            AttachScrollViewer();
+            InvalidateVisual();
+        }
+
+        private void OnTextBoxSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            InvalidateVisual();
+        }
+
+        private void OnTextBoxScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            InvalidateVisual();
+        }
+
+        public void DetachEvents()
+        {
+            try
+            {
+                _textBox.RemoveHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler(OnTextBoxScrollChanged));
+                _textBox.SizeChanged -= OnTextBoxSizeChanged;
+                _textBox.Loaded -= OnTextBoxLoaded;
+                if (_scrollViewer != null)
+                {
+                    _scrollViewer.ScrollChanged -= OnTextBoxScrollChanged;
+                }
+            }
+            catch { }
+        }
+
+        private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            if (parent == null) return null;
+            int count = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < count; i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T typedChild) return typedChild;
+                var childOfChild = FindVisualChild<T>(child);
+                if (childOfChild != null) return childOfChild;
+            }
+            return null;
         }
 
         public void UpdateHighlight(int startCharIndex, int length)
         {
             _startCharIndex = Math.Max(0, startCharIndex);
             _length = Math.Max(0, length);
+            AttachScrollViewer();
             InvalidateVisual();
         }
 
@@ -131,6 +193,7 @@ namespace Subtitle_draft_GMTPC.Helpers
             {
                 if (existing != null)
                 {
+                    existing.DetachEvents();
                     layer.Remove(existing);
                 }
                 return;
@@ -164,6 +227,7 @@ namespace Subtitle_draft_GMTPC.Helpers
                 {
                     if (ad is TextHighlightAdorner tha)
                     {
+                        tha.DetachEvents();
                         layer.Remove(tha);
                     }
                 }
