@@ -8,6 +8,18 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 04:38:00 PM Wednesday]
+
+### Added - Karaoke Japanese Sub-tab & Romaji Word Rules Engine
+- **Thêm Sub-tab "🗾 Karaoke Japanese" bên cạnh "Karaoke English"**:
+  - Giao diện 3 Panel tiêu chuẩn: Panel 1 (Japanese Romaji Lyrics Input), Panel 2 (Karaoke Output ∞ và ♫ - Read-only), Panel 3 (Editable & Buttons thao tác).
+  - Tự động tách âm tiết (Syllables / Moras) tiếng Nhật Romaji thông minh qua `SplitJapaneseRomajiSyllables`:
+    - Hỗ trợ chuẩn ngữ âm: Phụ âm + nguyên âm (CV), nguyên âm đôi (CVV: ai, oi, ui, ei, au...), âm ngắt / phụ âm kép (Sokuon: kk, tt, pp, ss, tch...), âm ghép (Yōon: kya, sha, cha, nya, rya...), âm kéo dài (Chōon: ou, uu, aa, ii...) và âm mũi Hatsun (n đứng trước phụ âm hoặc cuối từ).
+  - Tạo thư mục `japanese word rules karaoke/` với file `japanese word list rules.txt` và `japanese custom song list rules.txt`, tích hợp `FileSystemWatcher` tự động reload khi chỉnh sửa file.
+  - Tích hợp đầy đủ các chức năng: Load Default, Edit Word List, Custom Song List, Add To Word List popup, Save, Load, Copy Karaoke, Real-time Highlight Sync 3 Panel và tích hợp Search Ctrl+F.
+  - Đóng gói tài nguyên tự động vào `.csproj` và `build_portable_package.ps1`.
+
+---
 ## [2026-09-02 04:16:00 PM Wednesday]
 
 ### Improved - Synchronized Vibrant Blue (#007ACC) Native & Adorner Highlight
