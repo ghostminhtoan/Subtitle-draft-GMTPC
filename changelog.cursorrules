@@ -8,6 +8,19 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 02:28:00 PM Wednesday]
+
+### Improved & Fixed - Bright Neon Cyan Highlight & Special Character Skip Mapping
+- **Nâng cấp độ sáng dải màu Highlight lên mức cực đại (Neon Cyan #00D2FF & Pure White Border)**:
+  - Tăng độ sáng `HighlightFillBrush` lên màu Cyan neon rực rỡ (`#00D2FF` với Opacity 200/255).
+  - Đổi `HighlightBorderPen` sang viền màu trắng tinh khiết (`#FFFFFF`) dày 1.5px với độ tương phản tuyệt đối trên nền Dark Theme.
+  - Cập nhật `SelectionBrush` và `InactiveSelectionHighlightBrushKey` trong `DarkTextBoxStyle` lên `#00D2FF` (chữ đen tương phản `#000000`).
+- **Sửa triệt để lỗi lệch dòng & trật khớp từ ở Panel 2 và 3 (Bỏ qua `∞` và `♫`)**:
+  - Chuẩn hóa cơ chế tính toán offset dòng và vị trí từ trong `ProcessLyricsWithMapping()` (`KaraokeVietnameseService.cs`) bằng Regex chính xác theo từng dòng và từng token `\S+`, loại bỏ sự sai lệch index khi chuỗi input chứa dòng trống hoặc ký tự điều khiển.
+  - Khi tra cứu ngược từ Panel 2/3 (Output/Editable) về Panel 1 (Input), tự động tách và loại bỏ ký tự `∞` ở đầu dòng và `♫` ở cuối dòng để so khớp chính xác 100% với âm tiết và từ gốc.
+  - Bổ sung thuật toán bắt vị trí con trỏ thông minh (nearest caret mapping) khi con trỏ nằm ở ranh giới từ hoặc khoảng trắng.
+
+---
 ## [2026-09-02 02:07:00 PM Wednesday]
 
 ### Fixed - BuildStamp Generation Syntax & String Quotation Escape
