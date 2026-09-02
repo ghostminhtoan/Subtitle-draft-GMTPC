@@ -13,8 +13,8 @@ namespace Subtitle_draft_GMTPC.Helpers
     /// </summary>
     public class TextHighlightAdorner : Adorner
     {
-        private static readonly Brush HighlightFillBrush = new SolidColorBrush(Color.FromArgb(160, 38, 79, 120)); // #264F78 với độ mờ đẹp mắt
-        private static readonly Pen HighlightBorderPen = new Pen(new SolidColorBrush(Color.FromArgb(220, 51, 153, 255)), 1); // Viền nhẹ sáng
+        private static readonly Brush HighlightFillBrush = new SolidColorBrush(Color.FromArgb(160, 0, 122, 204)); // #007ACC Dodger/VS Blue sáng nổi bật trên nền dark
+        private static readonly Pen HighlightBorderPen = new Pen(new SolidColorBrush(Color.FromArgb(230, 0, 195, 255)), 1.2); // Viền Cyan sáng rực rỡ
 
         static TextHighlightAdorner()
         {

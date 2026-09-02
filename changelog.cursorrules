@@ -8,6 +8,15 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 02:00:00 PM Wednesday]
+
+### Improved - Enhanced Vibrant Blue Highlight Color on Dark Theme
+- **Nâng cấp độ sáng & tương phản của dải màu Highlight đa Panel**:
+  - Chuyển tông màu highlight từ xanh xám tối (`#264F78`) sang xanh sáng rực rỡ (`#007ACC` / Dodger Blue) kèm viền sáng Cyan (`#00C3FF`).
+  - Đồng bộ `SelectionBrush` và `InactiveSelectionHighlightBrushKey` trong `DarkTextBoxStyle` lên mã màu `#007ACC`.
+  - Giúp các từ và dòng được chọn trên cả 3 Panel sáng nổi bật, rõ nét và dễ dàng nhận diện ngay tức thì trên nền giao diện Dark Mode.
+
+---
 ## [2026-09-02 01:32:00 PM Wednesday]
 
 ### Fixed & Feature - Visual Multi-Panel Persistent Highlight with TextHighlightAdorner
