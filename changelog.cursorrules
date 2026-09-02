@@ -8,6 +8,15 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 01:07:00 PM Wednesday]
+
+### Fixed & Improved - Multi-Panel Inactive Selection Highlight
+- **Khắc phục hiện tượng ẩn highlight khi mất Focus trên đa Panel (WPF Default Behavior)**:
+  - Mặc định trong WPF, một `TextBox` khi mất Focus sẽ ẩn vùng bôi đen (selection highlight) khiến người dùng không thấy được highlight đồng thời trên Panel 2 và Panel 3 khi đang thao tác ở Panel 1.
+  - Kích hoạt `IsInactiveSelectionHighlightEnabled="True"`, `SelectionBrush="#264F78"` và `SelectionOpacity="0.7"` trong `DarkTextBoxStyle` cho toàn bộ các panel Karaoke.
+  - Nhờ đó, màu highlight bôi đen trên Panel 2 và Panel 3 vẫn luôn hiển thị rõ ràng, tách biệt và đồng thời ngay cả khi con trỏ chuột/focus đang nằm ở Panel 1 (hoặc ngược lại).
+
+---
 ## [2026-09-02 01:03:00 PM Wednesday]
 
 ### Improved - Real-time Full Syllable Range Highlighting for Multi-Syllables Word
