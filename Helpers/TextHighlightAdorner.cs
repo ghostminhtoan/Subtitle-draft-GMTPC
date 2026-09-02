@@ -13,8 +13,8 @@ namespace Subtitle_draft_GMTPC.Helpers
     /// </summary>
     public class TextHighlightAdorner : Adorner
     {
-        private static readonly Brush HighlightFillBrush = new SolidColorBrush(Color.FromArgb(200, 0, 210, 255)); // #00D2FF Cyan neon siêu sáng rực rỡ trên nền tối
-        private static readonly Pen HighlightBorderPen = new Pen(new SolidColorBrush(Color.FromRgb(255, 255, 255)), 1.5); // Viền trắng sáng tương phản cao 100%
+        private static readonly Brush HighlightFillBrush = new SolidColorBrush(Color.FromArgb(190, 255, 215, 0)); // #FFD700 Gold/Yellow siêu sáng rực rỡ trên nền tối
+        private static readonly Pen HighlightBorderPen = new Pen(new SolidColorBrush(Color.FromRgb(255, 255, 255)), 1.5); // Viền trắng sáng tương phản cao
 
         static TextHighlightAdorner()
         {
@@ -77,20 +77,17 @@ namespace Subtitle_draft_GMTPC.Helpers
                     if (segStart >= segEnd)
                         continue;
 
+                    // Lấy tọa độ mép trái của ký tự đầu tiên
                     Rect rStart = _textBox.GetRectFromCharacterIndex(segStart);
-                    Rect rEnd = _textBox.GetRectFromCharacterIndex(segEnd);
+                    
+                    // Lấy tọa độ mép phải của ký tự cuối cùng trong đoạn highlight
+                    Rect rEndChar = _textBox.GetRectFromCharacterIndex(Math.Max(segStart, segEnd - 1));
 
-                    // Tính toán hình chữ nhật bao phủ dòng hiện tại
                     double top = rStart.Top;
                     double height = Math.Max(rStart.Height, 18);
-                    double left = Math.Min(rStart.Left, rEnd.Left);
-                    double width = Math.Abs(rEnd.Left - rStart.Left);
-
-                    if (width < 2)
-                    {
-                        // Fallback nếu rEnd cùng vị trí hoặc cuối dòng
-                        width = Math.Max(10, rEnd.Right - rStart.Left);
-                    }
+                    double left = rStart.Left;
+                    double right = Math.Max(rEndChar.Right, left + 10);
+                    double width = Math.Max(12, right - left);
 
                     Rect drawRect = new Rect(left, top, width, height);
                     drawingContext.DrawRectangle(HighlightFillBrush, HighlightBorderPen, drawRect);
