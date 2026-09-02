@@ -44,12 +44,38 @@ namespace Subtitle_draft_GMTPC.Services
         /// <param name="customSplitRules">Quy tắc tách từ Custom Song List (sẽ ghi đè các từ tương ứng trong splitRules)</param>
         public static string ProcessLyricsWithSplitRules(string lyrics, string splitRules, string customSplitRules)
         {
-            if (string.IsNullOrWhiteSpace(lyrics)) return string.Empty;
+            var mappingResult = ProcessLyricsWithMapping(lyrics, splitRules, customSplitRules);
+            return mappingResult.FormattedOutput;
+        }
 
-            // Parse quy tắc tách từ từ full word list
+        public class KaraokeWordMapping
+        {
+            public int InputStart { get; set; }
+            public int InputLength { get; set; }
+            public string InputWord { get; set; }
+            public int OutputLineIndex { get; set; }
+            public int OutputLineStart { get; set; }
+            public int OutputLineLength { get; set; }
+            public string SyllableText { get; set; }
+            public int SyllableIndex { get; set; }
+            public int TotalSyllablesInWord { get; set; }
+        }
+
+        public class KaraokeMappingResult
+        {
+            public string FormattedOutput { get; set; } = string.Empty;
+            public List<KaraokeWordMapping> Mappings { get; set; } = new List<KaraokeWordMapping>();
+        }
+
+        /// <summary>
+        /// Xử lý lời bài hát và xây dựng bản đồ ánh xạ 1-1 chính xác tuyệt đối giữa Panel 1 và Panel 2/3
+        /// </summary>
+        public static KaraokeMappingResult ProcessLyricsWithMapping(string lyrics, string splitRules, string customSplitRules)
+        {
+            var result = new KaraokeMappingResult();
+            if (string.IsNullOrWhiteSpace(lyrics)) return result;
+
             var customSyllableMap = ParseSplitRules(splitRules);
-
-            // Parse và ghi đè các quy tắc từ custom song list
             if (!string.IsNullOrWhiteSpace(customSplitRules))
             {
                 var customOverrides = ParseSplitRules(customSplitRules);
@@ -60,18 +86,136 @@ namespace Subtitle_draft_GMTPC.Services
             }
 
             var sb = new StringBuilder();
-            var lines = lyrics.Split(new[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            int curOutputCharIndex = 0;
+            int curOutputLineIndex = 0;
 
-            for (int i = 0; i < lines.Length; i++)
+            int rawLineStart = 0;
+            var rawLines = lyrics.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+
+            for (int r = 0; r < rawLines.Length; r++)
             {
-                var line = lines[i].Trim();
-                if (string.IsNullOrEmpty(line)) continue;
+                var rawLine = rawLines[r];
+                if (string.IsNullOrWhiteSpace(rawLine))
+                {
+                    rawLineStart += rawLine.Length;
+                    if (r < rawLines.Length - 1)
+                    {
+                        rawLineStart += (lyrics.Length > rawLineStart + 1 && lyrics[rawLineStart] == '\r' && lyrics[rawLineStart + 1] == '\n') ? 2 : 1;
+                    }
+                    continue;
+                }
 
-                var processedLine = ProcessSingleLine(line, customSyllableMap);
-                sb.AppendLine(processedLine);
+                // Parse các từ trong dòng cùng với offset chính xác trong lyrics gốc
+                var wordsInLine = new List<Tuple<string, int, int>>(); // word, start, length
+                int pos = 0;
+                while (pos < rawLine.Length)
+                {
+                    while (pos < rawLine.Length && char.IsWhiteSpace(rawLine[pos])) pos++;
+                    if (pos >= rawLine.Length) break;
+
+                    int start = pos;
+                    while (pos < rawLine.Length && !char.IsWhiteSpace(rawLine[pos])) pos++;
+                    int len = pos - start;
+
+                    wordsInLine.Add(Tuple.Create(rawLine.Substring(start, len), rawLineStart + start, len));
+                }
+
+                for (int w = 0; w < wordsInLine.Count; w++)
+                {
+                    var wordTuple = wordsInLine[w];
+                    var word = wordTuple.Item1;
+                    var wordInputStart = wordTuple.Item2;
+                    var wordInputLen = wordTuple.Item3;
+
+                    var isVietnamese = IsVietnameseWord(word);
+                    var isFirstWordInLine = (w == 0);
+                    var isLastWordInLine = (w == wordsInLine.Count - 1);
+
+                    if (isVietnamese)
+                    {
+                        var lineBuilder = new StringBuilder();
+                        if (isFirstWordInLine) lineBuilder.Append($"∞{word}");
+                        else lineBuilder.Append(word);
+
+                        if (!isLastWordInLine) lineBuilder.Append("♫");
+
+                        string outLineStr = lineBuilder.ToString();
+                        sb.AppendLine(outLineStr);
+
+                        result.Mappings.Add(new KaraokeWordMapping
+                        {
+                            InputStart = wordInputStart,
+                            InputLength = wordInputLen,
+                            InputWord = word,
+                            OutputLineIndex = curOutputLineIndex,
+                            OutputLineStart = curOutputCharIndex,
+                            OutputLineLength = outLineStr.Length,
+                            SyllableText = word,
+                            SyllableIndex = 0,
+                            TotalSyllablesInWord = 1
+                        });
+
+                        curOutputCharIndex += outLineStr.Length + Environment.NewLine.Length;
+                        curOutputLineIndex++;
+                    }
+                    else
+                    {
+                        string[] syllables;
+                        var wordLower = word.ToLowerInvariant();
+
+                        if (ContainsApostrophe(word))
+                        {
+                            syllables = new[] { word };
+                        }
+                        else if (customSyllableMap != null && customSyllableMap.TryGetValue(wordLower, out var customSyllables))
+                        {
+                            syllables = AdjustSyllableCase(customSyllables, word);
+                        }
+                        else
+                        {
+                            syllables = SplitEnglishSyllables(word);
+                        }
+
+                        for (int s = 0; s < syllables.Length; s++)
+                        {
+                            var lineBuilder = new StringBuilder();
+                            if (s == 0 && isFirstWordInLine) lineBuilder.Append($"∞{syllables[s]}");
+                            else lineBuilder.Append(syllables[s]);
+
+                            bool isLastSyllable = (s == syllables.Length - 1);
+                            if (isLastSyllable && !isLastWordInLine) lineBuilder.Append("♫");
+
+                            string outLineStr = lineBuilder.ToString();
+                            sb.AppendLine(outLineStr);
+
+                            result.Mappings.Add(new KaraokeWordMapping
+                            {
+                                InputStart = wordInputStart,
+                                InputLength = wordInputLen,
+                                InputWord = word,
+                                OutputLineIndex = curOutputLineIndex,
+                                OutputLineStart = curOutputCharIndex,
+                                OutputLineLength = outLineStr.Length,
+                                SyllableText = syllables[s],
+                                SyllableIndex = s,
+                                TotalSyllablesInWord = syllables.Length
+                            });
+
+                            curOutputCharIndex += outLineStr.Length + Environment.NewLine.Length;
+                            curOutputLineIndex++;
+                        }
+                    }
+                }
+
+                rawLineStart += rawLine.Length;
+                if (r < rawLines.Length - 1)
+                {
+                    rawLineStart += (lyrics.Length > rawLineStart + 1 && lyrics[rawLineStart] == '\r' && lyrics[rawLineStart + 1] == '\n') ? 2 : 1;
+                }
             }
 
-            return sb.ToString().TrimEnd();
+            result.FormattedOutput = sb.ToString().TrimEnd();
+            return result;
         }
 
         /// <summary>

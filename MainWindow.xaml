@@ -2066,6 +2066,7 @@
                                     <TextBox x:Name="TxtKaraokeInput" Grid.Row="1"
                                              Style="{StaticResource DarkTextBoxStyle}"
                                              TextChanged="TxtKaraokeInput_TextChanged"
+                                             SelectionChanged="TxtKaraokeInput_SelectionChanged"
                                              MouseDoubleClick="TxtKaraokeInput_MouseDoubleClick"/>
                                 </Grid>
                             </Border>
@@ -2083,6 +2084,8 @@
                                     <TextBox x:Name="TxtKaraokeOutput" Grid.Row="1"
                                              Style="{StaticResource DarkTextBoxStyle}"
                                              IsReadOnly="True" FontSize="14"
+                                             SelectionChanged="TxtKaraokeOutput_SelectionChanged"
+                                             MouseDoubleClick="TxtKaraokeOutput_MouseDoubleClick"
                                              PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
                                 </Grid>
                             </Border>
@@ -2101,6 +2104,8 @@
                                     <TextBox x:Name="TxtKaraokeEditable" Grid.Row="1"
                                              Style="{StaticResource DarkTextBoxStyle}"
                                              FontSize="14"
+                                             SelectionChanged="TxtKaraokeEditable_SelectionChanged"
+                                             MouseDoubleClick="TxtKaraokeEditable_MouseDoubleClick"
                                              PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                                     <Button x:Name="BtnCopyKaraoke" Grid.Row="2" Content="📋 Copy Karaoke"

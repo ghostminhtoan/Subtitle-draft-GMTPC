@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,6 +16,8 @@ namespace Subtitle_draft_GMTPC
         #region Karaoke Vietnamese - Fields
 
         private bool _isKaraokeUpdating = false;
+        private bool _isKaraokeSyncingSelection = false;
+        private KaraokeVietnameseService.KaraokeMappingResult _currentKaraokeVietMappingResult;
 
         #endregion
 
@@ -32,16 +35,19 @@ namespace Subtitle_draft_GMTPC
                     TxtKaraokeCount.Text = "";
                     TxtKaraokeOutput.Text = "";
                     TxtKaraokeEditable.Text = "";
+                    _currentKaraokeVietMappingResult = null;
                     return;
                 }
 
                 var lines = content.Split(new[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                 TxtKaraokeCount.Text = string.Format("({0} dòng)", lines.Length);
 
-                // Xử lý karaoke
-                var karaokeResult = KaraokeVietnameseService.ProcessLyrics(content);
-                TxtKaraokeOutput.Text = karaokeResult;
-                TxtKaraokeEditable.Text = karaokeResult;
+                // Xử lý karaoke với Mapping
+                var mappingResult = KaraokeVietnameseService.ProcessLyricsWithMapping(content, null, null);
+                _currentKaraokeVietMappingResult = mappingResult;
+
+                TxtKaraokeOutput.Text = mappingResult.FormattedOutput;
+                TxtKaraokeEditable.Text = mappingResult.FormattedOutput;
             }
             catch (Exception ex)
             {
@@ -53,129 +59,208 @@ namespace Subtitle_draft_GMTPC
             }
         }
 
-        /// <summary>
-        /// Double click vào bất kỳ chữ nào ở Panel 1 sẽ nhảy đến chữ tương ứng ở Panel 2 và 3
-        /// </summary>
+        #endregion
+
+        #region Karaoke Vietnamese - Selection & Double Click Synchronization
+
+        private void TxtKaraokeInput_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isKaraokeSyncingSelection || _isKaraokeUpdating) return;
+            if (TxtKaraokeInput.SelectionLength > 0)
+            {
+                SyncSelectionFromInputViet();
+            }
+        }
+
         private void TxtKaraokeInput_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            try
+            if (_isKaraokeUpdating) return;
+            Dispatcher.BeginInvoke(new Action(() =>
             {
-                // Cho phép TextBox hoàn thành thao tác double click chọn từ mặc định
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    try
-                    {
-                        JumpToCorrespondingWordViet();
-                    }
-                    catch { }
-                }), System.Windows.Threading.DispatcherPriority.Background);
-            }
-            catch { }
+                SyncSelectionFromInputViet();
+            }), System.Windows.Threading.DispatcherPriority.Background);
         }
 
-        private void JumpToCorrespondingWordViet()
+        private void TxtKaraokeOutput_SelectionChanged(object sender, RoutedEventArgs e)
         {
-            var text = TxtKaraokeInput.Text;
-            if (string.IsNullOrEmpty(text)) return;
-
-            int caretIndex = TxtKaraokeInput.SelectionStart;
-            if (caretIndex < 0 || caretIndex > text.Length) caretIndex = 0;
-
-            // Tìm từ đang được chọn hoặc tại vị trí caret
-            int wordStart = caretIndex;
-            while (wordStart > 0 && !char.IsWhiteSpace(text[wordStart - 1]))
+            if (_isKaraokeSyncingSelection || _isKaraokeUpdating) return;
+            if (TxtKaraokeOutput.SelectionLength > 0)
             {
-                wordStart--;
+                SyncSelectionFromOutputOrEditableViet(TxtKaraokeOutput);
             }
+        }
 
-            int wordEnd = caretIndex;
-            while (wordEnd < text.Length && !char.IsWhiteSpace(text[wordEnd]))
+        private void TxtKaraokeOutput_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (_isKaraokeUpdating) return;
+            Dispatcher.BeginInvoke(new Action(() =>
             {
-                wordEnd++;
-            }
+                SyncSelectionFromOutputOrEditableViet(TxtKaraokeOutput);
+            }), System.Windows.Threading.DispatcherPriority.Background);
+        }
 
-            if (wordStart >= wordEnd) return;
-
-            string selectedWord = text.Substring(wordStart, wordEnd - wordStart).Trim();
-            if (string.IsNullOrEmpty(selectedWord)) return;
-
-            // Đếm số lần selectedWord xuất hiện từ đầu text đến wordStart
-            int occurrenceIndex = 0;
-            int searchPos = 0;
-            while (searchPos <= wordStart && searchPos < text.Length)
+        private void TxtKaraokeEditable_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isKaraokeSyncingSelection || _isKaraokeUpdating) return;
+            if (TxtKaraokeEditable.SelectionLength > 0)
             {
-                while (searchPos < text.Length && char.IsWhiteSpace(text[searchPos])) searchPos++;
-                if (searchPos >= text.Length) break;
-
-                int curWordEnd = searchPos;
-                while (curWordEnd < text.Length && !char.IsWhiteSpace(text[curWordEnd])) curWordEnd++;
-
-                string curWord = text.Substring(searchPos, curWordEnd - searchPos);
-                if (string.Equals(curWord, selectedWord, StringComparison.OrdinalIgnoreCase))
-                {
-                    if (searchPos == wordStart)
-                    {
-                        break;
-                    }
-                    occurrenceIndex++;
-                }
-
-                searchPos = curWordEnd;
+                SyncSelectionFromOutputOrEditableViet(TxtKaraokeEditable);
             }
+        }
 
-            // Đồng bộ nhảy đến Panel 2 và Panel 3
-            HighlightWordInTargetTextBoxViet(TxtKaraokeOutput, selectedWord, occurrenceIndex);
-            HighlightWordInTargetTextBoxViet(TxtKaraokeEditable, selectedWord, occurrenceIndex);
+        private void TxtKaraokeEditable_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (_isKaraokeUpdating) return;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                SyncSelectionFromOutputOrEditableViet(TxtKaraokeEditable);
+            }), System.Windows.Threading.DispatcherPriority.Background);
         }
 
         /// <summary>
-        /// Tìm và chọn dòng tương ứng của từ trong Panel 2 hoặc Panel 3 Karaoke Vietnamese
+        /// Đồng bộ từ Panel 1 (Input) sang Panel 2 và Panel 3 dựa trên Mapping chính xác 1-1
         /// </summary>
-        private void HighlightWordInTargetTextBoxViet(TextBox targetBox, string targetWord, int occurrenceIndex)
+        private void SyncSelectionFromInputViet()
         {
-            if (targetBox == null || string.IsNullOrEmpty(targetBox.Text) || string.IsNullOrEmpty(targetWord)) return;
-
-            var targetText = targetBox.Text;
-            string cleanTarget = targetWord.Trim().ToLowerInvariant();
-
-            var lines = targetText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-            int currentOccurrence = 0;
-            int lineStartIndex = 0;
-
-            for (int i = 0; i < lines.Length; i++)
+            if (_isKaraokeSyncingSelection) return;
+            try
             {
-                var line = lines[i];
-                var cleanLine = line.Replace("∞", "").Replace("♫", "").Trim().ToLowerInvariant();
+                _isKaraokeSyncingSelection = true;
+                var text = TxtKaraokeInput.Text;
+                if (string.IsNullOrEmpty(text)) return;
 
-                if (!string.IsNullOrEmpty(cleanLine) && (cleanTarget.StartsWith(cleanLine) || cleanLine.StartsWith(cleanTarget)))
+                int selStart = TxtKaraokeInput.SelectionStart;
+                int selLen = TxtKaraokeInput.SelectionLength;
+
+                if (_currentKaraokeVietMappingResult != null && _currentKaraokeVietMappingResult.Mappings.Count > 0)
                 {
-                    if (currentOccurrence == occurrenceIndex)
+                    var targetMappings = _currentKaraokeVietMappingResult.Mappings
+                        .Where(m => (selStart >= m.InputStart && selStart <= m.InputStart + m.InputLength) ||
+                                    (m.InputStart >= selStart && m.InputStart < selStart + Math.Max(1, selLen)))
+                        .ToList();
+
+                    if (targetMappings.Count > 0)
                     {
-                        targetBox.Focus();
-                        targetBox.Select(lineStartIndex, line.Length);
-                        
-                        int lineIndex = targetBox.GetLineIndexFromCharacterIndex(lineStartIndex);
-                        if (lineIndex >= 0)
-                        {
-                            targetBox.ScrollToLine(Math.Max(0, lineIndex - 2));
-                        }
+                        var firstMap = targetMappings[0];
+                        var lastMap = targetMappings[targetMappings.Count - 1];
+
+                        HighlightLineRangeInOutputViet(TxtKaraokeOutput, firstMap.OutputLineIndex, lastMap.OutputLineIndex);
+                        HighlightLineRangeInOutputViet(TxtKaraokeEditable, firstMap.OutputLineIndex, lastMap.OutputLineIndex);
                         return;
                     }
-                    currentOccurrence++;
                 }
 
-                lineStartIndex += line.Length;
-                if (lineStartIndex < targetText.Length)
+                // Fallback scroll theo tỷ lệ dòng
+                int lineIndex = TxtKaraokeInput.GetLineIndexFromCharacterIndex(selStart);
+                if (lineIndex >= 0)
                 {
-                    if (lineStartIndex + 1 < targetText.Length && targetText[lineStartIndex] == '\r' && targetText[lineStartIndex + 1] == '\n')
+                    int totalInputLines = TxtKaraokeInput.LineCount;
+                    if (totalInputLines > 0)
                     {
-                        lineStartIndex += 2;
-                    }
-                    else
-                    {
-                        lineStartIndex += 1;
+                        int totalOutLines = TxtKaraokeOutput.LineCount;
+                        int estimatedOutLine = (int)(((double)lineIndex / totalInputLines) * totalOutLines);
+                        ScrollToLineInBoxViet(TxtKaraokeOutput, estimatedOutLine);
+                        ScrollToLineInBoxViet(TxtKaraokeEditable, estimatedOutLine);
                     }
                 }
+            }
+            finally
+            {
+                _isKaraokeSyncingSelection = false;
+            }
+        }
+
+        /// <summary>
+        /// Đồng bộ từ Panel 2 (Output) hoặc Panel 3 (Editable) sang Panel 1 và Panel còn lại
+        /// </summary>
+        private void SyncSelectionFromOutputOrEditableViet(TextBox sourceBox)
+        {
+            if (_isKaraokeSyncingSelection) return;
+            try
+            {
+                _isKaraokeSyncingSelection = true;
+                var text = sourceBox.Text;
+                if (string.IsNullOrEmpty(text)) return;
+
+                int caret = sourceBox.SelectionStart;
+                int lineIndex = sourceBox.GetLineIndexFromCharacterIndex(caret);
+                if (lineIndex < 0) return;
+
+                if (_currentKaraokeVietMappingResult != null && _currentKaraokeVietMappingResult.Mappings.Count > 0)
+                {
+                    var map = _currentKaraokeVietMappingResult.Mappings.FirstOrDefault(m => m.OutputLineIndex == lineIndex);
+                    if (map != null)
+                    {
+                        TxtKaraokeInput.Select(map.InputStart, map.InputLength);
+                        int inputLineIdx = TxtKaraokeInput.GetLineIndexFromCharacterIndex(map.InputStart);
+                        if (inputLineIdx >= 0)
+                        {
+                            TxtKaraokeInput.ScrollToLine(Math.Max(0, inputLineIdx - 2));
+                        }
+
+                        var otherBox = (sourceBox == TxtKaraokeOutput) ? TxtKaraokeEditable : TxtKaraokeOutput;
+                        HighlightLineRangeInOutputViet(otherBox, lineIndex, lineIndex);
+                        return;
+                    }
+                }
+
+                var otherTargetBox = (sourceBox == TxtKaraokeOutput) ? TxtKaraokeEditable : TxtKaraokeOutput;
+                HighlightLineInBoxByIndexViet(otherTargetBox, lineIndex);
+
+                int totalSourceLines = sourceBox.LineCount;
+                if (totalSourceLines > 0)
+                {
+                    int totalInputLines = TxtKaraokeInput.LineCount;
+                    int estimatedInputLine = (int)(((double)lineIndex / totalSourceLines) * totalInputLines);
+                    ScrollToLineInBoxViet(TxtKaraokeInput, estimatedInputLine);
+                }
+            }
+            finally
+            {
+                _isKaraokeSyncingSelection = false;
+            }
+        }
+
+        private void HighlightLineRangeInOutputViet(TextBox targetBox, int startLineIndex, int endLineIndex)
+        {
+            if (targetBox == null || string.IsNullOrEmpty(targetBox.Text) || startLineIndex < 0) return;
+
+            int lineCount = targetBox.LineCount;
+            if (startLineIndex >= lineCount) startLineIndex = lineCount - 1;
+            if (endLineIndex >= lineCount) endLineIndex = lineCount - 1;
+            if (startLineIndex < 0) return;
+
+            int charStart = targetBox.GetCharacterIndexFromLineIndex(startLineIndex);
+            int charEnd = targetBox.GetCharacterIndexFromLineIndex(endLineIndex) + targetBox.GetLineLength(endLineIndex);
+            if (charStart >= 0 && charEnd >= charStart)
+            {
+                targetBox.Select(charStart, charEnd - charStart);
+                targetBox.ScrollToLine(Math.Max(0, startLineIndex - 2));
+            }
+        }
+
+        private void HighlightLineInBoxByIndexViet(TextBox targetBox, int lineIndex)
+        {
+            if (targetBox == null || string.IsNullOrEmpty(targetBox.Text) || lineIndex < 0) return;
+            if (lineIndex >= targetBox.LineCount) lineIndex = targetBox.LineCount - 1;
+            if (lineIndex < 0) return;
+
+            int charStart = targetBox.GetCharacterIndexFromLineIndex(lineIndex);
+            int charLen = targetBox.GetLineLength(lineIndex);
+            if (charStart >= 0 && charLen >= 0)
+            {
+                targetBox.Select(charStart, charLen);
+                targetBox.ScrollToLine(Math.Max(0, lineIndex - 2));
+            }
+        }
+
+        private void ScrollToLineInBoxViet(TextBox targetBox, int lineIndex)
+        {
+            if (targetBox == null || lineIndex < 0) return;
+            if (lineIndex >= targetBox.LineCount) lineIndex = targetBox.LineCount - 1;
+            if (lineIndex >= 0)
+            {
+                targetBox.ScrollToLine(Math.Max(0, lineIndex - 2));
             }
         }
 

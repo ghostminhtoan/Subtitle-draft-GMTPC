@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -23,6 +24,7 @@ namespace Subtitle_draft_GMTPC
         private string _customSongListFilePath;
         private FileSystemWatcher _wordListWatcher;
         private FileSystemWatcher _customSongListWatcher;
+        private KaraokeVietnameseService.KaraokeMappingResult _currentKaraokeEngMappingResult;
 
         #endregion
 
@@ -172,6 +174,7 @@ namespace Subtitle_draft_GMTPC
                     TxtKaraokeEngCount.Text = "";
                     TxtKaraokeEngOutput.Text = "";
                     TxtKaraokeEngEditable.Text = "";
+                    _currentKaraokeEngMappingResult = null;
                     return;
                 }
 
@@ -180,9 +183,11 @@ namespace Subtitle_draft_GMTPC
 
                 var splitRules = _pendingKaraokeEngRules ?? "";
                 var customRules = _pendingCustomSongRules ?? "";
-                var karaokeResult = KaraokeVietnameseService.ProcessLyricsWithSplitRules(content, splitRules, customRules);
-                TxtKaraokeEngOutput.Text = karaokeResult;
-                TxtKaraokeEngEditable.Text = karaokeResult;
+                var mappingResult = KaraokeVietnameseService.ProcessLyricsWithMapping(content, splitRules, customRules);
+                _currentKaraokeEngMappingResult = mappingResult;
+
+                TxtKaraokeEngOutput.Text = mappingResult.FormattedOutput;
+                TxtKaraokeEngEditable.Text = mappingResult.FormattedOutput;
             }
             catch (Exception ex)
             {
@@ -253,7 +258,7 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Đồng bộ từ Panel 1 (Input) sang Panel 2 và Panel 3
+        /// Đồng bộ từ Panel 1 (Input) sang Panel 2 và Panel 3 dựa trên Mapping chính xác 1-1
         /// </summary>
         private void SyncSelectionFromInput()
         {
@@ -267,41 +272,39 @@ namespace Subtitle_draft_GMTPC
                 int selStart = TxtKaraokeEngInput.SelectionStart;
                 int selLen = TxtKaraokeEngInput.SelectionLength;
 
-                int wordStart = selStart;
-                int wordEnd = selStart + Math.Max(1, selLen);
-
-                if (selLen == 0)
+                // Nếu có Mapping Result, tra cứu chính xác từ theo vị trí caret/selection
+                if (_currentKaraokeEngMappingResult != null && _currentKaraokeEngMappingResult.Mappings.Count > 0)
                 {
-                    while (wordStart > 0 && !char.IsWhiteSpace(text[wordStart - 1])) wordStart--;
-                    while (wordEnd < text.Length && !char.IsWhiteSpace(text[wordEnd])) wordEnd++;
-                }
+                    // Tìm mapping bao phủ vị trí caret/selection
+                    var targetMappings = _currentKaraokeEngMappingResult.Mappings
+                        .Where(m => (selStart >= m.InputStart && selStart <= m.InputStart + m.InputLength) ||
+                                    (m.InputStart >= selStart && m.InputStart < selStart + Math.Max(1, selLen)))
+                        .ToList();
 
-                if (wordStart >= wordEnd || wordStart >= text.Length) return;
-                string selectedWord = text.Substring(wordStart, wordEnd - wordStart).Trim();
-                if (string.IsNullOrEmpty(selectedWord)) return;
-
-                // Xác định occurrence index của từ này trong Panel 1
-                int occurrenceIndex = 0;
-                int searchPos = 0;
-                while (searchPos <= wordStart && searchPos < text.Length)
-                {
-                    while (searchPos < text.Length && char.IsWhiteSpace(text[searchPos])) searchPos++;
-                    if (searchPos >= text.Length) break;
-
-                    int curWordEnd = searchPos;
-                    while (curWordEnd < text.Length && !char.IsWhiteSpace(text[curWordEnd])) curWordEnd++;
-
-                    string curWord = text.Substring(searchPos, curWordEnd - searchPos);
-                    if (string.Equals(curWord, selectedWord, StringComparison.OrdinalIgnoreCase))
+                    if (targetMappings.Count > 0)
                     {
-                        if (searchPos == wordStart) break;
-                        occurrenceIndex++;
+                        var firstMap = targetMappings[0];
+                        var lastMap = targetMappings[targetMappings.Count - 1];
+
+                        HighlightLineRangeInOutput(TxtKaraokeEngOutput, firstMap.OutputLineIndex, lastMap.OutputLineIndex);
+                        HighlightLineRangeInOutput(TxtKaraokeEngEditable, firstMap.OutputLineIndex, lastMap.OutputLineIndex);
+                        return;
                     }
-                    searchPos = curWordEnd;
                 }
 
-                HighlightWordInOutputOrEditable(TxtKaraokeEngOutput, selectedWord, occurrenceIndex);
-                HighlightWordInOutputOrEditable(TxtKaraokeEngEditable, selectedWord, occurrenceIndex);
+                // Fallback theo vị trí dòng tương đối
+                int lineIndex = TxtKaraokeEngInput.GetLineIndexFromCharacterIndex(selStart);
+                if (lineIndex >= 0)
+                {
+                    int totalInputLines = TxtKaraokeEngInput.LineCount;
+                    if (totalInputLines > 0)
+                    {
+                        int totalOutLines = TxtKaraokeEngOutput.LineCount;
+                        int estimatedOutLine = (int)(((double)lineIndex / totalInputLines) * totalOutLines);
+                        ScrollToLineInBox(TxtKaraokeEngOutput, estimatedOutLine);
+                        ScrollToLineInBox(TxtKaraokeEngEditable, estimatedOutLine);
+                    }
+                }
             }
             finally
             {
@@ -310,7 +313,7 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Đồng bộ từ Panel 2 (Output) hoặc Panel 3 (Editable) sang 2 panel còn lại
+        /// Đồng bộ từ Panel 2 (Output) hoặc Panel 3 (Editable) sang Panel 1 và Panel còn lại
         /// </summary>
         private void SyncSelectionFromOutputOrEditable(TextBox sourceBox)
         {
@@ -325,32 +328,38 @@ namespace Subtitle_draft_GMTPC
                 int lineIndex = sourceBox.GetLineIndexFromCharacterIndex(caret);
                 if (lineIndex < 0) return;
 
-                int lineStart = sourceBox.GetCharacterIndexFromLineIndex(lineIndex);
-                int lineLength = sourceBox.GetLineLength(lineIndex);
-                if (lineStart < 0 || lineLength <= 0) return;
-
-                string lineText = text.Substring(lineStart, lineLength);
-                string cleanLine = lineText.Replace("∞", "").Replace("♫", "").Trim();
-                if (string.IsNullOrEmpty(cleanLine)) return;
-
-                // Đếm occurrenceIndex của token này trong sourceBox
-                int occurrenceIndex = 0;
-                var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-                for (int i = 0; i < lineIndex && i < lines.Length; i++)
+                // Tra cứu ngược từ OutputLineIndex về Input
+                if (_currentKaraokeEngMappingResult != null && _currentKaraokeEngMappingResult.Mappings.Count > 0)
                 {
-                    var cl = lines[i].Replace("∞", "").Replace("♫", "").Trim();
-                    if (string.Equals(cl, cleanLine, StringComparison.OrdinalIgnoreCase))
+                    var map = _currentKaraokeEngMappingResult.Mappings.FirstOrDefault(m => m.OutputLineIndex == lineIndex);
+                    if (map != null)
                     {
-                        occurrenceIndex++;
+                        // Highlight Panel 1
+                        TxtKaraokeEngInput.Select(map.InputStart, map.InputLength);
+                        int inputLineIdx = TxtKaraokeEngInput.GetLineIndexFromCharacterIndex(map.InputStart);
+                        if (inputLineIdx >= 0)
+                        {
+                            TxtKaraokeEngInput.ScrollToLine(Math.Max(0, inputLineIdx - 2));
+                        }
+
+                        // Đồng bộ sang panel còn lại
+                        var otherBox = (sourceBox == TxtKaraokeEngOutput) ? TxtKaraokeEngEditable : TxtKaraokeEngOutput;
+                        HighlightLineRangeInOutput(otherBox, lineIndex, lineIndex);
+                        return;
                     }
                 }
 
-                // Nhảy và highlight ở Panel 1
-                HighlightWordInInput(TxtKaraokeEngInput, cleanLine, occurrenceIndex);
+                // Fallback nếu người dùng đã chỉnh sửa nhiều ở Editable
+                var otherTargetBox = (sourceBox == TxtKaraokeEngOutput) ? TxtKaraokeEngEditable : TxtKaraokeEngOutput;
+                HighlightLineInBoxByIndex(otherTargetBox, lineIndex);
 
-                // Nhảy và highlight ở Panel còn lại
-                var otherBox = (sourceBox == TxtKaraokeEngOutput) ? TxtKaraokeEngEditable : TxtKaraokeEngOutput;
-                HighlightWordInOutputOrEditable(otherBox, cleanLine, occurrenceIndex);
+                int totalSourceLines = sourceBox.LineCount;
+                if (totalSourceLines > 0)
+                {
+                    int totalInputLines = TxtKaraokeEngInput.LineCount;
+                    int estimatedInputLine = (int)(((double)lineIndex / totalSourceLines) * totalInputLines);
+                    ScrollToLineInBox(TxtKaraokeEngInput, estimatedInputLine);
+                }
             }
             finally
             {
@@ -358,87 +367,46 @@ namespace Subtitle_draft_GMTPC
             }
         }
 
-        private void HighlightWordInInput(TextBox targetBox, string syllable, int occurrenceIndex)
+        private void HighlightLineRangeInOutput(TextBox targetBox, int startLineIndex, int endLineIndex)
         {
-            if (targetBox == null || string.IsNullOrEmpty(targetBox.Text) || string.IsNullOrEmpty(syllable)) return;
-            var text = targetBox.Text;
-            string cleanSyl = syllable.Trim().ToLowerInvariant();
+            if (targetBox == null || string.IsNullOrEmpty(targetBox.Text) || startLineIndex < 0) return;
 
-            int currentOccur = 0;
-            int searchPos = 0;
+            int lineCount = targetBox.LineCount;
+            if (startLineIndex >= lineCount) startLineIndex = lineCount - 1;
+            if (endLineIndex >= lineCount) endLineIndex = lineCount - 1;
+            if (startLineIndex < 0) return;
 
-            while (searchPos < text.Length)
+            int charStart = targetBox.GetCharacterIndexFromLineIndex(startLineIndex);
+            int charEnd = targetBox.GetCharacterIndexFromLineIndex(endLineIndex) + targetBox.GetLineLength(endLineIndex);
+            if (charStart >= 0 && charEnd >= charStart)
             {
-                while (searchPos < text.Length && char.IsWhiteSpace(text[searchPos])) searchPos++;
-                if (searchPos >= text.Length) break;
-
-                int curWordEnd = searchPos;
-                while (curWordEnd < text.Length && !char.IsWhiteSpace(text[curWordEnd])) curWordEnd++;
-
-                string word = text.Substring(searchPos, curWordEnd - searchPos);
-                string cleanWord = word.ToLowerInvariant();
-
-                if (cleanWord.Contains(cleanSyl) || cleanSyl.Contains(cleanWord))
-                {
-                    if (currentOccur == occurrenceIndex)
-                    {
-                        targetBox.Select(searchPos, word.Length);
-                        int lineIdx = targetBox.GetLineIndexFromCharacterIndex(searchPos);
-                        if (lineIdx >= 0)
-                        {
-                            targetBox.ScrollToLine(Math.Max(0, lineIdx - 2));
-                        }
-                        return;
-                    }
-                    currentOccur++;
-                }
-
-                searchPos = curWordEnd;
+                targetBox.Select(charStart, charEnd - charStart);
+                targetBox.ScrollToLine(Math.Max(0, startLineIndex - 2));
             }
         }
 
-        private void HighlightWordInOutputOrEditable(TextBox targetBox, string targetWord, int occurrenceIndex)
+        private void HighlightLineInBoxByIndex(TextBox targetBox, int lineIndex)
         {
-            if (targetBox == null || string.IsNullOrEmpty(targetBox.Text) || string.IsNullOrEmpty(targetWord)) return;
-            var targetText = targetBox.Text;
-            string cleanTarget = targetWord.Trim().ToLowerInvariant();
+            if (targetBox == null || string.IsNullOrEmpty(targetBox.Text) || lineIndex < 0) return;
+            if (lineIndex >= targetBox.LineCount) lineIndex = targetBox.LineCount - 1;
+            if (lineIndex < 0) return;
 
-            var lines = targetText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-            int currentOccurrence = 0;
-            int lineStartIndex = 0;
-
-            for (int i = 0; i < lines.Length; i++)
+            int charStart = targetBox.GetCharacterIndexFromLineIndex(lineIndex);
+            int charLen = targetBox.GetLineLength(lineIndex);
+            if (charStart >= 0 && charLen >= 0)
             {
-                var line = lines[i];
-                var cleanLine = line.Replace("∞", "").Replace("♫", "").Trim().ToLowerInvariant();
+                targetBox.Select(charStart, charLen);
+                targetBox.ScrollToLine(Math.Max(0, lineIndex - 2));
+            }
+        }
 
-                if (!string.IsNullOrEmpty(cleanLine) && (cleanTarget.Contains(cleanLine) || cleanLine.Contains(cleanTarget)))
-                {
-                    if (currentOccurrence == occurrenceIndex)
-                    {
-                        targetBox.Select(lineStartIndex, line.Length);
-                        int lineIndex = targetBox.GetLineIndexFromCharacterIndex(lineStartIndex);
-                        if (lineIndex >= 0)
-                        {
-                            targetBox.ScrollToLine(Math.Max(0, lineIndex - 2));
-                        }
-                        return;
-                    }
-                    currentOccurrence++;
-                }
-
-                lineStartIndex += line.Length;
-                if (lineStartIndex < targetText.Length)
-                {
-                    if (lineStartIndex + 1 < targetText.Length && targetText[lineStartIndex] == '\r' && targetText[lineStartIndex + 1] == '\n')
-                    {
-                        lineStartIndex += 2;
-                    }
-                    else
-                    {
-                        lineStartIndex += 1;
-                    }
-                }
+        private void ScrollToLineInBox(TextBox targetBox, int lineIndex)
+        {
+            if (targetBox == null || lineIndex < 0) return;
+            if (lineIndex >= targetBox.LineCount) lineIndex = targetBox.LineCount - 1;
+            if (lineIndex >= 0)
+            {
+                targetBox.ScrollToLine(Math.Max(0, lineIndex - 2));
             }
         }
 

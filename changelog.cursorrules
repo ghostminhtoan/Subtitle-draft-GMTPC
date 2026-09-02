@@ -8,6 +8,17 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 12:48:00 PM Wednesday]
+
+### Fixed - Karaoke 3-Way Token & Syllable Exact Index Mapping
+- **Khắc phục triệt để lỗi lệch vị trí khi nhảy/highlight ở Karaoke English & Vietnamese**:
+  - Loại bỏ hoàn toàn cơ chế so sánh chuỗi tương đối / đếm occurrence text vốn bị sai lệch do tách âm tiết, thêm ký tự `∞`/`♫`, hoặc cấu trúc câu dài.
+  - Xây dựng hệ thống **Karaoke Token & Syllable Exact Mapping 1-1** (`KaraokeMappingResult` & `KaraokeWordMapping`):
+    - Ánh xạ trực tiếp từ vị trí ký tự của từng từ gốc trong Panel 1 (`InputStart`, `InputLength`) đến dải dòng âm tiết tương ứng (`OutputLineIndex`, `OutputLineStart`, `OutputLineLength`) trong Panel 2 và Panel 3.
+    - Cho phép chọn bất kỳ từ nào (ở đầu, giữa hay cuối bài hát) trong Panel 1 -> Nhảy và bôi đen chính xác 100% tất cả các âm tiết đã tách của từ đó tại Panel 2 & 3.
+    - Khi chọn/click bất kỳ dòng âm tiết nào ở Panel 2 hoặc 3 -> Tra ngược trực tiếp về đúng từ gốc trong Panel 1 và dải dòng ở Panel còn lại, tự động cuộn scroll đến đúng vị trí.
+
+---
 ## [2026-09-02 12:16:00 PM Wednesday]
 
 ### Added / Changed - Karaoke English 3-Way Highlight Sync & Add To Word List Window
