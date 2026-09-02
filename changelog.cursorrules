@@ -8,6 +8,17 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 01:32:00 PM Wednesday]
+
+### Fixed & Feature - Visual Multi-Panel Persistent Highlight with TextHighlightAdorner
+- **Khắc phục triệt để và kích hoạt Highlight trực quan đa Panel đồng thời 100% (Karaoke English & Vietnamese)**:
+  - WPF `TextBox` tiêu chuẩn chỉ cho phép 1 Caret/Selection hệ thống active tại một thời điểm theo Win32 Focus.
+  - Đã triển khai `TextHighlightAdorner` kế thừa `System.Windows.Documents.Adorner` để vẽ dải màu bôi đen trực quan độc lập (`#264F78` bán trong suốt có viền sáng) trực tiếp lên `AdornerLayer` của các TextBox.
+  - Khi bôi đen / double click / click vào từ ở bất kỳ Panel nào (Panel 1, 2 hoặc 3):
+    - Các Panel còn lại ngay lập tức hiển thị vệt highlight màu sắc rõ nét trên đúng từ/dải âm tiết tương ứng mà không bị phụ thuộc vào Focus.
+    - Cuộn tự động (auto-scroll) và đồng bộ selection 3 chiều hoàn hảo cho cả tab Karaoke English và Karaoke Vietnamese.
+
+---
 ## [2026-09-02 01:07:00 PM Wednesday]
 
 ### Fixed & Improved - Multi-Panel Inactive Selection Highlight

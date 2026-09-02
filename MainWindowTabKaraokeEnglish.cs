@@ -206,7 +206,10 @@ namespace Subtitle_draft_GMTPC
         private void TxtKaraokeEngInput_SelectionChanged(object sender, RoutedEventArgs e)
         {
             if (_isKaraokeEngSyncingSelection || _isKaraokeEngUpdating) return;
-            SyncSelectionFromInput();
+            if (TxtKaraokeEngInput.IsFocused || TxtKaraokeEngInput.SelectionLength > 0)
+            {
+                SyncSelectionFromInput();
+            }
         }
 
         private void TxtKaraokeEngInput_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -221,7 +224,10 @@ namespace Subtitle_draft_GMTPC
         private void TxtKaraokeEngOutput_SelectionChanged(object sender, RoutedEventArgs e)
         {
             if (_isKaraokeEngSyncingSelection || _isKaraokeEngUpdating) return;
-            SyncSelectionFromOutputOrEditable(TxtKaraokeEngOutput);
+            if (TxtKaraokeEngOutput.IsFocused)
+            {
+                SyncSelectionFromOutputOrEditable(TxtKaraokeEngOutput);
+            }
         }
 
         private void TxtKaraokeEngOutput_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -236,7 +242,10 @@ namespace Subtitle_draft_GMTPC
         private void TxtKaraokeEngEditable_SelectionChanged(object sender, RoutedEventArgs e)
         {
             if (_isKaraokeEngSyncingSelection || _isKaraokeEngUpdating) return;
-            SyncSelectionFromOutputOrEditable(TxtKaraokeEngEditable);
+            if (TxtKaraokeEngEditable.IsFocused)
+            {
+                SyncSelectionFromOutputOrEditable(TxtKaraokeEngEditable);
+            }
         }
 
         private void TxtKaraokeEngEditable_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -258,7 +267,15 @@ namespace Subtitle_draft_GMTPC
             {
                 _isKaraokeEngSyncingSelection = true;
                 var text = TxtKaraokeEngInput.Text;
-                if (string.IsNullOrEmpty(text)) return;
+                if (string.IsNullOrEmpty(text))
+                {
+                    Helpers.TextHighlightAdorner.ClearHighlight(TxtKaraokeEngOutput);
+                    Helpers.TextHighlightAdorner.ClearHighlight(TxtKaraokeEngEditable);
+                    return;
+                }
+
+                // Xóa highlight Adorner cũ ở chính Input nếu có
+                Helpers.TextHighlightAdorner.ClearHighlight(TxtKaraokeEngInput);
 
                 int selStart = TxtKaraokeEngInput.SelectionStart;
                 int selLen = TxtKaraokeEngInput.SelectionLength;
@@ -292,8 +309,8 @@ namespace Subtitle_draft_GMTPC
                     {
                         int totalOutLines = TxtKaraokeEngOutput.LineCount;
                         int estimatedOutLine = (int)(((double)lineIndex / totalInputLines) * totalOutLines);
-                        ScrollToLineInBox(TxtKaraokeEngOutput, estimatedOutLine);
-                        ScrollToLineInBox(TxtKaraokeEngEditable, estimatedOutLine);
+                        HighlightLineInBoxByIndex(TxtKaraokeEngOutput, estimatedOutLine);
+                        HighlightLineInBoxByIndex(TxtKaraokeEngEditable, estimatedOutLine);
                     }
                 }
             }
@@ -313,7 +330,16 @@ namespace Subtitle_draft_GMTPC
             {
                 _isKaraokeEngSyncingSelection = true;
                 var text = sourceBox.Text;
-                if (string.IsNullOrEmpty(text)) return;
+                if (string.IsNullOrEmpty(text))
+                {
+                    Helpers.TextHighlightAdorner.ClearHighlight(TxtKaraokeEngInput);
+                    Helpers.TextHighlightAdorner.ClearHighlight(TxtKaraokeEngOutput);
+                    Helpers.TextHighlightAdorner.ClearHighlight(TxtKaraokeEngEditable);
+                    return;
+                }
+
+                // Xóa Adorner highlight ở chính sourceBox đang focus để hiển thị selection native
+                Helpers.TextHighlightAdorner.ClearHighlight(sourceBox);
 
                 int caret = sourceBox.SelectionStart;
                 int lineIndex = sourceBox.GetLineIndexFromCharacterIndex(caret);
@@ -325,8 +351,10 @@ namespace Subtitle_draft_GMTPC
                     var map = _currentKaraokeEngMappingResult.Mappings.FirstOrDefault(m => m.OutputLineIndex == lineIndex);
                     if (map != null)
                     {
-                        // Highlight Panel 1
+                        // Highlight trực quan Panel 1 (Input)
                         TxtKaraokeEngInput.Select(map.InputStart, map.InputLength);
+                        Helpers.TextHighlightAdorner.SetHighlight(TxtKaraokeEngInput, map.InputStart, map.InputLength);
+
                         int inputLineIdx = TxtKaraokeEngInput.GetLineIndexFromCharacterIndex(map.InputStart);
                         if (inputLineIdx >= 0)
                         {
@@ -371,7 +399,9 @@ namespace Subtitle_draft_GMTPC
             int charEnd = targetBox.GetCharacterIndexFromLineIndex(endLineIndex) + targetBox.GetLineLength(endLineIndex);
             if (charStart >= 0 && charEnd >= charStart)
             {
-                targetBox.Select(charStart, charEnd - charStart);
+                int length = charEnd - charStart;
+                targetBox.Select(charStart, length);
+                Helpers.TextHighlightAdorner.SetHighlight(targetBox, charStart, length);
                 targetBox.ScrollToLine(Math.Max(0, startLineIndex - 2));
             }
         }
@@ -387,6 +417,7 @@ namespace Subtitle_draft_GMTPC
             if (charStart >= 0 && charLen >= 0)
             {
                 targetBox.Select(charStart, charLen);
+                Helpers.TextHighlightAdorner.SetHighlight(targetBox, charStart, charLen);
                 targetBox.ScrollToLine(Math.Max(0, lineIndex - 2));
             }
         }
