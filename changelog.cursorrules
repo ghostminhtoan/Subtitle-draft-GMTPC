@@ -8,6 +8,17 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 02:39:00 PM Wednesday]
+
+### Improved & Fixed - Vibrant Gold Highlight & Full Syllables Line Width Coverage
+- **Đổi màu Highlight sang màu vàng rực rỡ (Vibrant Gold #FFD700)**:
+  - Cập nhật `HighlightFillBrush` sang màu vàng kim loại sáng (`#FFD700` với Opacity 190/255) kèm viền sáng trắng tinh khiết (`#FFFFFF`) 1.5px.
+  - Đồng bộ `SelectionBrush` và `InactiveSelectionHighlightBrushKey` trong `DarkTextBoxStyle` lên `#FFD700`.
+- **Sửa lỗi chỉ highlight 1 chữ/ký tự đầu dòng ở Panel 2 & 3**:
+  - Khắc phục nguyên nhân `GetRectFromCharacterIndex(segEnd)` tại cuối dòng trả về tọa độ mép trái của ký tự xuống dòng khiến chiều rộng `width` bị tính hẹp (chỉ bao quanh ký tự đầu).
+  - Sử dụng tọa độ `rEndChar.Right` của ký tự chữ cái thực tế cuối cùng trong dòng (`Math.Max(rEndChar.Right, left + 10)`), đảm bảo toàn bộ từ/âm tiết của hàng (`Tsu`, `ki`, `sa`, `sa`, `ru`, `tsu`, `me`, `tai`) đều được bôi dải màu vàng sáng trọn vẹn và rõ nét.
+
+---
 ## [2026-09-02 02:28:00 PM Wednesday]
 
 ### Improved & Fixed - Bright Neon Cyan Highlight & Special Character Skip Mapping
