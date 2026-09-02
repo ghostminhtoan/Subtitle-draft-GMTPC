@@ -8,6 +8,16 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 04:05:00 PM Wednesday]
+
+### Improved & Fixed - Amber Gold High-Contrast Highlight & Sharp Text Contrast
+- **Tối ưu hóa độ tương phản màu Highlight và màu chữ (5-Step Critical Thinking & Verification)**:
+  - Khắc phục vấn đề màu vàng rực quá sáng đè lên màu chữ trắng/xám (`#E0E0E0`) gây chói mắt và khó đọc phụ đề dài.
+  - Chuyển sang tông màu **Amber Gold / Vàng hổ phách cao cấp (`#FFB800`)** với độ trong suốt tối ưu (`Alpha = 130/255`) kèm viền vàng sáng (`#FFD700`, 1.2px, bo góc 2px).
+  - Tích hợp vẽ lại text bôi đen bằng **màu đen tuyền tương phản tuyệt đối (`#000000`)** qua `FormattedText` trực tiếp trong `TextHighlightAdorner`, đảm bảo chữ luôn nổi bật, sắc nét và dễ đọc 100% trên nền highlight ở cả trạng thái có Focus hay mất Focus.
+  - Đồng bộ `DarkTextBoxStyle` lên mã màu Amber Gold `#FFB800` với `HighlightTextBrushKey="#000000"`.
+
+---
 ## [2026-09-02 02:56:00 PM Wednesday]
 
 ### Fixed - Real-time Highlight Re-rendering on TextBox Scroll (No Ghosting/Offset)
