@@ -8,6 +8,15 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 02:56:00 PM Wednesday]
+
+### Fixed - Real-time Highlight Re-rendering on TextBox Scroll (No Ghosting/Offset)
+- **Khắc phục hiện tượng lưu ảnh (ghosting) và lệch vị trí highlight khi cuộn scroll TextBox**:
+  - Nguyên nhân: WPF `AdornerLayer` mặc định không tự động vẽ lại khi `ScrollViewer` nội bộ của TextBox cuộn con lăn chuột hoặc kéo thanh cuộn.
+  - Khắc phục: `TextHighlightAdorner` giờ đây tự động liên kết và lắng nghe sự kiện `ScrollViewer.ScrollChangedEvent` cũng như `ScrollViewer.ScrollChanged` từ visual child của TextBox.
+  - Khi người dùng cuộn chuột ở bất kỳ Panel nào (Panel 1, 2 hoặc 3), vệt highlight màu vàng sẽ di chuyển mượt mà, bám sát chính xác 100% theo từng dòng chữ mà không bị lưu vệt màu ở vị trí cũ.
+
+---
 ## [2026-09-02 02:52:00 PM Wednesday]
 
 ### Fixed - Search Result Auto-Scroll & Persistent Visual Highlight in Panel 1
