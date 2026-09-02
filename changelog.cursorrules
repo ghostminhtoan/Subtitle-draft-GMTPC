@@ -8,6 +8,15 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 04:16:00 PM Wednesday]
+
+### Improved - Synchronized Vibrant Blue (#007ACC) Native & Adorner Highlight
+- **Đồng bộ màu sắc vệt bôi đen thực tế (Native Selection) sáng đồng đều như Panel 2 & 3**:
+  - Nâng cấp `SelectionBrush` và `InactiveSelectionHighlightBrushKey` trong `DarkTextBoxStyle` lên mã màu xanh sáng rực rỡ **Vibrant Blue (`#007ACC`)** với `SelectionOpacity="0.75"`.
+  - Đồng bộ `HighlightFillBrush` trong `TextHighlightAdorner` lên màu xanh `#007ACC` (`Alpha = 175/255`), viền sáng Cyan (`#00B4FF`, 1.2px) và chữ trắng sáng `#FFFFFF`.
+  - Nhờ đó, khi người dùng bôi đen thực tế (real select) bằng chuột ở Panel 1 thì màu bôi đen sáng rõ ràng, rực rỡ và đồng nhất 100% với màu bôi đen ở Panel 2 và Panel 3.
+
+---
 ## [2026-09-02 04:10:00 PM Wednesday]
 
 ### Changed & Improved - VS Code Professional Dark Blue Highlight with Crisp White Text
