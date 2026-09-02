@@ -16,6 +16,7 @@ namespace Subtitle_draft_GMTPC
         #region Karaoke English - Fields
 
         private bool _isKaraokeEngUpdating = false;
+        private bool _isKaraokeEngSyncingSelection = false;
         private string _pendingKaraokeEngRules;
         private string _pendingCustomSongRules;
         private string _wordListFilePath;
@@ -193,91 +194,213 @@ namespace Subtitle_draft_GMTPC
             }
         }
 
-        /// <summary>
-        /// Double click vào bất kỳ chữ nào ở Panel 1 sẽ nhảy đến chữ tương ứng ở Panel 2 và 3
-        /// </summary>
-        private void TxtKaraokeEngInput_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        #endregion
+
+        #region Karaoke English - Selection & Double Click Synchronization
+
+        private void TxtKaraokeEngInput_SelectionChanged(object sender, RoutedEventArgs e)
         {
-            try
+            if (_isKaraokeEngSyncingSelection || _isKaraokeEngUpdating) return;
+            if (TxtKaraokeEngInput.SelectionLength > 0)
             {
-                // Cho phép TextBox hoàn thành thao tác double click chọn từ mặc định
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    try
-                    {
-                        JumpToCorrespondingWordEng();
-                    }
-                    catch { }
-                }), System.Windows.Threading.DispatcherPriority.Background);
+                SyncSelectionFromInput();
             }
-            catch { }
         }
 
-        private void JumpToCorrespondingWordEng()
+        private void TxtKaraokeEngInput_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            var text = TxtKaraokeEngInput.Text;
-            if (string.IsNullOrEmpty(text)) return;
-
-            int caretIndex = TxtKaraokeEngInput.SelectionStart;
-            if (caretIndex < 0 || caretIndex > text.Length) caretIndex = 0;
-
-            // Tìm từ đang được chọn hoặc tại vị trí caret
-            int wordStart = caretIndex;
-            while (wordStart > 0 && !char.IsWhiteSpace(text[wordStart - 1]))
+            if (_isKaraokeEngUpdating) return;
+            Dispatcher.BeginInvoke(new Action(() =>
             {
-                wordStart--;
-            }
+                SyncSelectionFromInput();
+            }), System.Windows.Threading.DispatcherPriority.Background);
+        }
 
-            int wordEnd = caretIndex;
-            while (wordEnd < text.Length && !char.IsWhiteSpace(text[wordEnd]))
+        private void TxtKaraokeEngOutput_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isKaraokeEngSyncingSelection || _isKaraokeEngUpdating) return;
+            if (TxtKaraokeEngOutput.SelectionLength > 0)
             {
-                wordEnd++;
+                SyncSelectionFromOutputOrEditable(TxtKaraokeEngOutput);
             }
+        }
 
-            if (wordStart >= wordEnd) return;
+        private void TxtKaraokeEngOutput_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (_isKaraokeEngUpdating) return;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                SyncSelectionFromOutputOrEditable(TxtKaraokeEngOutput);
+            }), System.Windows.Threading.DispatcherPriority.Background);
+        }
 
-            string selectedWord = text.Substring(wordStart, wordEnd - wordStart).Trim();
-            if (string.IsNullOrEmpty(selectedWord)) return;
+        private void TxtKaraokeEngEditable_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            if (_isKaraokeEngSyncingSelection || _isKaraokeEngUpdating) return;
+            if (TxtKaraokeEngEditable.SelectionLength > 0)
+            {
+                SyncSelectionFromOutputOrEditable(TxtKaraokeEngEditable);
+            }
+        }
 
-            // Đếm số lần selectedWord xuất hiện từ đầu text đến wordStart
-            int occurrenceIndex = 0;
+        private void TxtKaraokeEngEditable_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (_isKaraokeEngUpdating) return;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                SyncSelectionFromOutputOrEditable(TxtKaraokeEngEditable);
+            }), System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        /// <summary>
+        /// Đồng bộ từ Panel 1 (Input) sang Panel 2 và Panel 3
+        /// </summary>
+        private void SyncSelectionFromInput()
+        {
+            if (_isKaraokeEngSyncingSelection) return;
+            try
+            {
+                _isKaraokeEngSyncingSelection = true;
+                var text = TxtKaraokeEngInput.Text;
+                if (string.IsNullOrEmpty(text)) return;
+
+                int selStart = TxtKaraokeEngInput.SelectionStart;
+                int selLen = TxtKaraokeEngInput.SelectionLength;
+
+                int wordStart = selStart;
+                int wordEnd = selStart + Math.Max(1, selLen);
+
+                if (selLen == 0)
+                {
+                    while (wordStart > 0 && !char.IsWhiteSpace(text[wordStart - 1])) wordStart--;
+                    while (wordEnd < text.Length && !char.IsWhiteSpace(text[wordEnd])) wordEnd++;
+                }
+
+                if (wordStart >= wordEnd || wordStart >= text.Length) return;
+                string selectedWord = text.Substring(wordStart, wordEnd - wordStart).Trim();
+                if (string.IsNullOrEmpty(selectedWord)) return;
+
+                // Xác định occurrence index của từ này trong Panel 1
+                int occurrenceIndex = 0;
+                int searchPos = 0;
+                while (searchPos <= wordStart && searchPos < text.Length)
+                {
+                    while (searchPos < text.Length && char.IsWhiteSpace(text[searchPos])) searchPos++;
+                    if (searchPos >= text.Length) break;
+
+                    int curWordEnd = searchPos;
+                    while (curWordEnd < text.Length && !char.IsWhiteSpace(text[curWordEnd])) curWordEnd++;
+
+                    string curWord = text.Substring(searchPos, curWordEnd - searchPos);
+                    if (string.Equals(curWord, selectedWord, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (searchPos == wordStart) break;
+                        occurrenceIndex++;
+                    }
+                    searchPos = curWordEnd;
+                }
+
+                HighlightWordInOutputOrEditable(TxtKaraokeEngOutput, selectedWord, occurrenceIndex);
+                HighlightWordInOutputOrEditable(TxtKaraokeEngEditable, selectedWord, occurrenceIndex);
+            }
+            finally
+            {
+                _isKaraokeEngSyncingSelection = false;
+            }
+        }
+
+        /// <summary>
+        /// Đồng bộ từ Panel 2 (Output) hoặc Panel 3 (Editable) sang 2 panel còn lại
+        /// </summary>
+        private void SyncSelectionFromOutputOrEditable(TextBox sourceBox)
+        {
+            if (_isKaraokeEngSyncingSelection) return;
+            try
+            {
+                _isKaraokeEngSyncingSelection = true;
+                var text = sourceBox.Text;
+                if (string.IsNullOrEmpty(text)) return;
+
+                int caret = sourceBox.SelectionStart;
+                int lineIndex = sourceBox.GetLineIndexFromCharacterIndex(caret);
+                if (lineIndex < 0) return;
+
+                int lineStart = sourceBox.GetCharacterIndexFromLineIndex(lineIndex);
+                int lineLength = sourceBox.GetLineLength(lineIndex);
+                if (lineStart < 0 || lineLength <= 0) return;
+
+                string lineText = text.Substring(lineStart, lineLength);
+                string cleanLine = lineText.Replace("∞", "").Replace("♫", "").Trim();
+                if (string.IsNullOrEmpty(cleanLine)) return;
+
+                // Đếm occurrenceIndex của token này trong sourceBox
+                int occurrenceIndex = 0;
+                var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                for (int i = 0; i < lineIndex && i < lines.Length; i++)
+                {
+                    var cl = lines[i].Replace("∞", "").Replace("♫", "").Trim();
+                    if (string.Equals(cl, cleanLine, StringComparison.OrdinalIgnoreCase))
+                    {
+                        occurrenceIndex++;
+                    }
+                }
+
+                // Nhảy và highlight ở Panel 1
+                HighlightWordInInput(TxtKaraokeEngInput, cleanLine, occurrenceIndex);
+
+                // Nhảy và highlight ở Panel còn lại
+                var otherBox = (sourceBox == TxtKaraokeEngOutput) ? TxtKaraokeEngEditable : TxtKaraokeEngOutput;
+                HighlightWordInOutputOrEditable(otherBox, cleanLine, occurrenceIndex);
+            }
+            finally
+            {
+                _isKaraokeEngSyncingSelection = false;
+            }
+        }
+
+        private void HighlightWordInInput(TextBox targetBox, string syllable, int occurrenceIndex)
+        {
+            if (targetBox == null || string.IsNullOrEmpty(targetBox.Text) || string.IsNullOrEmpty(syllable)) return;
+            var text = targetBox.Text;
+            string cleanSyl = syllable.Trim().ToLowerInvariant();
+
+            int currentOccur = 0;
             int searchPos = 0;
-            while (searchPos <= wordStart && searchPos < text.Length)
+
+            while (searchPos < text.Length)
             {
-                // Tìm từ tiếp theo
                 while (searchPos < text.Length && char.IsWhiteSpace(text[searchPos])) searchPos++;
                 if (searchPos >= text.Length) break;
 
                 int curWordEnd = searchPos;
                 while (curWordEnd < text.Length && !char.IsWhiteSpace(text[curWordEnd])) curWordEnd++;
 
-                string curWord = text.Substring(searchPos, curWordEnd - searchPos);
-                if (string.Equals(curWord, selectedWord, StringComparison.OrdinalIgnoreCase))
+                string word = text.Substring(searchPos, curWordEnd - searchPos);
+                string cleanWord = word.ToLowerInvariant();
+
+                if (cleanWord.Contains(cleanSyl) || cleanSyl.Contains(cleanWord))
                 {
-                    if (searchPos == wordStart)
+                    if (currentOccur == occurrenceIndex)
                     {
-                        break;
+                        targetBox.Select(searchPos, word.Length);
+                        int lineIdx = targetBox.GetLineIndexFromCharacterIndex(searchPos);
+                        if (lineIdx >= 0)
+                        {
+                            targetBox.ScrollToLine(Math.Max(0, lineIdx - 2));
+                        }
+                        return;
                     }
-                    occurrenceIndex++;
+                    currentOccur++;
                 }
 
                 searchPos = curWordEnd;
             }
-
-            // Đồng bộ nhảy đến Panel 2 và Panel 3
-            HighlightWordInTargetTextBox(TxtKaraokeEngOutput, selectedWord, occurrenceIndex);
-            HighlightWordInTargetTextBox(TxtKaraokeEngEditable, selectedWord, occurrenceIndex);
         }
 
-        /// <summary>
-        /// Tìm và chọn dòng/âm tiết tương ứng của từ trong Panel 2 hoặc Panel 3
-        /// </summary>
-        private void HighlightWordInTargetTextBox(TextBox targetBox, string targetWord, int occurrenceIndex)
+        private void HighlightWordInOutputOrEditable(TextBox targetBox, string targetWord, int occurrenceIndex)
         {
             if (targetBox == null || string.IsNullOrEmpty(targetBox.Text) || string.IsNullOrEmpty(targetWord)) return;
-
             var targetText = targetBox.Text;
-            // Làm sạch targetWord khỏi các ký tự đặc biệt nếu có
             string cleanTarget = targetWord.Trim().ToLowerInvariant();
 
             var lines = targetText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
@@ -287,18 +410,13 @@ namespace Subtitle_draft_GMTPC
             for (int i = 0; i < lines.Length; i++)
             {
                 var line = lines[i];
-                // Loại bỏ ký tự ∞, ♫ và khoảng trắng để so sánh
                 var cleanLine = line.Replace("∞", "").Replace("♫", "").Trim().ToLowerInvariant();
 
-                // Kiểm tra xem dòng này có match với targetWord (hoặc targetWord bắt đầu bằng âm tiết này)
-                if (!string.IsNullOrEmpty(cleanLine) && (cleanTarget.StartsWith(cleanLine) || cleanLine.StartsWith(cleanTarget)))
+                if (!string.IsNullOrEmpty(cleanLine) && (cleanTarget.Contains(cleanLine) || cleanLine.Contains(cleanTarget)))
                 {
                     if (currentOccurrence == occurrenceIndex)
                     {
-                        targetBox.Focus();
                         targetBox.Select(lineStartIndex, line.Length);
-                        
-                        // Scroll đến vị trí đã chọn
                         int lineIndex = targetBox.GetLineIndexFromCharacterIndex(lineStartIndex);
                         if (lineIndex >= 0)
                         {
@@ -310,7 +428,6 @@ namespace Subtitle_draft_GMTPC
                 }
 
                 lineStartIndex += line.Length;
-                // Cộng thêm độ dài ký tự xuống dòng
                 if (lineStartIndex < targetText.Length)
                 {
                     if (lineStartIndex + 1 < targetText.Length && targetText[lineStartIndex] == '\r' && targetText[lineStartIndex + 1] == '\n')
@@ -412,6 +529,31 @@ namespace Subtitle_draft_GMTPC
                 // Mở file bằng Notepad
                 Process.Start("notepad.exe", $"\"{_customSongListFilePath}\"");
                 ShowToastKaraokeEng("🎵 Đang mở Custom Song List để chỉnh sửa!");
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Add To Word List: Mở cửa sổ popup nhập quy tắc thêm vào Full Word List
+        /// </summary>
+        private void BtnAddToWordList_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var appDir = AppRuntimePaths.BaseDirectory;
+                _wordListFilePath = Path.Combine(appDir, "word list rules.txt");
+
+                var dialog = new AddWordListRulesWindow(_wordListFilePath, (updatedRules) =>
+                {
+                    _pendingKaraokeEngRules = updatedRules;
+                    ProcessKaraokeEngInput();
+                    ShowToastKaraokeEng("✨ Đã cập nhật Word List!");
+                });
+                dialog.Owner = this;
+                dialog.ShowDialog();
             }
             catch (Exception ex)
             {

@@ -2164,6 +2164,7 @@
                                     <TextBox x:Name="TxtKaraokeEngInput" Grid.Row="1"
                                              Style="{StaticResource DarkTextBoxStyle}"
                                              TextChanged="TxtKaraokeEngInput_TextChanged"
+                                             SelectionChanged="TxtKaraokeEngInput_SelectionChanged"
                                              MouseDoubleClick="TxtKaraokeEngInput_MouseDoubleClick"/>
                                 </Grid>
                             </Border>
@@ -2181,6 +2182,8 @@
                                     <TextBox x:Name="TxtKaraokeEngOutput" Grid.Row="1"
                                              Style="{StaticResource DarkTextBoxStyle}"
                                              IsReadOnly="True" FontSize="14"
+                                             SelectionChanged="TxtKaraokeEngOutput_SelectionChanged"
+                                             MouseDoubleClick="TxtKaraokeEngOutput_MouseDoubleClick"
                                              PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
                                 </Grid>
                             </Border>
@@ -2211,6 +2214,10 @@
                                                 Style="{StaticResource AccentButtonStyle}"
                                                 Padding="10,5" FontSize="10" Margin="0,0,4,0"
                                                 Click="BtnCustomSongList_Click"/>
+                                        <Button x:Name="BtnAddToWordList" Content="➕ Add To Word List"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                Padding="10,5" FontSize="10" Margin="0,0,4,0"
+                                                Click="BtnAddToWordList_Click"/>
                                         <Button x:Name="BtnSaveWordList" Content="💾 Save"
                                                 Style="{StaticResource AccentButtonStyle}"
                                                 Padding="10,5" FontSize="10" Margin="0,0,4,0"
@@ -2224,6 +2231,8 @@
                                     <TextBox x:Name="TxtKaraokeEngEditable" Grid.Row="2"
                                              Style="{StaticResource DarkTextBoxStyle}"
                                              FontSize="14"
+                                             SelectionChanged="TxtKaraokeEngEditable_SelectionChanged"
+                                             MouseDoubleClick="TxtKaraokeEngEditable_MouseDoubleClick"
                                              PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                                     <Button x:Name="BtnCopyKaraokeEng" Grid.Row="3" Content="📋 Copy Karaoke"

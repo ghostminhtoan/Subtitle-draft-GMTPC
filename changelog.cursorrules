@@ -8,6 +8,18 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 12:16:00 PM Wednesday]
+
+### Added / Changed - Karaoke English 3-Way Highlight Sync & Add To Word List Window
+- **Đồng bộ Highlight & Double-click 3 chiều (Karaoke English)**:
+  - Khi bôi đen (highlight/selection) hoặc đúp chuột (double-click) vào bất kỳ chữ/âm tiết nào ở Panel 1 (Input), Panel 2 (Output) hay Panel 3 (Editable) thì tất cả các panel còn lại đều tự động nhảy đến, bôi đen (select) và scroll đúng chữ/âm tiết tương ứng.
+  - Ngăn ngừa xung đột đệ quy bằng cờ đồng bộ `_isKaraokeEngSyncingSelection`.
+- **Nút & Cửa sổ "➕ Add To Word List" (Karaoke English)**:
+  - Thêm nút `➕ Add To Word List` nằm ngay bên phải nút `🎵 Custom Song List`.
+  - Thiết kế cửa sổ giao diện WPF `AddWordListRulesWindow` cho phép người dùng nhập trực tiếp quy tắc tách từ mới (hỗ trợ nhiều dòng, định dạng `word:part1/part2` hoặc `(word:part1/part2)`).
+  - Tự động phân tích, cập nhật/ghi đè và sắp xếp thứ tự alphabet vào file `word list rules.txt`, đồng thời làm mới ngay lập tức kết quả tách từ trên giao diện mà không cần khởi động lại.
+
+---
 ## [2026-09-02 12:05:00 PM Wednesday]
 
 ### Added / Changed - Karaoke Double Click Jump & Custom Song List Overwrite
