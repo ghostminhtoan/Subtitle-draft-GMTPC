@@ -8,6 +8,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 02:03:00 PM Wednesday]
+
+### Improved - LightCyan High-Contrast Border for Multi-Panel Highlight
+- **Nâng cấp đường viền bôi đen sang màu LightCyan (#E0FFFF)**:
+  - Chuyển `HighlightBorderPen` sang màu `LightCyan` (`#E0FFFF`) sáng trắng xanh với độ dày 1.5px.
+  - Tăng độ tương phản tối đa giúp bao quanh và làm nổi bật dải chữ/âm tiết được chọn trên cả 3 Panel một cách sắc nét nhất trên nền Dark Theme.
+
+---
 ## [2026-09-02 02:00:00 PM Wednesday]
 
 ### Improved - Enhanced Vibrant Blue Highlight Color on Dark Theme
