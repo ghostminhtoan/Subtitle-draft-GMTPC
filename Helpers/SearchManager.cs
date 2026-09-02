@@ -53,10 +53,20 @@ namespace Subtitle_draft_GMTPC
                 _currentSearchIndex = 0;
             }
 
-            // Select text tại vị trí tìm thấy - KHÔNG focus
+            // Select text tại vị trí tìm thấy - KHÔNG focus để tránh mất focus thanh search
             int pos = _matchPositions[_currentSearchIndex];
             textBox.SelectionStart = pos;
             textBox.SelectionLength = searchText.Length;
+
+            // Tự động cuộn đến vị trí tìm thấy
+            int lineIdx = textBox.GetLineIndexFromCharacterIndex(pos);
+            if (lineIdx >= 0)
+            {
+                textBox.ScrollToLine(Math.Max(0, lineIdx - 2));
+            }
+
+            // Hiển thị highlight màu vàng trực quan qua Adorner
+            Helpers.TextHighlightAdorner.SetHighlight(textBox, pos, searchText.Length);
 
             return true;
         }
