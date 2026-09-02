@@ -2065,7 +2065,8 @@
 
                                     <TextBox x:Name="TxtKaraokeInput" Grid.Row="1"
                                              Style="{StaticResource DarkTextBoxStyle}"
-                                             TextChanged="TxtKaraokeInput_TextChanged"/>
+                                             TextChanged="TxtKaraokeInput_TextChanged"
+                                             MouseDoubleClick="TxtKaraokeInput_MouseDoubleClick"/>
                                 </Grid>
                             </Border>
 
@@ -2103,9 +2104,9 @@
                                              PreviewMouseWheel="TextBox_PreviewMouseWheel"/>
 
                                     <Button x:Name="BtnCopyKaraoke" Grid.Row="2" Content="📋 Copy Karaoke"
-                                            Style="{StaticResource AccentButtonStyle}"
-                                            HorizontalAlignment="Right" Margin="0,8,0,0"
-                                            Click="BtnCopyKaraoke_Click"/>
+                                             Style="{StaticResource AccentButtonStyle}"
+                                             HorizontalAlignment="Right" Margin="0,8,0,0"
+                                             Click="BtnCopyKaraoke_Click"/>
                                 </Grid>
                             </Border>
 
@@ -2162,7 +2163,8 @@
 
                                     <TextBox x:Name="TxtKaraokeEngInput" Grid.Row="1"
                                              Style="{StaticResource DarkTextBoxStyle}"
-                                             TextChanged="TxtKaraokeEngInput_TextChanged"/>
+                                             TextChanged="TxtKaraokeEngInput_TextChanged"
+                                             MouseDoubleClick="TxtKaraokeEngInput_MouseDoubleClick"/>
                                 </Grid>
                             </Border>
 
@@ -2205,6 +2207,10 @@
                                                 Style="{StaticResource AccentButtonStyle}"
                                                 Padding="10,5" FontSize="10" Margin="0,0,4,0"
                                                 Click="BtnEditWordList_Click"/>
+                                        <Button x:Name="BtnCustomSongList" Content="🎵 Custom Song List"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                Padding="10,5" FontSize="10" Margin="0,0,4,0"
+                                                Click="BtnCustomSongList_Click"/>
                                         <Button x:Name="BtnSaveWordList" Content="💾 Save"
                                                 Style="{StaticResource AccentButtonStyle}"
                                                 Padding="10,5" FontSize="10" Margin="0,0,4,0"

@@ -8,6 +8,16 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 12:05:00 PM Wednesday]
+
+### Added / Changed - Karaoke Double Click Jump & Custom Song List Overwrite
+- **Double Click Jump (Karaoke Vietnamese & English)**: Khi double click vào một chữ bất kỳ trong Panel 1 (Input), hệ thống tự động xác định từ và nhảy/scroll đến đúng vị trí tương ứng trong Panel 2 (Output) và Panel 3 (Editable).
+- **Custom Song List (Karaoke English)**:
+  - Thêm nút `🎵 Custom Song List` nằm bên phải nút `✏️ Edit Word List`.
+  - Quản lý file `custom song list rules.txt` với cơ chế tự động theo dõi (`FileSystemWatcher`) để reload rules tức thì.
+  - Tích hợp ghi đè: Các quy tắc tách từ trong Custom Song List sẽ ghi đè (overwrite) quy tắc trong Full Word List, các chữ khác không nằm trong custom list vẫn giữ nguyên quy tắc từ full word list.
+
+---
 ## [2026-08-24 04:30:00 PM Monday]
 
 ### Added - Dialogue Normalize Sub-tab in Subtitle Tools

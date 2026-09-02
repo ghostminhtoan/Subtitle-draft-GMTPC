@@ -30,13 +30,34 @@ namespace Subtitle_draft_GMTPC.Services
         /// Xử lý toàn bộ lời bài hát với quy tắc tách từ tùy chỉnh
         /// </summary>
         /// <param name="lyrics">Lời bài hát</param>
-        /// <param name="splitRules">Quy tắc tách từ, mỗi dòng format: word/part1/part2/... (vd: how/ling)</param>
+        /// <param name="splitRules">Quy tắc tách từ mặc định/full</param>
         public static string ProcessLyricsWithSplitRules(string lyrics, string splitRules)
+        {
+            return ProcessLyricsWithSplitRules(lyrics, splitRules, null);
+        }
+
+        /// <summary>
+        /// Xử lý toàn bộ lời bài hát với quy tắc tách từ full list kết hợp custom song list (ghi đè)
+        /// </summary>
+        /// <param name="lyrics">Lời bài hát</param>
+        /// <param name="splitRules">Quy tắc tách từ mặc định/full (Word List)</param>
+        /// <param name="customSplitRules">Quy tắc tách từ Custom Song List (sẽ ghi đè các từ tương ứng trong splitRules)</param>
+        public static string ProcessLyricsWithSplitRules(string lyrics, string splitRules, string customSplitRules)
         {
             if (string.IsNullOrWhiteSpace(lyrics)) return string.Empty;
 
-            // Parse quy tắc tách từ
+            // Parse quy tắc tách từ từ full word list
             var customSyllableMap = ParseSplitRules(splitRules);
+
+            // Parse và ghi đè các quy tắc từ custom song list
+            if (!string.IsNullOrWhiteSpace(customSplitRules))
+            {
+                var customOverrides = ParseSplitRules(customSplitRules);
+                foreach (var kvp in customOverrides)
+                {
+                    customSyllableMap[kvp.Key] = kvp.Value;
+                }
+            }
 
             var sb = new StringBuilder();
             var lines = lyrics.Split(new[] { Environment.NewLine, "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
