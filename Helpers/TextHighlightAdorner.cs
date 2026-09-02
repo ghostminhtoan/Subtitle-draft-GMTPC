@@ -13,9 +13,9 @@ namespace Subtitle_draft_GMTPC.Helpers
     /// </summary>
     public class TextHighlightAdorner : Adorner
     {
-        // Tông màu VS Code Dark Blue chuẩn (#264F78 / #007ACC) tôn vinh màu chữ trắng sáng nguyên bản (#FFFFFF / #E0E0E0)
-        private static readonly Brush HighlightFillBrush = new SolidColorBrush(Color.FromArgb(170, 38, 79, 120)); // #264F78 Xanh dương VS Code dịu mắt
-        private static readonly Pen HighlightBorderPen = new Pen(new SolidColorBrush(Color.FromRgb(0, 150, 255)), 1.2); // Viền xanh sáng rõ nét
+        // Tông màu Vibrant Blue (#007ACC / #0096FF) sáng rực rỡ, đồng bộ 100% với màu bôi đen native selection
+        private static readonly Brush HighlightFillBrush = new SolidColorBrush(Color.FromArgb(175, 0, 122, 204)); // #007ACC Xanh sáng Dodger Blue
+        private static readonly Pen HighlightBorderPen = new Pen(new SolidColorBrush(Color.FromRgb(0, 180, 255)), 1.2); // Viền xanh sáng rõ nét
         private static readonly Brush HighlightTextBrush = new SolidColorBrush(Color.FromRgb(255, 255, 255)); // Chữ trắng sáng 100%
 
         static TextHighlightAdorner()
