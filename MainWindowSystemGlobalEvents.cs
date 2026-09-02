@@ -31,6 +31,7 @@ namespace Subtitle_draft_GMTPC
         private SearchManager _searchZeroTime = new SearchManager();
         private SearchManager _searchKaraokeViet = new SearchManager();
         private SearchManager _searchKaraokeEng = new SearchManager();
+        private SearchManager _searchKaraokeJap = new SearchManager();
         private SearchManager _searchKaraokeMerge = new SearchManager();
         private SearchManager _searchKaraokeSync = new SearchManager();
         private SearchManager _searchEffect = new SearchManager();
@@ -73,6 +74,7 @@ namespace Subtitle_draft_GMTPC
         InitializeEffectDebounce();
         InitializeTextToSubtitleDebounce();
         LoadKaraokeEngSplitRules();
+        LoadKaraokeJapSplitRules();
         LoadTextToSubSettings();
 
         // Register global key events for search
@@ -588,6 +590,18 @@ namespace Subtitle_draft_GMTPC
                             }
                         }
                     }
+                    else if (subHeader.Contains("Karaoke Japanese"))
+                    {
+                        TextBox[] textboxes = new[] { TxtKaraokeJapInput, TxtKaraokeJapEditable };
+                        foreach (var tb in textboxes)
+                        {
+                            if (tb != null)
+                            {
+                                found = _searchKaraokeJap.SearchInTextBox(tb, _currentSearchText, findNext);
+                                if (found) break;
+                            }
+                        }
+                    }
                     else if (subHeader.Contains("Karaoke Merge"))
                     {
                         TextBox[] textboxes = new[] { TxtKaraokeMergeInput, TxtKaraokeMergeOutput };
@@ -695,6 +709,7 @@ namespace Subtitle_draft_GMTPC
                 if (subHeader.Contains("Zero Time")) return _searchZeroTime;
                 if (subHeader.Contains("Karaoke Vietnamese")) return _searchKaraokeViet;
                 if (subHeader.Contains("Karaoke English")) return _searchKaraokeEng;
+                if (subHeader.Contains("Karaoke Japanese")) return _searchKaraokeJap;
                 if (subHeader.Contains("Karaoke Merge")) return _searchKaraokeMerge;
                 if (subHeader.Contains("Karaoke Sync")) return _searchKaraokeSync;
                 if (subHeader.Contains("Effect")) return _searchEffect;

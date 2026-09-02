@@ -23,6 +23,7 @@ using System.Windows.Media;
 /// - MainWindowTabKaraokeVietnamese.cs: Tab Karaoke Vietnamese
 /// - MainWindowTabZeroTime.cs: Tab Zero Time
 /// - MainWindowTabKaraokeEnglish.cs: Tab Karaoke English
+/// - MainWindowTabKaraokeJapanese.cs: Tab Karaoke Japanese
 /// - MainWindowTabKaraokeMerge.cs: Tab Karaoke Merge
 /// - MainWindowTabKaraokeSync.cs: Tab Karaoke Sync
 /// - MainWindowTabEffect.cs: Tab Effect

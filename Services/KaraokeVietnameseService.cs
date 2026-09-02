@@ -70,7 +70,7 @@ namespace Subtitle_draft_GMTPC.Services
         /// <summary>
         /// Xử lý lời bài hát và xây dựng bản đồ ánh xạ 1-1 chính xác tuyệt đối giữa Panel 1 và Panel 2/3
         /// </summary>
-        public static KaraokeMappingResult ProcessLyricsWithMapping(string lyrics, string splitRules, string customSplitRules)
+        public static KaraokeMappingResult ProcessLyricsWithMapping(string lyrics, string splitRules, string customSplitRules, bool isJapaneseRomajiMode = false)
         {
             var result = new KaraokeMappingResult();
             if (string.IsNullOrWhiteSpace(lyrics)) return result;
@@ -112,7 +112,7 @@ namespace Subtitle_draft_GMTPC.Services
                     var wordInputStart = rawLineStart + wm.Index;
                     var wordInputLen = wm.Length;
 
-                    var isVietnamese = IsVietnameseWord(word);
+                    var isVietnamese = !isJapaneseRomajiMode && IsVietnameseWord(word);
                     var isFirstWordInLine = (w == 0);
                     var isLastWordInLine = (w == wordMatches.Count - 1);
 
@@ -155,6 +155,10 @@ namespace Subtitle_draft_GMTPC.Services
                         else if (customSyllableMap != null && customSyllableMap.TryGetValue(wordLower, out var customSyllables))
                         {
                             syllables = AdjustSyllableCase(customSyllables, word);
+                        }
+                        else if (isJapaneseRomajiMode)
+                        {
+                            syllables = SplitJapaneseRomajiSyllables(word);
                         }
                         else
                         {
@@ -569,6 +573,81 @@ namespace Subtitle_draft_GMTPC.Services
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Tách từ tiếng Nhật Romaji thành các âm tiết (Moras / Syllables)
+        /// Phân tích tự động các dạng:
+        /// - Âm ghép 3 ký tự (Yōon): kya, kyu, kyo, sha, shu, sho, cha, chu, cho, nya, hya, mya, rya, gya, ja, bya, pya...
+        /// - Âm phụ âm đôi/ngắt (Sokuon): kk, tt, pp, ss, tch, cch...
+        /// - Âm thường 2 ký tự (CV): ka, ki, ku, ke, ko, sa, shi, su, se, so, ta, chi, tsu, te, to...
+        /// - Âm đơn 1 ký tự: a, i, u, e, o, n
+        /// </summary>
+        public static string[] SplitJapaneseRomajiSyllables(string word)
+        {
+            if (string.IsNullOrEmpty(word)) return new[] { word };
+            if (word.Length <= 1) return new[] { word };
+
+            var result = new List<string>();
+            var lowerWord = word.ToLowerInvariant();
+            int i = 0;
+            int n = lowerWord.Length;
+
+            // Pattern Regex khớp 1 âm tiết Romaji tiếng Nhật từ dài đến ngắn
+            // 1. Phụ âm ngắt/kép: [kpsztcgdjb] đứng trước phụ âm khác (vd: tt trong matte -> mat, tch trong maccha -> mat)
+            // 2. Âm ghép 3 ký tự: (ky|sh|ch|ny|hy|my|ry|gy|by|py|ts|dz)[aeiou]
+            // 3. Âm phụ âm + nguyên âm đôi hoặc đơn: [b-df-hj-np-tv-z]?[aeiou]
+            // 4. Âm mũi n cuối từ hoặc trước phụ âm: n
+            var romajiPattern = new Regex(
+                @"^(?:(?:sh|ch|ts|dz|ky|ny|hy|my|ry|gy|by|py|jy|[kpsztcgdjb])?(?:[aeiou]|ou|ei|ai|oi|ui)|" +
+                @"(?:sh|ch|ts|dz|ky|ny|hy|my|ry|gy|by|py|jy|[k-np-z])[aeiou]|" +
+                @"(?<sokuon>[kpsztcgdjb])(?=\k<sokuon>)|" +
+                @"n(?=[^aeiouy]|$)|" +
+                @"[aeiou]|" +
+                @"[a-z])",
+                RegexOptions.IgnoreCase);
+
+            while (i < n)
+            {
+                var remaining = lowerWord.Substring(i);
+                var match = romajiPattern.Match(remaining);
+
+                if (match.Success && match.Length > 0)
+                {
+                    int matchLen = match.Length;
+                    
+                    // Kiểm tra trường hợp sokuon (phụ âm kép như 'tt' trong nemutte -> 'ne', 'mut', 'te')
+                    // Nếu là phụ âm đầu của cặp phụ âm kép, lấy 1 ký tự phụ âm ghép vào âm tiết trước hoặc đứng riêng
+                    if (i + 1 < n && lowerWord[i] == lowerWord[i + 1] && !"aeiou".Contains(lowerWord[i]))
+                    {
+                        // Lấy ký tự phụ âm kép ghép vào âm tiết trước nếu có, hoặc tạo âm ngắt
+                        if (result.Count > 0)
+                        {
+                            result[result.Count - 1] += word.Substring(i, 1);
+                        }
+                        else
+                        {
+                            result.Add(word.Substring(i, 1));
+                        }
+                        i += 1;
+                        continue;
+                    }
+
+                    result.Add(word.Substring(i, matchLen));
+                    i += matchLen;
+                }
+                else
+                {
+                    // Fallback ký tự đơn
+                    result.Add(word.Substring(i, 1));
+                    i += 1;
+                }
+            }
+
+            if (result.Count == 0)
+                return new[] { word };
+
+            return result.ToArray();
         }
     }
 }
