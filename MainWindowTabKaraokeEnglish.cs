@@ -206,10 +206,7 @@ namespace Subtitle_draft_GMTPC
         private void TxtKaraokeEngInput_SelectionChanged(object sender, RoutedEventArgs e)
         {
             if (_isKaraokeEngSyncingSelection || _isKaraokeEngUpdating) return;
-            if (TxtKaraokeEngInput.SelectionLength > 0)
-            {
-                SyncSelectionFromInput();
-            }
+            SyncSelectionFromInput();
         }
 
         private void TxtKaraokeEngInput_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -224,10 +221,7 @@ namespace Subtitle_draft_GMTPC
         private void TxtKaraokeEngOutput_SelectionChanged(object sender, RoutedEventArgs e)
         {
             if (_isKaraokeEngSyncingSelection || _isKaraokeEngUpdating) return;
-            if (TxtKaraokeEngOutput.SelectionLength > 0)
-            {
-                SyncSelectionFromOutputOrEditable(TxtKaraokeEngOutput);
-            }
+            SyncSelectionFromOutputOrEditable(TxtKaraokeEngOutput);
         }
 
         private void TxtKaraokeEngOutput_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -242,10 +236,7 @@ namespace Subtitle_draft_GMTPC
         private void TxtKaraokeEngEditable_SelectionChanged(object sender, RoutedEventArgs e)
         {
             if (_isKaraokeEngSyncingSelection || _isKaraokeEngUpdating) return;
-            if (TxtKaraokeEngEditable.SelectionLength > 0)
-            {
-                SyncSelectionFromOutputOrEditable(TxtKaraokeEngEditable);
-            }
+            SyncSelectionFromOutputOrEditable(TxtKaraokeEngEditable);
         }
 
         private void TxtKaraokeEngEditable_MouseDoubleClick(object sender, MouseButtonEventArgs e)

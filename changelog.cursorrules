@@ -8,6 +8,14 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-02 01:03:00 PM Wednesday]
+
+### Improved - Real-time Full Syllable Range Highlighting for Multi-Syllables Word
+- **Đồng bộ Highlight & Bôi đen trọn vẹn toàn bộ dải âm tiết (Karaoke English & Vietnamese)**:
+  - Khi bôi đen hoặc click vào bất kỳ từ nào ở Panel 1 (ví dụ từ `Tsubasa` được tách thành 3 dòng âm tiết `∞Tsu`, `ba`, `sa♫`), hệ thống tự động bôi đen (select) và highlight toàn bộ cả 3 dòng âm tiết cùng lúc ở Panel 2 (Output) và Panel 3 (Editable).
+  - Tối ưu hóa phản hồi real-time ngay khi di chuột / chọn vùng văn bản mà không bị gián đoạn hoặc sót âm tiết nào.
+
+---
 ## [2026-09-02 12:48:00 PM Wednesday]
 
 ### Fixed - Karaoke 3-Way Token & Syllable Exact Index Mapping
