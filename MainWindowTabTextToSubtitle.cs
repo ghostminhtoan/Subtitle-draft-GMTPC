@@ -88,11 +88,51 @@ namespace Subtitle_draft_GMTPC
 
         private void BtnTextToSubCopy_Click(object sender, RoutedEventArgs e)
         {
+            if (BtnTextToSubCopy.ContextMenu != null)
+            {
+                BtnTextToSubCopy.ContextMenu.PlacementTarget = BtnTextToSubCopy;
+                BtnTextToSubCopy.ContextMenu.IsOpen = true;
+            }
+            else
+            {
+                CopyTextToSubtitleFull();
+            }
+        }
+
+        private void MenuTextToSubCopySubtitle_Click(object sender, RoutedEventArgs e)
+        {
+            CopyTextToSubtitleFull();
+        }
+
+        private void MenuTextToSubCopySentence_Click(object sender, RoutedEventArgs e)
+        {
+            CopyTextToSubtitleSentencesOnly();
+        }
+
+        private void CopyTextToSubtitleFull()
+        {
             if (string.IsNullOrWhiteSpace(TxtTextToSubOutput.Text)) return;
             try
             {
                 Clipboard.SetText(TxtTextToSubOutput.Text);
-                ShowToastTextToSub("\ud83d\udccb Đã copy phụ đề!");
+                ShowToastTextToSub("📋 Đã copy subtitle!");
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        private void CopyTextToSubtitleSentencesOnly()
+        {
+            if (_textToSubSegments == null || _textToSubSegments.Count == 0) return;
+            try
+            {
+                string textOnly = string.Join(Environment.NewLine, _textToSubSegments);
+                if (string.IsNullOrWhiteSpace(textOnly)) return;
+
+                Clipboard.SetText(textOnly);
+                ShowToastTextToSub("📋 Đã copy sentence!");
             }
             catch (Exception ex)
             {
