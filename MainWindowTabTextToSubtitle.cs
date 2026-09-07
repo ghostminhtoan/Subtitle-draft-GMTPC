@@ -308,30 +308,109 @@ namespace Subtitle_draft_GMTPC
         /// Tìm vị trí cắt tốt nhất trong khoảng [startPos, endPos)
         /// Theo 2 quy tắc Checkbox:
         /// 1. Keep continuous sentence: không ngắt giữa chừng. Nếu không có dấu câu phù hợp thì cố gắng mở rộng hoặc ghép các đoạn.
-        /// 2. Auto split sentence: ngắt ngay khi kết thúc câu (. ! ? : 。 hoặc ... + Chữ HOA). Nếu ... + chữ thường thì không tự ngắt.
+        /// 2. Auto split sentence (khi bật autoBreak = true): ngắt ngay khi kết thúc câu (. ! ? : 。 hoặc ... + Chữ HOA) theo thứ tự từ trái sang phải.
+        /// Khi KHÔNG bật autoBreak: Chia theo độ dài Max Chars bình thường (quét lùi từ endPos - 1 về startPos).
         /// </summary>
         private int FindBestCutPosition(string text, int startPos, int endPos, bool keepContinuous, bool autoBreak)
         {
             char[] standardEnders = { '!', '?', ':', '。' };
 
-            // Quét từng ký tự từ startPos + 1 đến endPos - 1 từ TRÁI SANG PHẢI để tìm điểm kết thúc câu ĐẦU TIÊN
-            for (int i = startPos + 1; i < endPos; i++)
+            // =========================================================================
+            // TRƯỜNG HỢP 1: BẬT "Auto split sentence"
+            // Quét TỪ TRÁI SANG PHẢI để tìm điểm kết thúc câu ĐẦU TIÊN và ngắt dòng ngay
+            // =========================================================================
+            if (autoBreak)
             {
-                // Dấu câu thông thường (! ? : 。)
+                for (int i = startPos + 1; i < endPos; i++)
+                {
+                    // Dấu câu thông thường (! ? : 。)
+                    if (Array.IndexOf(standardEnders, text[i]) >= 0)
+                    {
+                        return i + 1;
+                    }
+
+                    // Dấu chấm "." hoặc dấu ba chấm "..."
+                    if (text[i] == '.')
+                    {
+                        // Kiểm tra dấu ba chấm "..."
+                        bool isEllipsis = (i >= 2 && text[i - 1] == '.' && text[i - 2] == '.') || text[i] == '…';
+                        if (isEllipsis)
+                        {
+                            int nextCharIdx = i + 1;
+                            while (nextCharIdx < text.Length && char.IsWhiteSpace(text[nextCharIdx]))
+                            {
+                                nextCharIdx++;
+                            }
+
+                            if (nextCharIdx < text.Length)
+                            {
+                                char nextChar = text[nextCharIdx];
+                                if (char.IsUpper(nextChar))
+                                {
+                                    // Viết HOA → Tự ngắt
+                                    return i + 1;
+                                }
+                                else if (char.IsLower(nextChar))
+                                {
+                                    // Viết thường → Bỏ qua (không tự ngắt tại đây)
+                                    continue;
+                                }
+                            }
+                            return i + 1;
+                        }
+
+                        // Dấu chấm đơn: Kiểm tra số thập phân (1.5)
+                        bool prevIsDigit = i > 0 && char.IsDigit(text[i - 1]);
+                        bool nextIsDigit = i < text.Length - 1 && char.IsDigit(text[i + 1]);
+                        if (prevIsDigit && nextIsDigit) continue;
+
+                        // Kiểm tra từ viết tắt (Mr., Dr., etc.)
+                        string wordBeforeDot = ExtractWordBefore(text, i);
+                        if (!string.IsNullOrEmpty(wordBeforeDot) && Abbreviations.Contains(wordBeforeDot))
+                        {
+                            continue;
+                        }
+
+                        // Auto split sentence: ngắt ngay tại dấu chấm này
+                        return i + 1;
+                    }
+                }
+
+                // Nếu trong khoảng không có dấu câu nào: ngắt tại khoảng trắng gần endPos nhất
+                for (int i = endPos - 1; i > startPos; i--)
+                {
+                    if (char.IsWhiteSpace(text[i]))
+                    {
+                        return i + 1;
+                    }
+                }
+
+                return endPos;
+            }
+
+            // =========================================================================
+            // TRƯỜNG HỢP 2: KHÔNG BẬT "Auto split sentence" (CHƯA TICK)
+            // Chia theo độ dài Max Chars mặc định: Quét LÙI từ endPos - 1 về startPos
+            // =========================================================================
+
+            // 1. Kiểm tra dấu câu thông thường (! ? : 。) từ endPos - 1 lùi về startPos
+            for (int i = endPos - 1; i > startPos; i--)
+            {
                 if (Array.IndexOf(standardEnders, text[i]) >= 0)
                 {
                     return i + 1;
                 }
+            }
 
-                // Dấu chấm "." hoặc dấu ba chấm "..."
+            // 2. Xử lý dấu chấm "." và dấu ba chấm "..." từ endPos - 1 lùi về startPos
+            for (int i = endPos - 1; i > startPos; i--)
+            {
                 if (text[i] == '.')
                 {
                     // Kiểm tra dấu ba chấm "..."
                     bool isEllipsis = (i >= 2 && text[i - 1] == '.' && text[i - 2] == '.') || text[i] == '…';
-                    
                     if (isEllipsis)
                     {
-                        // Kiểm tra ký tự theo sau dấu ba chấm
                         int nextCharIdx = i + 1;
                         while (nextCharIdx < text.Length && char.IsWhiteSpace(text[nextCharIdx]))
                         {
@@ -343,34 +422,25 @@ namespace Subtitle_draft_GMTPC
                             char nextChar = text[nextCharIdx];
                             if (char.IsUpper(nextChar))
                             {
-                                // Viết HOA → Tự ngắt
                                 return i + 1;
                             }
                             else if (char.IsLower(nextChar))
                             {
-                                // Viết thường → Bỏ qua (không tự ngắt tại đây)
                                 continue;
                             }
                         }
                         return i + 1;
                     }
 
-                    // Dấu chấm đơn: Kiểm tra số (1.5)
+                    // Dấu chấm đơn
                     bool prevIsDigit = i > 0 && char.IsDigit(text[i - 1]);
                     bool nextIsDigit = i < text.Length - 1 && char.IsDigit(text[i + 1]);
                     if (prevIsDigit && nextIsDigit) continue;
 
-                    // Kiểm tra từ viết tắt (Mr., Dr., etc.)
                     string wordBeforeDot = ExtractWordBefore(text, i);
                     if (!string.IsNullOrEmpty(wordBeforeDot) && Abbreviations.Contains(wordBeforeDot))
                     {
                         continue;
-                    }
-
-                    if (autoBreak)
-                    {
-                        // Auto split sentence: ngắt ngay tại dấu chấm này
-                        return i + 1;
                     }
 
                     if (i + 2 < text.Length && char.IsWhiteSpace(text[i + 1]) && char.IsLower(text[i + 2]))
@@ -382,10 +452,8 @@ namespace Subtitle_draft_GMTPC
                 }
             }
 
-            // 3. Nếu không có dấu câu nào trong khoảng và không bật autoBreak hoặc đã hết giới hạn:
-            // Nếu bật autoBreak mà cả đoạn không có dấu ngắt câu nào, dùng Max Chars làm điểm cắt mặc định
-            int maxCutLimit = Math.Min(startPos + 1000, endPos);
-            for (int i = maxCutLimit - 1; i > startPos; i--)
+            // 3. Ưu tiên ngắt tại khoảng trắng gần endPos nhất
+            for (int i = endPos - 1; i > startPos; i--)
             {
                 if (char.IsWhiteSpace(text[i]))
                 {
@@ -393,7 +461,7 @@ namespace Subtitle_draft_GMTPC
                 }
             }
 
-            return maxCutLimit;
+            return endPos;
         }
 
         /// <summary>

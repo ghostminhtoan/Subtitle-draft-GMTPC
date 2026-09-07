@@ -8,12 +8,12 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
-## [2026-09-07 06:52:00 PM Monday]
+## [2026-09-07 06:56:00 PM Monday]
 
-### Fixed - Sửa lỗi thuật toán ngắt câu bị nhảy qua dấu chấm trong Auto Split Sentence
-- **Sửa lại thứ tự ưu tiên kiểm tra dấu ngắt câu trong `FindBestCutPosition`**:
-  - Gộp chung việc kiểm tra các dấu kết thúc câu (`. ! ? : 。` và `...` + Chữ HOA) vào trong 1 vòng lặp duy nhất quét từ **Trái sang Phải** (`startPos + 1` ➔ `endPos - 1`).
-  - Đảm bảo điểm kết thúc câu ĐẦU TIÊN (ví dụ: dấu chấm `.` ở cuối câu 1) luôn được bắt chính xác và ngắt ngay lập tức, hoàn toàn tránh tình trạng bỏ qua dấu chấm để nhảy đến dấu hai chấm `:` của các câu sau làm dính/gộp nhiều câu thành một dòng lớn.
+### Fixed - Tách biệt rõ ràng hành vi khi TẮT và BẬT Checkbox Auto Split Sentence
+- **Không hardcode tự chia câu khi chưa bật Checkbox**:
+  - Khi **CHƯA TICK** checkbox `Auto split sentence`: Khôi phục hoàn toàn hành vi gốc chia theo chiều dài `Max Chars` (quét lùi từ `endPos - 1` về `startPos` để chia đều đoạn văn).
+  - Khi **ĐÃ TICK** checkbox `Auto split sentence`: Kích hoạt chế độ chia tách câu chuyên biệt (quét từ trái sang phải, tự động bắt dấu câu đầu tiên `. ! ? : 。` hoặc `...` + Chữ HOA để ngắt dòng câu hoàn chỉnh).
 
 ---
 ## [2026-09-02 04:38:00 PM Wednesday]
