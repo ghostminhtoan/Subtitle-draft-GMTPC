@@ -219,7 +219,7 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
-        /// Chia văn bản thành các segment dựa trên các thiết lập Max Chars, Keep Continuous, Auto Break
+        /// Chia văn bản thành các segment dựa trên các thiết lập Max Chars, Keep Continuous, Auto Split Sentence
         /// </summary>
         private List<string> SplitTextIntoSegments(string text, int maxChars, bool ignorePunctuation, bool keepContinuous, bool autoBreak)
         {
@@ -234,9 +234,10 @@ namespace Subtitle_draft_GMTPC
 
             while (pos < length)
             {
-                int endPos = Math.Min(pos + maxChars, length);
+                // Khi bật autoBreak (Auto split sentence), quét trên TOÀN BỘ chiều dài còn lại của text để tìm kết thúc câu
+                int endPos = autoBreak ? length : Math.Min(pos + maxChars, length);
 
-                if (endPos >= length)
+                if (!autoBreak && endPos >= length)
                 {
                     var segment = text.Substring(pos).Trim();
                     if (!string.IsNullOrWhiteSpace(segment))
@@ -307,7 +308,7 @@ namespace Subtitle_draft_GMTPC
         /// Tìm vị trí cắt tốt nhất trong khoảng [startPos, endPos)
         /// Theo 2 quy tắc Checkbox:
         /// 1. Keep continuous sentence: không ngắt giữa chừng. Nếu không có dấu câu phù hợp thì cố gắng mở rộng hoặc ghép các đoạn.
-        /// 2. Auto break sentence: ngắt ngay khi kết thúc câu (. ! ? : 。 hoặc ... + Chữ HOA). Nếu ... + chữ thường thì không tự ngắt.
+        /// 2. Auto split sentence: ngắt ngay khi kết thúc câu (. ! ? : 。 hoặc ... + Chữ HOA). Nếu ... + chữ thường thì không tự ngắt.
         /// </summary>
         private int FindBestCutPosition(string text, int startPos, int endPos, bool keepContinuous, bool autoBreak)
         {
@@ -369,7 +370,7 @@ namespace Subtitle_draft_GMTPC
 
                     if (autoBreak)
                     {
-                        // Auto break: ngắt ngay tại dấu chấm này
+                        // Auto split sentence: ngắt ngay tại dấu chấm này
                         return i + 1;
                     }
 
@@ -383,8 +384,9 @@ namespace Subtitle_draft_GMTPC
             }
 
             // 3. Nếu không có dấu câu nào trong khoảng và không bật autoBreak hoặc đã hết giới hạn:
-            // Ưu tiên ngắt tại khoảng trắng gần endPos nhất (từ endPos - 1 lùi về startPos)
-            for (int i = endPos - 1; i > startPos; i--)
+            // Nếu bật autoBreak mà cả đoạn không có dấu ngắt câu nào, dùng Max Chars làm điểm cắt mặc định
+            int maxCutLimit = Math.Min(startPos + 1000, endPos);
+            for (int i = maxCutLimit - 1; i > startPos; i--)
             {
                 if (char.IsWhiteSpace(text[i]))
                 {
@@ -392,7 +394,7 @@ namespace Subtitle_draft_GMTPC
                 }
             }
 
-            return endPos;
+            return maxCutLimit;
         }
 
         /// <summary>

@@ -8,11 +8,12 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
-## [2026-09-07 06:43:00 PM Monday]
+## [2026-09-07 06:48:00 PM Monday]
 
-### Fixed - Tối ưu thuật toán Auto Break Sentence trong Text to Subtitle
-- **Khắc phục lỗi không tự tách dòng câu khi bật "Auto break sentence"**:
-  - Cập nhật thuật toán `FindBestCutPosition` trong `MainWindowTabTextToSubtitle.cs` quét xuôi từ đầu vị trí cắt tìm dấu ngắt câu `. ! ? : 。` hoặc `...` + Chữ HOA để ưu tiên tách văn bản thành từng câu độc lập chuẩn xác ngay khi phát hiện dấu ngắt câu hợp lệ.
+### Fixed - Đổi tên & Tối ưu thuật toán Auto Split Sentence trong Text to Subtitle
+- **Đổi tên Checkbox & nhãn thành "Auto split sentence"**:
+  - Cập nhật hiển thị UI trong `MainWindow.xaml` thành `Auto split sentence (Tự ngắt sau .!:? và ... + Chữ HOA)`.
+  - Cập nhật thuật toán `SplitTextIntoSegments` & `FindBestCutPosition` trong `MainWindowTabTextToSubtitle.cs`: Khi bật "Auto split sentence", ứng dụng sẽ bỏ qua giới hạn `Max Chars` tạm thời để luôn tự động tìm điểm kết thúc câu gần nhất (`. ! ? : 。` hoặc `...` + Chữ HOA) và ngắt dòng câu triệt để.
 
 ---
 ## [2026-09-02 04:38:00 PM Wednesday]

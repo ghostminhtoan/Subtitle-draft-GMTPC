@@ -1928,9 +1928,9 @@
                                           Margin="0,4,0,4"
                                           Click="TxtTextToSubSetting_Changed"/>
 
-                                <!-- Row 3: Checkbox 2 - Auto break sentence -->
+                                <!-- Row 3: Checkbox 2 - Auto split sentence -->
                                 <CheckBox x:Name="ChkTextToSubAutoBreak" Grid.Row="3"
-                                          Content="Auto break sentence (Tự ngắt sau .!:? và ... + Chữ HOA)"
+                                          Content="Auto split sentence (Tự ngắt sau .!:? và ... + Chữ HOA)"
                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
                                           Margin="0,2,0,2"
                                           Click="TxtTextToSubSetting_Changed"/>
