@@ -314,18 +314,16 @@ namespace Subtitle_draft_GMTPC
         {
             char[] standardEnders = { '!', '?', ':', '。' };
 
-            // 1. Kiểm tra dấu câu thông thường (! ? : 。) từ startPos + 1 đến endPos - 1
+            // Quét từng ký tự từ startPos + 1 đến endPos - 1 từ TRÁI SANG PHẢI để tìm điểm kết thúc câu ĐẦU TIÊN
             for (int i = startPos + 1; i < endPos; i++)
             {
+                // Dấu câu thông thường (! ? : 。)
                 if (Array.IndexOf(standardEnders, text[i]) >= 0)
                 {
                     return i + 1;
                 }
-            }
 
-            // 2. Xử lý dấu chấm "." và dấu ba chấm "..."
-            for (int i = startPos + 1; i < endPos; i++)
-            {
+                // Dấu chấm "." hoặc dấu ba chấm "..."
                 if (text[i] == '.')
                 {
                     // Kiểm tra dấu ba chấm "..."
@@ -357,11 +355,12 @@ namespace Subtitle_draft_GMTPC
                         return i + 1;
                     }
 
-                    // Dấu chấm đơn
+                    // Dấu chấm đơn: Kiểm tra số (1.5)
                     bool prevIsDigit = i > 0 && char.IsDigit(text[i - 1]);
                     bool nextIsDigit = i < text.Length - 1 && char.IsDigit(text[i + 1]);
                     if (prevIsDigit && nextIsDigit) continue;
 
+                    // Kiểm tra từ viết tắt (Mr., Dr., etc.)
                     string wordBeforeDot = ExtractWordBefore(text, i);
                     if (!string.IsNullOrEmpty(wordBeforeDot) && Abbreviations.Contains(wordBeforeDot))
                     {
