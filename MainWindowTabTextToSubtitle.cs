@@ -172,6 +172,8 @@ namespace Subtitle_draft_GMTPC
                 double maxCps = GetTextToSubCps();
                 bool ignorePunctuation = GetTextToSubIgnorePunctuation();
                 int gapMs = GetTextToSubGap();
+                bool keepContinuous = GetTextToSubKeepContinuous();
+                bool autoBreak = GetTextToSubAutoBreak();
 
                 // Validate
                 if (maxChars < 50) maxChars = 50;
@@ -179,7 +181,7 @@ namespace Subtitle_draft_GMTPC
                 if (gapMs < 0) gapMs = 0;
 
                 // Bước 1: Chia văn bản thành các segment
-                _textToSubSegments = SplitTextIntoSegments(inputText, maxChars, ignorePunctuation);
+                _textToSubSegments = SplitTextIntoSegments(inputText, maxChars, ignorePunctuation, keepContinuous, autoBreak);
 
                 // Bước 2: Tính toán time codes
                 var assOutput = BuildAssOutput(_textToSubSegments, maxCps, ignorePunctuation, gapMs);
@@ -204,16 +206,27 @@ namespace Subtitle_draft_GMTPC
             }
         }
 
+        private bool GetTextToSubKeepContinuous()
+        {
+            if (ChkTextToSubKeepContinuous == null) return false;
+            return ChkTextToSubKeepContinuous.IsChecked == true;
+        }
+
+        private bool GetTextToSubAutoBreak()
+        {
+            if (ChkTextToSubAutoBreak == null) return false;
+            return ChkTextToSubAutoBreak.IsChecked == true;
+        }
+
         /// <summary>
-        /// Chia văn bản thành các segment dựa trên số ký tự tối đa
-        /// Ưu tiên cắt tại dấu câu (. ! ? 。) để câu trọn vẹn
+        /// Chia văn bản thành các segment dựa trên các thiết lập Max Chars, Keep Continuous, Auto Break
         /// </summary>
-        private List<string> SplitTextIntoSegments(string text, int maxChars, bool ignorePunctuation)
+        private List<string> SplitTextIntoSegments(string text, int maxChars, bool ignorePunctuation, bool keepContinuous, bool autoBreak)
         {
             var segments = new List<string>();
             if (string.IsNullOrWhiteSpace(text)) return segments;
 
-            // Loại bỏ khoảng trắng thừa ở đầu/cuối và các dòng trống liên tiếp
+            // Đảm bảo khoảng trắng chuẩn hóa
             text = Regex.Replace(text.Trim(), @"\s+", " ").Trim();
 
             int pos = 0;
@@ -221,12 +234,10 @@ namespace Subtitle_draft_GMTPC
 
             while (pos < length)
             {
-                // Tính giới hạn kết thúc cho segment này
                 int endPos = Math.Min(pos + maxChars, length);
 
                 if (endPos >= length)
                 {
-                    // Đoạn còn lại nhỏ hơn maxChars → lấy hết
                     var segment = text.Substring(pos).Trim();
                     if (!string.IsNullOrWhiteSpace(segment))
                     {
@@ -235,8 +246,7 @@ namespace Subtitle_draft_GMTPC
                     break;
                 }
 
-                // Tìm vị trí cắt tốt nhất: dấu câu gần endPos nhất về phía trước
-                int cutPos = FindBestCutPosition(text, pos, endPos);
+                int cutPos = FindBestCutPosition(text, pos, endPos, keepContinuous, autoBreak);
 
                 var segmentText = text.Substring(pos, cutPos - pos).Trim();
                 if (!string.IsNullOrWhiteSpace(segmentText))
@@ -247,71 +257,125 @@ namespace Subtitle_draft_GMTPC
                 pos = cutPos;
             }
 
+            // Nếu bật keepContinuous: Kiểm tra xem các segment có bị ngắt câu giữa chừng không.
+            // Nếu một segment không kết thúc bằng dấu chấm câu (. ! ? : 。 ...) thì đánh dấu cyan cho người dùng nhận biết.
+            if (keepContinuous && segments.Count > 0)
+            {
+                for (int i = 0; i < segments.Count; i++)
+                {
+                    string seg = segments[i];
+                    bool endsWithSentencePunct = IsSentenceEndPunctuation(seg);
+                    // Nếu câu bị trôi (không kết thúc bằng dấu ngắt câu), thêm tag color cyan của ASS {\c&HFFFF00&}
+                    if (!endsWithSentencePunct)
+                    {
+                        if (!seg.StartsWith(@"{\c&HFFFF00&}"))
+                        {
+                            segments[i] = @"{\c&HFFFF00&}" + seg;
+                        }
+                    }
+                }
+            }
+
             return segments;
+        }
+
+        private bool IsSentenceEndPunctuation(string str)
+        {
+            if (string.IsNullOrWhiteSpace(str)) return false;
+            string trimmed = str.TrimEnd();
+            if (trimmed.Length == 0) return false;
+            char last = trimmed[trimmed.Length - 1];
+            return last == '.' || last == '!' || last == '?' || last == ':' || last == '。' || trimmed.EndsWith("…") || trimmed.EndsWith("...");
         }
 
         /// <summary>
         /// Tìm vị trí cắt tốt nhất trong khoảng [startPos, endPos)
-        /// Ưu tiên: dấu chấm câu (. ! ? 。) gần endPos nhất
-        /// Nếu không có → tìm khoảng trắng gần nhất
-        /// Nếu vẫn không có → cắt cứng tại endPos
-        /// BỎ QUA: dấu chấm thập phân (3.3%), viết tắt (Mr., Mrs., Dr., etc.)
+        /// Theo 2 quy tắc Checkbox:
+        /// 1. Keep continuous sentence: không ngắt giữa chừng. Nếu bật keepContinuous mà không có dấu câu phù hợp thì cố gắng mở rộng tìm dấu câu tốt nhất, nếu quá dài thì sẽ ngắt và thêm tag cyan màu.
+        /// 2. Auto break sentence: ngắt sau . ! ? : hoặc ... + chữ HOA. Nếu ... + chữ thường thì không tự ngắt và được đánh dấu cyan.
         /// </summary>
-        private int FindBestCutPosition(string text, int startPos, int endPos)
+        private int FindBestCutPosition(string text, int startPos, int endPos, bool keepContinuous, bool autoBreak)
         {
-            // Các ký tự dấu câu ưu tiên (từ gần endPos nhất về trước)
-            char[] sentenceEnders = { '!', '?', '。', '…' };
+            char[] standardEnders = { '!', '?', ':', '。' };
 
-            // Tìm dấu câu KHÔNG phải dấu chấm (từ gần endPos nhất về trước)
+            // 1. Kiểm tra dấu câu thông thường (! ? : 。) từ endPos - 1 lùi về startPos
             for (int i = endPos - 1; i > startPos; i--)
             {
-                if (Array.IndexOf(sentenceEnders, text[i]) >= 0)
+                if (Array.IndexOf(standardEnders, text[i]) >= 0)
                 {
-                    // Cắt SAU dấu câu (bao gồm dấu câu)
                     return i + 1;
                 }
             }
 
-            // Tìm dấu chấm "." nhưng KHÔNG phải dấu chấm thập phân hay viết tắt
+            // 2. Xử lý dấu chấm "." và dấu ba chấm "..."
             for (int i = endPos - 1; i > startPos; i--)
             {
                 if (text[i] == '.')
                 {
-                    // 1. Kiểm tra dấu chấm thập phân: ký tự trước và sau đều là số (0-9)
+                    // Kiểm tra dấu ba chấm "..."
+                    bool isEllipsis = (i >= 2 && text[i - 1] == '.' && text[i - 2] == '.') || text[i] == '…';
+                    
+                    if (isEllipsis)
+                    {
+                        // Kiểm tra ký tự theo sau dấu ba chấm
+                        int nextCharIdx = i + 1;
+                        while (nextCharIdx < text.Length && char.IsWhiteSpace(text[nextCharIdx]))
+                        {
+                            nextCharIdx++;
+                        }
+
+                        if (nextCharIdx < text.Length)
+                        {
+                            char nextChar = text[nextCharIdx];
+                            if (char.IsUpper(nextChar))
+                            {
+                                // Viết HOA → Tự ngắt
+                                return i + 1;
+                            }
+                            else if (char.IsLower(nextChar))
+                            {
+                                // Viết thường → Bỏ qua (không tự ngắt tại đây để được cyan ở segment này)
+                                continue;
+                            }
+                        }
+                        return i + 1;
+                    }
+
+                    // Dấu chấm đơn
                     bool prevIsDigit = i > 0 && char.IsDigit(text[i - 1]);
                     bool nextIsDigit = i < text.Length - 1 && char.IsDigit(text[i + 1]);
-                    if (prevIsDigit && nextIsDigit) continue; // Dấu chấm thập phân → bỏ qua
+                    if (prevIsDigit && nextIsDigit) continue;
 
-                    // 2. Kiểm tra viết tắt: trích word trước dấu chấm, kiểm tra trong dictionary
                     string wordBeforeDot = ExtractWordBefore(text, i);
                     if (!string.IsNullOrEmpty(wordBeforeDot) && Abbreviations.Contains(wordBeforeDot))
                     {
-                        continue; // Viết tắt → bỏ qua
+                        continue;
                     }
 
-                    // 3. Rule bổ sung: nếu sau dấu chấm là space + chữ thường → khả năng cao viết tắt
-                    // Ví dụ: "Mr. johnson" (chữ thường sau) vs "end. Start" (chữ HOA sau)
+                    if (autoBreak)
+                    {
+                        // Auto break: bắt buộc ngắt sau dấu chấm
+                        return i + 1;
+                    }
+
                     if (i + 2 < text.Length && char.IsWhiteSpace(text[i + 1]) && char.IsLower(text[i + 2]))
                     {
-                        continue; // Khả năng cao là viết tắt → bỏ qua
+                        continue;
                     }
 
-                    // Còn lại → kết thúc câu thực sự → cắt tại đây
                     return i + 1;
                 }
             }
 
-            // Không có dấu câu → tìm khoảng trắng gần endPos nhất
+            // Nếu bật keepContinuous: Ưu tiên ngắt tại khoảng trắng gần endPos nhất
             for (int i = endPos - 1; i > startPos; i--)
             {
                 if (char.IsWhiteSpace(text[i]))
                 {
-                    // Cắt tại khoảng trắng (không bao gồm khoảng trắng)
                     return i + 1;
                 }
             }
 
-            // Không tìm được gì → cắt cứng tại endPos
             return endPos;
         }
 

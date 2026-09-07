@@ -1859,53 +1859,81 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
 
-                                <!-- Max Characters -->
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="📏 Max Chars:"
-                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
-                                           Margin="0,4,6,4"/>
-                                <TextBox x:Name="TxtTextToSubMaxChars" Grid.Row="0" Grid.Column="1"
-                                         Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
-                                         BorderThickness="1" Padding="4,3" FontSize="12" Text="500"
-                                         TextChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"/>
+                                <!-- Row 0: Punctuation -->
+                                <Grid Grid.Row="0" Margin="0,2,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="🔤 Punctuation:"
+                                               Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                               Margin="0,0,6,0"/>
+                                    <ComboBox x:Name="CmbTextToSubPunctuation" Grid.Column="1"
+                                              Style="{StaticResource DarkComboBoxStyle}"
+                                              SelectionChanged="TxtTextToSubSetting_Changed"
+                                              SelectedIndex="1">
+                                        <ComboBoxItem>
+                                            <TextBlock Text="Count all characters" Foreground="Red"/>
+                                        </ComboBoxItem>
+                                        <ComboBoxItem>
+                                            <TextBlock Text="Ignore punctuation" Foreground="blue"/>
+                                        </ComboBoxItem>
+                                    </ComboBox>
+                                </Grid>
 
-                                <!-- CPS -->
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="⏱️ Max CPS:"
-                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
-                                           Margin="0,4,6,4"/>
-                                <TextBox x:Name="TxtTextToSubCps" Grid.Row="1" Grid.Column="1"
-                                         Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
-                                         BorderThickness="1" Padding="4,3" FontSize="12" Text="17.0"
-                                         TextChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"/>
+                                <!-- Row 1: Max Chars, Max CPS, Gap (Ms) -->
+                                <Grid Grid.Row="1" Margin="0,4,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
 
-                                <!-- Punctuation -->
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="🔤 Punctuation:"
-                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
-                                           Margin="0,4,6,4"/>
-                                <ComboBox x:Name="CmbTextToSubPunctuation" Grid.Row="2" Grid.Column="1"
-                                          Style="{StaticResource DarkComboBoxStyle}"
-                                          SelectionChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"
-                                          SelectedIndex="1">
-                                    <ComboBoxItem>
-                                        <TextBlock Text="Count all characters" Foreground="Red"/>
-                                    </ComboBoxItem>
-                                    <ComboBoxItem>
-                                        <TextBlock Text="Ignore punctuation" Foreground="blue"/>
-                                    </ComboBoxItem>
-                                </ComboBox>
+                                    <!-- Max Chars -->
+                                    <TextBlock Grid.Column="0" Text="📏 Max Chars:"
+                                               Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                               Margin="0,0,4,0"/>
+                                    <TextBox x:Name="TxtTextToSubMaxChars" Grid.Column="1"
+                                             Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
+                                             BorderThickness="1" Padding="4,3" FontSize="12" Text="500"
+                                             TextChanged="TxtTextToSubSetting_Changed" Margin="0,0,8,0"/>
 
-                                <!-- Gap -->
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="⏸️ Gap (ms):"
-                                           Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
-                                           Margin="0,4,6,4"/>
-                                <TextBox x:Name="TxtTextToSubGap" Grid.Row="3" Grid.Column="1"
-                                         Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
-                                         BorderThickness="1" Padding="4,3" FontSize="12" Text="200"
-                                         TextChanged="TxtTextToSubSetting_Changed" Margin="0,4,0,4"/>
+                                    <!-- CPS -->
+                                    <TextBlock Grid.Column="2" Text="⏱️ Max CPS:"
+                                               Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                               Margin="0,0,4,0"/>
+                                    <TextBox x:Name="TxtTextToSubCps" Grid.Column="3"
+                                             Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
+                                             BorderThickness="1" Padding="4,3" FontSize="12" Text="17.0"
+                                             TextChanged="TxtTextToSubSetting_Changed" Margin="0,0,8,0"/>
+
+                                    <!-- Gap -->
+                                    <TextBlock Grid.Column="4" Text="⏸️ Gap (ms):"
+                                               Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                               Margin="0,0,4,0"/>
+                                    <TextBox x:Name="TxtTextToSubGap" Grid.Column="5"
+                                             Background="#2D2D2D" Foreground="#B0B0B0" BorderBrush="#404040"
+                                             BorderThickness="1" Padding="4,3" FontSize="12" Text="200"
+                                             TextChanged="TxtTextToSubSetting_Changed"/>
+                                </Grid>
+
+                                <!-- Row 2: Checkbox 1 - Keep continuous sentence -->
+                                <CheckBox x:Name="ChkTextToSubKeepContinuous" Grid.Row="2"
+                                          Content="Keep continuous sentence (Không ngắt câu giữa chừng - Chữ màu cyan)"
+                                          Foreground="#00E5FF" FontSize="12" VerticalAlignment="Center"
+                                          Margin="0,4,0,4"
+                                          Click="TxtTextToSubSetting_Changed"/>
+
+                                <!-- Row 3: Checkbox 2 - Auto break sentence -->
+                                <CheckBox x:Name="ChkTextToSubAutoBreak" Grid.Row="3"
+                                          Content="Auto break sentence (Tự ngắt sau .!:? và ... + Chữ HOA)"
+                                          Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                          Margin="0,2,0,2"
+                                          Click="TxtTextToSubSetting_Changed"/>
                             </Grid>
 
                             <!-- Output Label -->
