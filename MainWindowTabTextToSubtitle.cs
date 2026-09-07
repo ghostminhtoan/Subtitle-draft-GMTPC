@@ -306,15 +306,15 @@ namespace Subtitle_draft_GMTPC
         /// <summary>
         /// Tìm vị trí cắt tốt nhất trong khoảng [startPos, endPos)
         /// Theo 2 quy tắc Checkbox:
-        /// 1. Keep continuous sentence: không ngắt giữa chừng. Nếu bật keepContinuous mà không có dấu câu phù hợp thì cố gắng mở rộng tìm dấu câu tốt nhất, nếu quá dài thì sẽ ngắt và thêm tag cyan màu.
-        /// 2. Auto break sentence: ngắt sau . ! ? : hoặc ... + chữ HOA. Nếu ... + chữ thường thì không tự ngắt và được đánh dấu cyan.
+        /// 1. Keep continuous sentence: không ngắt giữa chừng. Nếu không có dấu câu phù hợp thì cố gắng mở rộng hoặc ghép các đoạn.
+        /// 2. Auto break sentence: ngắt ngay khi kết thúc câu (. ! ? : 。 hoặc ... + Chữ HOA). Nếu ... + chữ thường thì không tự ngắt.
         /// </summary>
         private int FindBestCutPosition(string text, int startPos, int endPos, bool keepContinuous, bool autoBreak)
         {
             char[] standardEnders = { '!', '?', ':', '。' };
 
-            // 1. Kiểm tra dấu câu thông thường (! ? : 。) từ endPos - 1 lùi về startPos
-            for (int i = endPos - 1; i > startPos; i--)
+            // 1. Kiểm tra dấu câu thông thường (! ? : 。) từ startPos + 1 đến endPos - 1
+            for (int i = startPos + 1; i < endPos; i++)
             {
                 if (Array.IndexOf(standardEnders, text[i]) >= 0)
                 {
@@ -323,7 +323,7 @@ namespace Subtitle_draft_GMTPC
             }
 
             // 2. Xử lý dấu chấm "." và dấu ba chấm "..."
-            for (int i = endPos - 1; i > startPos; i--)
+            for (int i = startPos + 1; i < endPos; i++)
             {
                 if (text[i] == '.')
                 {
@@ -349,7 +349,7 @@ namespace Subtitle_draft_GMTPC
                             }
                             else if (char.IsLower(nextChar))
                             {
-                                // Viết thường → Bỏ qua (không tự ngắt tại đây để được cyan ở segment này)
+                                // Viết thường → Bỏ qua (không tự ngắt tại đây)
                                 continue;
                             }
                         }
@@ -369,7 +369,7 @@ namespace Subtitle_draft_GMTPC
 
                     if (autoBreak)
                     {
-                        // Auto break: bắt buộc ngắt sau dấu chấm
+                        // Auto break: ngắt ngay tại dấu chấm này
                         return i + 1;
                     }
 
@@ -382,7 +382,8 @@ namespace Subtitle_draft_GMTPC
                 }
             }
 
-            // Nếu bật keepContinuous: Ưu tiên ngắt tại khoảng trắng gần endPos nhất
+            // 3. Nếu không có dấu câu nào trong khoảng và không bật autoBreak hoặc đã hết giới hạn:
+            // Ưu tiên ngắt tại khoảng trắng gần endPos nhất (từ endPos - 1 lùi về startPos)
             for (int i = endPos - 1; i > startPos; i--)
             {
                 if (char.IsWhiteSpace(text[i]))

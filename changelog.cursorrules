@@ -8,6 +8,13 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-07 06:43:00 PM Monday]
+
+### Fixed - Tối ưu thuật toán Auto Break Sentence trong Text to Subtitle
+- **Khắc phục lỗi không tự tách dòng câu khi bật "Auto break sentence"**:
+  - Cập nhật thuật toán `FindBestCutPosition` trong `MainWindowTabTextToSubtitle.cs` quét xuôi từ đầu vị trí cắt tìm dấu ngắt câu `. ! ? : 。` hoặc `...` + Chữ HOA để ưu tiên tách văn bản thành từng câu độc lập chuẩn xác ngay khi phát hiện dấu ngắt câu hợp lệ.
+
+---
 ## [2026-09-02 04:38:00 PM Wednesday]
 
 ### Added - Karaoke Japanese Sub-tab & Romaji Word Rules Engine
