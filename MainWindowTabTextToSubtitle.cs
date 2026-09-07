@@ -257,23 +257,38 @@ namespace Subtitle_draft_GMTPC
                 pos = cutPos;
             }
 
-            // Nếu bật keepContinuous: Kiểm tra xem các segment có bị ngắt câu giữa chừng không.
-            // Nếu một segment không kết thúc bằng dấu chấm câu (. ! ? : 。 ...) thì đánh dấu cyan cho người dùng nhận biết.
-            if (keepContinuous && segments.Count > 0)
+            // Nếu bật keepContinuous: ghép các segment không kết thúc bằng dấu chấm câu vào segment kế tiếp
+            if (keepContinuous && segments.Count > 1)
             {
+                var mergedSegments = new List<string>();
+                string currentMerged = "";
+
                 for (int i = 0; i < segments.Count; i++)
                 {
-                    string seg = segments[i];
-                    bool endsWithSentencePunct = IsSentenceEndPunctuation(seg);
-                    // Nếu câu bị trôi (không kết thúc bằng dấu ngắt câu), thêm tag color cyan của ASS {\c&HFFFF00&}
-                    if (!endsWithSentencePunct)
+                    if (string.IsNullOrEmpty(currentMerged))
                     {
-                        if (!seg.StartsWith(@"{\c&HFFFF00&}"))
-                        {
-                            segments[i] = @"{\c&HFFFF00&}" + seg;
-                        }
+                        currentMerged = segments[i];
+                    }
+                    else
+                    {
+                        currentMerged += " " + segments[i];
+                    }
+
+                    bool endsWithSentencePunct = IsSentenceEndPunctuation(segments[i]);
+                    // Nếu đã kết thúc câu hoặc là segment cuối cùng thì chốt segment này
+                    if (endsWithSentencePunct || i == segments.Count - 1)
+                    {
+                        mergedSegments.Add(currentMerged);
+                        currentMerged = "";
                     }
                 }
+
+                if (!string.IsNullOrEmpty(currentMerged))
+                {
+                    mergedSegments.Add(currentMerged);
+                }
+
+                segments = mergedSegments;
             }
 
             return segments;
