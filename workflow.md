@@ -1,0 +1,54 @@
+# Quy Tắc Workflow - Subtitle Draft GMTPC (C# WPF)
+
+## Hướng dẫn nhanh
+- Thêm tính năng: xác định tab -> mở `MainWindowTab[Tên].cs` -> code vào đúng region
+- Sửa lỗi: nhìn tên control (`Txt*`, `Btn*`) -> mở file tab tương ứng -> sửa -> build
+- File >500 dòng: tách region sang file mới
+- Luôn luôn: `taskkill "Subtitle draft GMTPC.exe"` -> build -> copy exe ra root -> update changelog -> git commit
+- Luôn luôn: nếu không có diff sau khi build/copy thì vẫn phải `git commit --allow-empty`
+- Luôn luôn: file `Subtitle draft GMTPC.exe` phải được commit dù chỉ khác biệt binary, không được bỏ riêng exe ra khỏi commit
+- Chỉ commit lên repo GitHub khi người dùng yêu cầu rõ ràng
+
+## Cấu trúc dự án
+- Loại: ứng dụng C# WPF
+- Framework: .NET Framework 4.8
+- Kiến trúc: `MainWindow.xaml` + các file partial class code-behind
+
+## Quy tắc bắt buộc
+- `MainWindow.xaml.cs` chỉ giữ imports + class declaration rỗng
+- Không bao giờ để logic vào `MainWindow.xaml.cs`
+- Code của mỗi tab phải nằm trong `MainWindowTab[Tên].cs`
+- Code dùng chung phải nằm trong `MainWindowSystem[Tên].cs`
+- Không trùng tên fields/methods giữa các file
+- Dùng prefix `_` cho toàn bộ private fields
+- Dùng `#region` để nhóm code logic
+- Namespace bắt buộc: `Subtitle_draft_GMTPC`
+- Class bắt buộc: `public partial class MainWindow : Window`
+
+## Quy tắc build và publish
+- Sau mỗi lần code xong: `taskkill` -> build -> copy exe -> update changelog -> commit local
+- Build ra `bin/Debug/net48/Subtitle draft GMTPC.exe`
+- Sau build phải copy exe mới ra root project
+- Changelog phải được cập nhật sau build thành công
+- Nếu không có thay đổi ngoài binary thì vẫn commit bình thường
+- Nếu commit rỗng thì vẫn dùng `--allow-empty`
+
+## Quy tắc file
+- Không đưa logic vào `MainWindow.xaml.cs`
+- File tab phải theo pattern `MainWindowTab[Tên].cs`
+- File hệ thống phải theo pattern `MainWindowSystem[Tên].cs`
+- Nếu tab chưa có file thì tạo file mới và thêm vào `.csproj`
+
+## Quy tắc an toàn
+- Luôn try-catch cho thao tác I/O và UI quan trọng
+- Không để app crash khi input sai
+- Dispose tài nguyên đúng cách
+- File lớn phải xử lý async hoặc streaming
+
+## Quy tắc changelog
+- Sau mỗi lần build thành công bắt buộc update `changelog.cursorrules`
+- Mục mới phải thêm ở đầu file
+- Định dạng:
+  - `## [YYYY-MM-DD HH:MM:SS AM/PM DayOfWeek]`
+  - `### Changed / Fixed / Added`
+  - `- Mô tả thay đổi`

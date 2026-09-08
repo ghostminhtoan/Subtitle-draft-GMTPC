@@ -8,6 +8,20 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-08 06:51:00 PM Tuesday]
+
+### Fixed - Không split câu tại số đếm và mục lục trong tab Text to Subtitle
+- **Nhận diện chính xác và bảo toàn số đếm, mục lục khi bật Auto Split Sentence**:
+  - Tích hợp bộ nhận diện chuyên biệt `IsIndexOrOutlineMarker` cho tất cả các định dạng số đếm và mục lục phổ biến:
+    - Số đếm và số phân cấp: `1.`, `2.`, `3...`, `1.1.`, `1.2.3.`
+    - Chữ số La Mã: `I.`, `II.`, `III...`, `IV.`, `V.`, `X.`, `i.`, `ii.`, `iii.`
+    - Ký tự chữ cái đơn: `a.`, `b.`, `c.`, `A.`, `B.`, `C.`
+    - Ký tự chữ cái kèm số: `A1.`, `A2. ... B1. B2. ...`, `a1.`, `a2. ... b1. b2. ...`
+    - Ký tự số kèm chữ cái hoặc bọc ngoặc: `1a.`, `1b.`, `(1).`, `[A].`
+  - Bổ sung `HasContentWords`: Tự động phân biệt chuỗi danh sách số đếm/mục lục liên tiếp (như `1. 2. 3...`, `a. b. c.`) để giữ nguyên trên 1 dòng, và chỉ ngắt câu khi có từ ngữ nội dung hoàn chỉnh đi trước.
+  - Khắc phục lỗi trích xuất từ trước dấu chấm trong `ExtractWordBefore` và tối ưu hóa xử lý dấu ba chấm `...` với các ký tự hoa/thường kế tiếp.
+
+---
 ## [2026-09-07 06:56:00 PM Monday]
 
 ### Fixed - Tách biệt rõ ràng hành vi khi TẮT và BẬT Checkbox Auto Split Sentence

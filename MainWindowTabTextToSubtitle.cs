@@ -247,7 +247,11 @@ namespace Subtitle_draft_GMTPC
                     break;
                 }
 
-                int cutPos = FindBestCutPosition(text, pos, endPos, keepContinuous, autoBreak);
+                int cutPos = FindBestCutPosition(text, pos, endPos, keepContinuous, autoBreak, maxChars);
+                if (cutPos <= pos)
+                {
+                    cutPos = Math.Min(pos + 1, length);
+                }
 
                 var segmentText = text.Substring(pos, cutPos - pos).Trim();
                 if (!string.IsNullOrWhiteSpace(segmentText))
@@ -301,7 +305,23 @@ namespace Subtitle_draft_GMTPC
             string trimmed = str.TrimEnd();
             if (trimmed.Length == 0) return false;
             char last = trimmed[trimmed.Length - 1];
-            return last == '.' || last == '!' || last == '?' || last == ':' || last == '。' || trimmed.EndsWith("…") || trimmed.EndsWith("...");
+            if (last == '!' || last == '?' || last == ':' || last == '。' || trimmed.EndsWith("…") || trimmed.EndsWith("..."))
+            {
+                return true;
+            }
+            if (last == '.')
+            {
+                string wordBefore = ExtractWordBefore(trimmed, trimmed.Length - 1);
+                if (!string.IsNullOrEmpty(wordBefore))
+                {
+                    if (Abbreviations.Contains(wordBefore) || IsIndexOrOutlineMarker(wordBefore))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -309,9 +329,10 @@ namespace Subtitle_draft_GMTPC
         /// Theo 2 quy tắc Checkbox:
         /// 1. Keep continuous sentence: không ngắt giữa chừng. Nếu không có dấu câu phù hợp thì cố gắng mở rộng hoặc ghép các đoạn.
         /// 2. Auto split sentence (khi bật autoBreak = true): ngắt ngay khi kết thúc câu (. ! ? : 。 hoặc ... + Chữ HOA) theo thứ tự từ trái sang phải.
+        ///    Đặc biệt: Không được phép split tại số đếm và mục lục (1., 2., I., II., a., b., A., B., A1., A2., a1., a2...).
         /// Khi KHÔNG bật autoBreak: Chia theo độ dài Max Chars bình thường (quét lùi từ endPos - 1 về startPos).
         /// </summary>
-        private int FindBestCutPosition(string text, int startPos, int endPos, bool keepContinuous, bool autoBreak)
+        private int FindBestCutPosition(string text, int startPos, int endPos, bool keepContinuous, bool autoBreak, int maxChars = 500)
         {
             char[] standardEnders = { '!', '?', ':', '。' };
 
@@ -332,8 +353,14 @@ namespace Subtitle_draft_GMTPC
                     // Dấu chấm "." hoặc dấu ba chấm "..."
                     if (text[i] == '.')
                     {
-                        // Kiểm tra dấu ba chấm "..."
-                        bool isEllipsis = (i >= 2 && text[i - 1] == '.' && text[i - 2] == '.') || text[i] == '…';
+                        // Nếu là ký tự '.' đứng trước ký tự '.' khác (thuộc dấu ba chấm "...") -> bỏ qua để bắt dấu chấm cuối của cụm
+                        if (i + 1 < text.Length && text[i + 1] == '.')
+                        {
+                            continue;
+                        }
+
+                        // Kiểm tra dấu ba chấm "..." hoặc '…'
+                        bool isEllipsis = (i >= 1 && text[i - 1] == '.') || text[i] == '…';
                         if (isEllipsis)
                         {
                             int nextCharIdx = i + 1;
@@ -350,10 +377,19 @@ namespace Subtitle_draft_GMTPC
                                     // Viết HOA → Tự ngắt
                                     return i + 1;
                                 }
-                                else if (char.IsLower(nextChar))
+                                else
                                 {
-                                    // Viết thường → Bỏ qua (không tự ngắt tại đây)
-                                    continue;
+                                    // Kiểm tra xem từ tiếp theo có phải là mục lục (ví dụ b1., 2., a2.) không
+                                    string nextWord = ExtractWordAt(text, nextCharIdx);
+                                    if (!string.IsNullOrEmpty(nextWord) && IsIndexOrOutlineMarker(nextWord))
+                                    {
+                                        return i + 1;
+                                    }
+                                    if (char.IsLower(nextChar))
+                                    {
+                                        // Viết thường → Bỏ qua (không tự ngắt tại đây)
+                                        continue;
+                                    }
                                 }
                             }
                             return i + 1;
@@ -364,24 +400,67 @@ namespace Subtitle_draft_GMTPC
                         bool nextIsDigit = i < text.Length - 1 && char.IsDigit(text[i + 1]);
                         if (prevIsDigit && nextIsDigit) continue;
 
+                        int wordBeforeStart;
+                        string wordBeforeDot = ExtractWordBefore(text, i, out wordBeforeStart);
+
                         // Kiểm tra từ viết tắt (Mr., Dr., etc.)
-                        string wordBeforeDot = ExtractWordBefore(text, i);
                         if (!string.IsNullOrEmpty(wordBeforeDot) && Abbreviations.Contains(wordBeforeDot))
                         {
                             continue;
                         }
 
-                        // Auto split sentence: ngắt ngay tại dấu chấm này
+                        // Kiểm tra số đếm và mục lục (1., 2., I., a., A., A1., a1., ...) -> KHÔNG ĐƯỢC PHÉP SPLIT
+                        if (!string.IsNullOrEmpty(wordBeforeDot) && IsIndexOrOutlineMarker(wordBeforeDot))
+                        {
+                            // 1. Nếu nằm ở đầu segment (ví dụ "1. Nội dung" hoặc "A1. Mục A1") -> Chắc chắn là bullet, không split
+                            bool isAtStart = wordBeforeStart <= startPos || string.IsNullOrWhiteSpace(text.Substring(startPos, wordBeforeStart - startPos).Trim('(', '[', '{', '§', '#', '-', '*'));
+                            if (isAtStart)
+                            {
+                                continue;
+                            }
+
+                            // 2. Nếu đoạn trước đó không có từ nội dung nào (chỉ gồm các số đếm / mục lục liên tiếp như "1. 2. 3..." hay "a. b. c.") -> Không split
+                            if (!HasContentWords(text, startPos, wordBeforeStart))
+                            {
+                                continue;
+                            }
+
+                            // 3. Nếu là marker đi sau nội dung (như "Mục A1." trong "A1. Mục A1. A2. Mục A2."):
+                            // Kiểm tra từ tiếp theo sau dấu chấm có phải là marker mới (A2., 2., b.) không
+                            int nextCharIdx = i + 1;
+                            while (nextCharIdx < text.Length && char.IsWhiteSpace(text[nextCharIdx]))
+                            {
+                                nextCharIdx++;
+                            }
+                            if (nextCharIdx < text.Length)
+                            {
+                                string nextWord = ExtractWordAt(text, nextCharIdx);
+                                if (!string.IsNullOrEmpty(nextWord) && IsIndexOrOutlineMarker(nextWord))
+                                {
+                                    // Đằng sau bắt đầu mục lục mới -> Ngắt câu tại đây
+                                    return i + 1;
+                                }
+                            }
+
+                            // Mặc định không split tại số đếm/mục lục
+                            continue;
+                        }
+
+                        // Auto split sentence: ngắt ngay tại dấu chấm kết thúc câu này
                         return i + 1;
                     }
                 }
 
-                // Nếu trong khoảng không có dấu câu nào: ngắt tại khoảng trắng gần endPos nhất
-                for (int i = endPos - 1; i > startPos; i--)
+                // Nếu trong khoảng không có dấu câu nào:
+                // Chỉ ngắt tại khoảng trắng nếu độ dài vượt quá maxChars
+                if (endPos - startPos > maxChars)
                 {
-                    if (char.IsWhiteSpace(text[i]))
+                    for (int i = Math.Min(startPos + maxChars, endPos) - 1; i > startPos; i--)
                     {
-                        return i + 1;
+                        if (char.IsWhiteSpace(text[i]))
+                        {
+                            return i + 1;
+                        }
                     }
                 }
 
@@ -407,8 +486,14 @@ namespace Subtitle_draft_GMTPC
             {
                 if (text[i] == '.')
                 {
+                    // Bỏ qua nếu là chấm ở giữa chuỗi '...' (tiếp theo vẫn là '.')
+                    if (i + 1 < text.Length && text[i + 1] == '.')
+                    {
+                        continue;
+                    }
+
                     // Kiểm tra dấu ba chấm "..."
-                    bool isEllipsis = (i >= 2 && text[i - 1] == '.' && text[i - 2] == '.') || text[i] == '…';
+                    bool isEllipsis = (i >= 1 && text[i - 1] == '.') || text[i] == '…';
                     if (isEllipsis)
                     {
                         int nextCharIdx = i + 1;
@@ -424,9 +509,17 @@ namespace Subtitle_draft_GMTPC
                             {
                                 return i + 1;
                             }
-                            else if (char.IsLower(nextChar))
+                            else
                             {
-                                continue;
+                                string nextWord = ExtractWordAt(text, nextCharIdx);
+                                if (!string.IsNullOrEmpty(nextWord) && IsIndexOrOutlineMarker(nextWord))
+                                {
+                                    return i + 1;
+                                }
+                                if (char.IsLower(nextChar))
+                                {
+                                    continue;
+                                }
                             }
                         }
                         return i + 1;
@@ -439,6 +532,12 @@ namespace Subtitle_draft_GMTPC
 
                     string wordBeforeDot = ExtractWordBefore(text, i);
                     if (!string.IsNullOrEmpty(wordBeforeDot) && Abbreviations.Contains(wordBeforeDot))
+                    {
+                        continue;
+                    }
+
+                    // Số đếm và mục lục: không ngắt tại đây
+                    if (!string.IsNullOrEmpty(wordBeforeDot) && IsIndexOrOutlineMarker(wordBeforeDot))
                     {
                         continue;
                     }
@@ -465,25 +564,121 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
+        /// Trích xuất từ bắt đầu tại vị trí pos (dừng tại khoảng trắng hoặc dấu câu)
+        /// </summary>
+        private string ExtractWordAt(string text, int pos)
+        {
+            if (string.IsNullOrEmpty(text) || pos < 0 || pos >= text.Length) return "";
+            int start = pos;
+            int end = pos;
+            while (end < text.Length && !char.IsWhiteSpace(text[end]) && text[end] != '.' && text[end] != ':' && text[end] != '?' && text[end] != '!')
+            {
+                end++;
+            }
+            if (end <= start) return "";
+            return text.Substring(start, end - start).Trim();
+        }
+
+        /// <summary>
         /// Trích xuất word ngay trước vị trí pos (dừng tại khoảng trắng hoặc đầu chuỗi)
         /// Ví dụ: text="Hello Mr. Smith", pos=8 (vị trí dấu chấm) → trả về "Mr"
         /// </summary>
-        private string ExtractWordBefore(string text, int pos)
+        private string ExtractWordBefore(string text, int pos, out int wordStart)
         {
-            if (pos <= 0) return "";
+            wordStart = -1;
+            if (string.IsNullOrEmpty(text) || pos <= 0 || pos > text.Length) return "";
 
-            int end = pos - 1;
-            int start = end;
+            int start = pos - 1;
 
             // Lùi về trước đến khi gặp khoảng trắng hoặc đầu chuỗi
-            while (start > 0 && !char.IsWhiteSpace(text[start - 1]) && text[start - 1] != '.')
+            while (start > 0 && !char.IsWhiteSpace(text[start - 1]) && text[start - 1] != '.' && text[start - 1] != ':' && text[start - 1] != '?' && text[start - 1] != '!' && text[start - 1] != ';')
             {
                 start--;
             }
 
-            if (start >= end) return "";
+            if (start >= pos) return "";
 
-            return text.Substring(start, end - start);
+            wordStart = start;
+            return text.Substring(start, pos - start).Trim();
+        }
+
+        private string ExtractWordBefore(string text, int pos)
+        {
+            int dummy;
+            return ExtractWordBefore(text, pos, out dummy);
+        }
+
+        /// <summary>
+        /// Kiểm tra token có phải số đếm hoặc mục lục không (1., 2., I., a., A., A1., a1., ...)
+        /// Không được phép split câu tại các vị trí này.
+        /// </summary>
+        private static bool IsIndexOrOutlineMarker(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token)) return false;
+
+            // Loại bỏ các dấu mở/đóng ngoặc hoặc bullet bao quanh (nếu có): (1), [A], 1), a)
+            string clean = token.Trim().TrimStart('(', '[', '{', '§', '#', '-', '*').TrimEnd(')', ']', '}');
+            if (string.IsNullOrEmpty(clean)) return false;
+
+            // 1. Số đếm: 1, 2, 3, 10, ... hoặc nhiều cấp: 1.1, 1.2.3, ...
+            if (Regex.IsMatch(clean, @"^\d+(\.\d+)*$"))
+            {
+                return true;
+            }
+
+            // 2. Chữ số La Mã phổ biến trong mục lục (I..L / i..l từ 1 đến 50): I, II, III, IV, V, VI, VII, VIII, IX, X, XI, XII, XX, etc.
+            if (Regex.IsMatch(clean, @"^(?i:X{0,4}(?:IX|IV|V?I{0,3})|XL|L)$") && clean.Length > 0)
+            {
+                return true;
+            }
+
+            // 3. Chữ cái đơn mục lục (a, b, c, ... z hoặc A, B, C, ... Z)
+            if (clean.Length == 1 && char.IsLetter(clean[0]))
+            {
+                return true;
+            }
+
+            // 4. Chữ cái kèm số (A1, A2, B1, B2, a1, a2, b1, b2, C10, c01...)
+            if (Regex.IsMatch(clean, @"^[a-zA-Z]{1,3}\d{1,4}$"))
+            {
+                return true;
+            }
+
+            // 5. Số kèm chữ cái (1a, 1b, 2a, 2b, 1A, 1B...)
+            if (Regex.IsMatch(clean, @"^\d{1,4}[a-zA-Z]{1,3}$"))
+            {
+                return true;
+            }
+
+            // 6. Mục lục phân cấp kết hợp (A.1, a.1, 1.a...)
+            if (Regex.IsMatch(clean, @"^[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+$"))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Kiểm tra trong khoảng [startPos, endPos) có chứa từ vựng thực tế (content words)
+        /// không phải là số đếm hoặc mục lục hay không.
+        /// </summary>
+        private static bool HasContentWords(string text, int startPos, int endPos)
+        {
+            if (string.IsNullOrEmpty(text) || endPos <= startPos) return false;
+            int len = Math.Min(endPos, text.Length) - startPos;
+            if (len <= 0) return false;
+
+            string sub = text.Substring(startPos, len);
+            string[] tokens = sub.Split(new char[] { ' ', '\t', '\r', '\n', '.', '…', ':', '!', '?', ',', ';', '(', ')', '[', ']', '{', '}' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var t in tokens)
+            {
+                if (!IsIndexOrOutlineMarker(t))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
