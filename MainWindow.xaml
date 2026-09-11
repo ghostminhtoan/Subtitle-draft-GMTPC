@@ -1959,12 +1959,23 @@
                                         Click="BtnTextToSubConvert_Click"/>
                                 <Button x:Name="BtnTextToSubCopy" Content="📋 Copy"
                                         Style="{StaticResource AccentButtonStyle}"
-                                        Padding="14,5" FontSize="12"
+                                        Padding="14,5" FontSize="12" Margin="0,0,8,0"
                                         Click="BtnTextToSubCopy_Click">
                                     <Button.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="Copy Subtitle" Click="MenuTextToSubCopySubtitle_Click"/>
                                             <MenuItem Header="Copy Sentence" Click="MenuTextToSubCopySentence_Click"/>
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                </Button>
+                                <Button x:Name="BtnTextToSubExport" Content="💾 Export"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Padding="14,5" FontSize="12"
+                                        Click="BtnTextToSubExport_Click">
+                                    <Button.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Export to ASS" Click="MenuTextToSubExportAss_Click"/>
+                                            <MenuItem Header="Export to SRT" Click="MenuTextToSubExportSrt_Click"/>
                                         </ContextMenu>
                                     </Button.ContextMenu>
                                 </Button>

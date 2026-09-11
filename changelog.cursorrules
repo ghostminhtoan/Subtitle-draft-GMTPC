@@ -8,6 +8,16 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-11 01:25:00 PM Friday]
+
+### Added - Thêm nút Export (Export to ASS và Export to SRT) vào tab Text to Subtitle
+- **Thêm nút Export bên phải nút Copy với ContextMenu tiện ích**:
+  - Giao diện: Bổ sung nút `BtnTextToSubExport` ("💾 Export") kế bên nút `BtnTextToSubCopy`, hỗ trợ click chuột trái và chuột phải mở menu 2 tùy chọn: `Export to ASS` và `Export to SRT`.
+  - Export to ASS: Xuất file phụ đề định dạng `.ass` hoàn chỉnh kèm theo đầy đủ headers tiêu chuẩn `[Script Info]`, `[V4+ Styles]`, `[Events]`, tương thích tốt với Aegisub, VLC, Subtitle Edit.
+  - Export to SRT: Xuất file phụ đề định dạng `.srt` chuẩn SubRip với time codes đồng bộ chính xác theo cài đặt CPS, Gap và phân đoạn câu.
+  - Tích hợp hộp thoại `SaveFileDialog` và Toast thông báo trạng thái trực quan khi lưu file thành công.
+
+---
 ## [2026-09-08 06:51:00 PM Tuesday]
 
 ### Fixed - Không split câu tại số đếm và mục lục trong tab Text to Subtitle
