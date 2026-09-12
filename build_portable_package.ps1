@@ -43,6 +43,9 @@ Copy-Folder -From (Join-Path $SourceRoot 'japanese word rules karaoke') -To (Joi
 if (Test-Path (Join-Path $SourceRoot 'BuildStamp.txt')) {
     Copy-Item -Path (Join-Path $SourceRoot 'BuildStamp.txt') -Destination (Join-Path $payloadStage 'BuildStamp.txt') -Force
 }
+if (Test-Path (Join-Path $SourceRoot 'custom song list rules.txt')) {
+    Copy-Item -Path (Join-Path $SourceRoot 'custom song list rules.txt') -Destination (Join-Path $payloadStage 'custom song list rules.txt') -Force
+}
 
 foreach ($file in @(
     'Microsoft.Web.WebView2.Core.dll',

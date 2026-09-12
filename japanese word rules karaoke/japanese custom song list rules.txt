@@ -1,0 +1,3 @@
+// Nhập các quy tắc tách từ Romaji riêng cho bài hát tại đây
+// Định dạng: (word:part1/part2) hoặc word:part1/part2
+// Các quy tắc này sẽ ghi đè quy tắc trong Japanese Word List

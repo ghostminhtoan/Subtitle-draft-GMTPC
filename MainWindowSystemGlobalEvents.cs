@@ -79,6 +79,21 @@ namespace Subtitle_draft_GMTPC
 
         // Register global key events for search
         this.PreviewKeyDown += MainWindow_PreviewKeyDown;
+
+        // Tự động kiểm tra và reload rules Karaoke khi người dùng chuyển cửa sổ từ Notepad/Notepad++ quay lại app
+        this.Activated += MainWindow_Activated;
+    }
+
+    private void MainWindow_Activated(object sender, EventArgs e)
+    {
+        try
+        {
+            CheckAndReloadKaraokeJapRulesIfModified(force: false, showToast: false);
+            CheckAndReloadKaraokeEngRulesIfModified(force: false, showToast: false);
+        }
+        catch
+        {
+        }
     }
 
     /// <summary>

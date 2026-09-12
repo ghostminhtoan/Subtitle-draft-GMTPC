@@ -1,0 +1,5 @@
+# Custom Song Split Rules (Format: word:part1/part2)
+# Các quy tắc ở đây sẽ overwrite quy tắc trong Word List Full
+# Ví dụ:
+# nanairo:na/na/i/ro
+# sora:so/ra

@@ -22,6 +22,9 @@ namespace Subtitle_draft_GMTPC
         private string _pendingCustomSongJapRules;
         private string _japWordListFilePath;
         private string _japCustomSongListFilePath;
+        private DateTime _lastJapWordListModifiedUtc = DateTime.MinValue;
+        private DateTime _lastJapCustomSongListModifiedUtc = DateTime.MinValue;
+        private System.Windows.Threading.DispatcherTimer _japWatcherDebounceTimer;
         private FileSystemWatcher _japWordListWatcher;
         private FileSystemWatcher _japCustomSongListWatcher;
         private KaraokeVietnameseService.KaraokeMappingResult _currentKaraokeJapMappingResult;
@@ -29,6 +32,33 @@ namespace Subtitle_draft_GMTPC
         #endregion
 
         #region Karaoke Japanese - Initialize Word Split Rules
+
+        private static string SafeReadAllTextWithRetry(string filePath, int maxRetries = 6, int delayMs = 150)
+        {
+            for (int i = 0; i < maxRetries; i++)
+            {
+                try
+                {
+                    if (!File.Exists(filePath)) return null;
+                    using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8, true))
+                    {
+                        return reader.ReadToEnd();
+                    }
+                }
+                catch (IOException)
+                {
+                    if (i == maxRetries - 1) return null;
+                    System.Threading.Thread.Sleep(delayMs);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    if (i == maxRetries - 1) return null;
+                    System.Threading.Thread.Sleep(delayMs);
+                }
+            }
+            return null;
+        }
 
         private void LoadKaraokeJapSplitRules()
         {
@@ -49,16 +79,24 @@ namespace Subtitle_draft_GMTPC
 
                 if (File.Exists(_japWordListFilePath))
                 {
-                    _pendingKaraokeJapRules = File.ReadAllText(_japWordListFilePath);
+                    _pendingKaraokeJapRules = SafeReadAllTextWithRetry(_japWordListFilePath) ?? JapaneseWordListRules.DefaultRules;
+                    _lastJapWordListModifiedUtc = File.GetLastWriteTimeUtc(_japWordListFilePath);
                 }
                 else
                 {
                     File.WriteAllText(_japWordListFilePath, JapaneseWordListRules.DefaultRules);
+                    _lastJapWordListModifiedUtc = File.GetLastWriteTimeUtc(_japWordListFilePath);
                 }
 
                 if (File.Exists(_japCustomSongListFilePath))
                 {
-                    _pendingCustomSongJapRules = File.ReadAllText(_japCustomSongListFilePath);
+                    _pendingCustomSongJapRules = SafeReadAllTextWithRetry(_japCustomSongListFilePath) ?? "";
+                    _lastJapCustomSongListModifiedUtc = File.GetLastWriteTimeUtc(_japCustomSongListFilePath);
+                }
+                else
+                {
+                    File.WriteAllText(_japCustomSongListFilePath, "// Nhập các quy tắc tách từ Romaji riêng cho bài hát tại đây\r\n// Định dạng: (word:part1/part2) hoặc word:part1/part2\r\n// Các quy tắc này sẽ ghi đè quy tắc trong Japanese Word List\r\n");
+                    _lastJapCustomSongListModifiedUtc = File.GetLastWriteTimeUtc(_japCustomSongListFilePath);
                 }
 
                 // Setup file watcher cho cả 2 file rules
@@ -73,6 +111,85 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
+        /// Kiểm tra và reload rules tiếng Nhật nếu file trên đĩa có thay đổi
+        /// </summary>
+        public bool CheckAndReloadKaraokeJapRulesIfModified(bool force = false, bool showToast = false)
+        {
+            bool hasChanged = false;
+            try
+            {
+                if (!string.IsNullOrEmpty(_japWordListFilePath) && File.Exists(_japWordListFilePath))
+                {
+                    var writeTime = File.GetLastWriteTimeUtc(_japWordListFilePath);
+                    if (force || writeTime != _lastJapWordListModifiedUtc)
+                    {
+                        var content = SafeReadAllTextWithRetry(_japWordListFilePath);
+                        if (content != null)
+                        {
+                            _pendingKaraokeJapRules = content;
+                            _lastJapWordListModifiedUtc = writeTime;
+                            hasChanged = true;
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(_japCustomSongListFilePath) && File.Exists(_japCustomSongListFilePath))
+                {
+                    var writeTime = File.GetLastWriteTimeUtc(_japCustomSongListFilePath);
+                    if (force || writeTime != _lastJapCustomSongListModifiedUtc)
+                    {
+                        var content = SafeReadAllTextWithRetry(_japCustomSongListFilePath);
+                        if (content != null)
+                        {
+                            _pendingCustomSongJapRules = content;
+                            _lastJapCustomSongListModifiedUtc = writeTime;
+                            hasChanged = true;
+                        }
+                    }
+                }
+
+                if (hasChanged)
+                {
+                    ProcessKaraokeJapInput();
+                    if (showToast)
+                    {
+                        ShowToastKaraokeJap("🔄 Auto-reloaded Japanese Rules!");
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            return hasChanged;
+        }
+
+        private void TriggerJapDebouncedReload()
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (_japWatcherDebounceTimer == null)
+                {
+                    _japWatcherDebounceTimer = new System.Windows.Threading.DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromMilliseconds(250)
+                    };
+                    _japWatcherDebounceTimer.Tick += (s, e) =>
+                    {
+                        _japWatcherDebounceTimer.Stop();
+                        CheckAndReloadKaraokeJapRulesIfModified(force: true, showToast: true);
+                    };
+                }
+                else
+                {
+                    _japWatcherDebounceTimer.Stop();
+                }
+
+                _japWatcherDebounceTimer.Start();
+            }));
+        }
+
+        /// <summary>
         /// Theo dõi file japanese word list rules để tự động reload khi có thay đổi
         /// </summary>
         private void SetupJapWordListWatcher()
@@ -84,35 +201,20 @@ namespace Subtitle_draft_GMTPC
 
                 if (Directory.Exists(dir))
                 {
-                    _japWordListWatcher = new FileSystemWatcher(dir, file);
-                    _japWordListWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size;
-                    _japWordListWatcher.Changed += JapWordListFile_Changed;
-                    _japWordListWatcher.EnableRaisingEvents = true;
+                    _japWordListWatcher?.Dispose();
+                    _japWordListWatcher = new FileSystemWatcher(dir, file)
+                    {
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.CreationTime,
+                        EnableRaisingEvents = true
+                    };
+                    _japWordListWatcher.Changed += (s, e) => TriggerJapDebouncedReload();
+                    _japWordListWatcher.Created += (s, e) => TriggerJapDebouncedReload();
+                    _japWordListWatcher.Renamed += (s, e) => TriggerJapDebouncedReload();
                 }
             }
             catch
             {
             }
-        }
-
-        private void JapWordListFile_Changed(object sender, FileSystemEventArgs e)
-        {
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                try
-                {
-                    if (File.Exists(_japWordListFilePath))
-                    {
-                        var content = File.ReadAllText(_japWordListFilePath);
-                        _pendingKaraokeJapRules = content;
-                        ProcessKaraokeJapInput();
-                        ShowToastKaraokeJap("🔄 Auto-reloaded Japanese Word List!");
-                    }
-                }
-                catch
-                {
-                }
-            }));
         }
 
         /// <summary>
@@ -127,35 +229,20 @@ namespace Subtitle_draft_GMTPC
 
                 if (Directory.Exists(dir))
                 {
-                    _japCustomSongListWatcher = new FileSystemWatcher(dir, file);
-                    _japCustomSongListWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size;
-                    _japCustomSongListWatcher.Changed += JapCustomSongListFile_Changed;
-                    _japCustomSongListWatcher.EnableRaisingEvents = true;
+                    _japCustomSongListWatcher?.Dispose();
+                    _japCustomSongListWatcher = new FileSystemWatcher(dir, file)
+                    {
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.CreationTime,
+                        EnableRaisingEvents = true
+                    };
+                    _japCustomSongListWatcher.Changed += (s, e) => TriggerJapDebouncedReload();
+                    _japCustomSongListWatcher.Created += (s, e) => TriggerJapDebouncedReload();
+                    _japCustomSongListWatcher.Renamed += (s, e) => TriggerJapDebouncedReload();
                 }
             }
             catch
             {
             }
-        }
-
-        private void JapCustomSongListFile_Changed(object sender, FileSystemEventArgs e)
-        {
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                try
-                {
-                    if (File.Exists(_japCustomSongListFilePath))
-                    {
-                        var content = File.ReadAllText(_japCustomSongListFilePath);
-                        _pendingCustomSongJapRules = content;
-                        ProcessKaraokeJapInput();
-                        ShowToastKaraokeJap("🔄 Auto-reloaded Japanese Custom Song List!");
-                    }
-                }
-                catch
-                {
-                }
-            }));
         }
 
         #endregion
@@ -174,6 +261,9 @@ namespace Subtitle_draft_GMTPC
             try
             {
                 _isKaraokeJapUpdating = true;
+
+                // Luôn kiểm tra xem file rules trên ổ đĩa có thay đổi không trước khi chạy
+                CheckAndReloadKaraokeJapRulesIfModified(force: false, showToast: false);
                 var content = SubtitleParser.SanitizeContent(TxtKaraokeJapInput.Text);
                 if (string.IsNullOrWhiteSpace(content))
                 {
@@ -555,13 +645,22 @@ namespace Subtitle_draft_GMTPC
                     File.WriteAllText(_japCustomSongListFilePath, "// Nhập các quy tắc tách từ Romaji riêng cho bài hát tại đây\r\n// Định dạng: (word:part1/part2) hoặc word:part1/part2\r\n// Các quy tắc này sẽ ghi đè quy tắc trong Japanese Word List\r\n");
                 }
 
+                // Đọc ngay nội dung hiện tại nếu có
+                var currentContent = SafeReadAllTextWithRetry(_japCustomSongListFilePath);
+                if (currentContent != null)
+                {
+                    _pendingCustomSongJapRules = currentContent;
+                    _lastJapCustomSongListModifiedUtc = File.GetLastWriteTimeUtc(_japCustomSongListFilePath);
+                    ProcessKaraokeJapInput();
+                }
+
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = _japCustomSongListFilePath,
                     UseShellExecute = true
                 });
 
-                ShowToastKaraokeJap("🎵 Đang mở Japanese Custom Song List!");
+                ShowToastKaraokeJap("🎵 Đang mở Japanese Custom Song List (Lưu file để tự động áp dụng)!");
             }
             catch (Exception ex)
             {

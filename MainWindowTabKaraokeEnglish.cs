@@ -22,6 +22,9 @@ namespace Subtitle_draft_GMTPC
         private string _pendingCustomSongRules;
         private string _wordListFilePath;
         private string _customSongListFilePath;
+        private DateTime _lastEngWordListModifiedUtc = DateTime.MinValue;
+        private DateTime _lastEngCustomSongListModifiedUtc = DateTime.MinValue;
+        private System.Windows.Threading.DispatcherTimer _engWatcherDebounceTimer;
         private FileSystemWatcher _wordListWatcher;
         private FileSystemWatcher _customSongListWatcher;
         private KaraokeVietnameseService.KaraokeMappingResult _currentKaraokeEngMappingResult;
@@ -29,6 +32,33 @@ namespace Subtitle_draft_GMTPC
         #endregion
 
         #region Karaoke English - Initialize Word Split Rules
+
+        private static string SafeReadAllTextWithRetryEng(string filePath, int maxRetries = 6, int delayMs = 150)
+        {
+            for (int i = 0; i < maxRetries; i++)
+            {
+                try
+                {
+                    if (!File.Exists(filePath)) return null;
+                    using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8, true))
+                    {
+                        return reader.ReadToEnd();
+                    }
+                }
+                catch (IOException)
+                {
+                    if (i == maxRetries - 1) return null;
+                    System.Threading.Thread.Sleep(delayMs);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    if (i == maxRetries - 1) return null;
+                    System.Threading.Thread.Sleep(delayMs);
+                }
+            }
+            return null;
+        }
 
         private void LoadKaraokeEngSplitRules()
         {
@@ -43,12 +73,14 @@ namespace Subtitle_draft_GMTPC
 
                 if (File.Exists(_wordListFilePath))
                 {
-                    _pendingKaraokeEngRules = File.ReadAllText(_wordListFilePath);
+                    _pendingKaraokeEngRules = SafeReadAllTextWithRetryEng(_wordListFilePath) ?? WordListRules.DefaultRules;
+                    _lastEngWordListModifiedUtc = File.GetLastWriteTimeUtc(_wordListFilePath);
                 }
 
                 if (File.Exists(_customSongListFilePath))
                 {
-                    _pendingCustomSongRules = File.ReadAllText(_customSongListFilePath);
+                    _pendingCustomSongRules = SafeReadAllTextWithRetryEng(_customSongListFilePath) ?? "";
+                    _lastEngCustomSongListModifiedUtc = File.GetLastWriteTimeUtc(_customSongListFilePath);
                 }
 
                 // Setup file watcher cho cả 2 file rules
@@ -63,48 +95,110 @@ namespace Subtitle_draft_GMTPC
         }
 
         /// <summary>
+        /// Kiểm tra và reload rules tiếng Anh nếu file trên đĩa có thay đổi
+        /// </summary>
+        public bool CheckAndReloadKaraokeEngRulesIfModified(bool force = false, bool showToast = false)
+        {
+            bool hasChanged = false;
+            try
+            {
+                if (!string.IsNullOrEmpty(_wordListFilePath) && File.Exists(_wordListFilePath))
+                {
+                    var writeTime = File.GetLastWriteTimeUtc(_wordListFilePath);
+                    if (force || writeTime != _lastEngWordListModifiedUtc)
+                    {
+                        var content = SafeReadAllTextWithRetryEng(_wordListFilePath);
+                        if (content != null)
+                        {
+                            _pendingKaraokeEngRules = content;
+                            _lastEngWordListModifiedUtc = writeTime;
+                            hasChanged = true;
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(_customSongListFilePath) && File.Exists(_customSongListFilePath))
+                {
+                    var writeTime = File.GetLastWriteTimeUtc(_customSongListFilePath);
+                    if (force || writeTime != _lastEngCustomSongListModifiedUtc)
+                    {
+                        var content = SafeReadAllTextWithRetryEng(_customSongListFilePath);
+                        if (content != null)
+                        {
+                            _pendingCustomSongRules = content;
+                            _lastEngCustomSongListModifiedUtc = writeTime;
+                            hasChanged = true;
+                        }
+                    }
+                }
+
+                if (hasChanged)
+                {
+                    ProcessKaraokeEngInput();
+                    if (showToast)
+                    {
+                        ShowToastKaraokeEng("🔄 Đã tự động cập nhật English Rules!");
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            return hasChanged;
+        }
+
+        private void TriggerEngDebouncedReload()
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (_engWatcherDebounceTimer == null)
+                {
+                    _engWatcherDebounceTimer = new System.Windows.Threading.DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromMilliseconds(250)
+                    };
+                    _engWatcherDebounceTimer.Tick += (s, e) =>
+                    {
+                        _engWatcherDebounceTimer.Stop();
+                        CheckAndReloadKaraokeEngRulesIfModified(force: true, showToast: true);
+                    };
+                }
+                else
+                {
+                    _engWatcherDebounceTimer.Stop();
+                }
+
+                _engWatcherDebounceTimer.Start();
+            }));
+        }
+
+        /// <summary>
         /// Theo dõi file word list rules để tự động reload khi có thay đổi
         /// </summary>
         private void SetupWordListWatcher()
         {
             try
             {
-                var appDir = AppRuntimePaths.BaseDirectory;
-                _wordListFilePath = Path.Combine(appDir, "word list rules.txt");
-
                 var dir = Path.GetDirectoryName(_wordListFilePath);
                 var file = Path.GetFileName(_wordListFilePath);
 
                 if (Directory.Exists(dir))
                 {
-                    _wordListWatcher = new FileSystemWatcher(dir, file);
-                    _wordListWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size;
-                    _wordListWatcher.Changed += WordListFile_Changed;
-                    _wordListWatcher.EnableRaisingEvents = true;
+                    _wordListWatcher?.Dispose();
+                    _wordListWatcher = new FileSystemWatcher(dir, file)
+                    {
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.CreationTime,
+                        EnableRaisingEvents = true
+                    };
+                    _wordListWatcher.Changed += (s, e) => TriggerEngDebouncedReload();
+                    _wordListWatcher.Created += (s, e) => TriggerEngDebouncedReload();
+                    _wordListWatcher.Renamed += (s, e) => TriggerEngDebouncedReload();
                 }
             }
             catch
             {
-                // Bỏ qua nếu không setup được watcher
             }
-        }
-
-        private void WordListFile_Changed(object sender, FileSystemEventArgs e)
-        {
-            // Reload rules từ file khi có thay đổi
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                try
-                {
-                    if (File.Exists(_wordListFilePath))
-                    {
-                        _pendingKaraokeEngRules = File.ReadAllText(_wordListFilePath);
-                        ProcessKaraokeEngInput();
-                        ShowToastKaraokeEng("🔄 Auto-reloaded Word List từ file!");
-                    }
-                }
-                catch { }
-            }));
         }
 
         /// <summary>
@@ -114,42 +208,25 @@ namespace Subtitle_draft_GMTPC
         {
             try
             {
-                var appDir = AppRuntimePaths.BaseDirectory;
-                _customSongListFilePath = Path.Combine(appDir, "custom song list rules.txt");
-
                 var dir = Path.GetDirectoryName(_customSongListFilePath);
                 var file = Path.GetFileName(_customSongListFilePath);
 
                 if (Directory.Exists(dir))
                 {
-                    _customSongListWatcher = new FileSystemWatcher(dir, file);
-                    _customSongListWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size;
-                    _customSongListWatcher.Changed += CustomSongListFile_Changed;
-                    _customSongListWatcher.EnableRaisingEvents = true;
+                    _customSongListWatcher?.Dispose();
+                    _customSongListWatcher = new FileSystemWatcher(dir, file)
+                    {
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.CreationTime,
+                        EnableRaisingEvents = true
+                    };
+                    _customSongListWatcher.Changed += (s, e) => TriggerEngDebouncedReload();
+                    _customSongListWatcher.Created += (s, e) => TriggerEngDebouncedReload();
+                    _customSongListWatcher.Renamed += (s, e) => TriggerEngDebouncedReload();
                 }
             }
             catch
             {
-                // Bỏ qua nếu không setup được watcher
             }
-        }
-
-        private void CustomSongListFile_Changed(object sender, FileSystemEventArgs e)
-        {
-            // Reload custom song rules từ file khi có thay đổi
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                try
-                {
-                    if (File.Exists(_customSongListFilePath))
-                    {
-                        _pendingCustomSongRules = File.ReadAllText(_customSongListFilePath);
-                        ProcessKaraokeEngInput();
-                        ShowToastKaraokeEng("🔄 Auto-reloaded Custom Song List!");
-                    }
-                }
-                catch { }
-            }));
         }
 
         #endregion
@@ -168,6 +245,9 @@ namespace Subtitle_draft_GMTPC
             try
             {
                 _isKaraokeEngUpdating = true;
+
+                // Luôn kiểm tra xem file rules trên ổ đĩa có thay đổi không trước khi chạy
+                CheckAndReloadKaraokeEngRulesIfModified(force: false, showToast: false);
                 var content = SubtitleParser.SanitizeContent(TxtKaraokeEngInput.Text);
                 if (string.IsNullOrWhiteSpace(content))
                 {
@@ -545,9 +625,18 @@ namespace Subtitle_draft_GMTPC
                     ShowToastKaraokeEng("📄 Đã tạo file Custom Song List mới!");
                 }
 
+                // Đọc ngay nội dung hiện tại nếu có
+                var currentContent = SafeReadAllTextWithRetryEng(_customSongListFilePath);
+                if (currentContent != null)
+                {
+                    _pendingCustomSongRules = currentContent;
+                    _lastEngCustomSongListModifiedUtc = File.GetLastWriteTimeUtc(_customSongListFilePath);
+                    ProcessKaraokeEngInput();
+                }
+
                 // Mở file bằng Notepad
                 Process.Start("notepad.exe", $"\"{_customSongListFilePath}\"");
-                ShowToastKaraokeEng("🎵 Đang mở Custom Song List để chỉnh sửa!");
+                ShowToastKaraokeEng("🎵 Đang mở Custom Song List (Lưu file để tự động áp dụng)!");
             }
             catch (Exception ex)
             {

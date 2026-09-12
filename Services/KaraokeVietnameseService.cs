@@ -148,13 +148,49 @@ namespace Subtitle_draft_GMTPC.Services
                         string[] syllables;
                         var wordLower = word.ToLowerInvariant();
 
+                        // Bóc tách leading & trailing punctuation để tra custom rules chính xác ngay cả khi từ có kèm dấu câu
+                        string leadingPunct = "";
+                        string trailingPunct = "";
+                        string coreWord = word;
+                        int startIdx = 0;
+                        while (startIdx < word.Length && !char.IsLetterOrDigit(word[startIdx]))
+                        {
+                            startIdx++;
+                        }
+                        int endIdx = word.Length - 1;
+                        while (endIdx >= startIdx && !char.IsLetterOrDigit(word[endIdx]))
+                        {
+                            endIdx--;
+                        }
+                        if (startIdx > 0) leadingPunct = word.Substring(0, startIdx);
+                        if (endIdx < word.Length - 1) trailingPunct = word.Substring(endIdx + 1);
+                        if (startIdx <= endIdx) coreWord = word.Substring(startIdx, endIdx - startIdx + 1);
+                        var coreWordLower = coreWord.ToLowerInvariant();
+
                         if (ContainsApostrophe(word))
                         {
                             syllables = new[] { word };
                         }
-                        else if (customSyllableMap != null && customSyllableMap.TryGetValue(wordLower, out var customSyllables))
+                        else if (customSyllableMap != null && (customSyllableMap.TryGetValue(wordLower, out var customSyllables) || (!string.IsNullOrEmpty(coreWord) && customSyllableMap.TryGetValue(coreWordLower, out customSyllables))))
                         {
-                            syllables = AdjustSyllableCase(customSyllables, word);
+                            bool matchedCore = !customSyllableMap.ContainsKey(wordLower) && customSyllableMap.ContainsKey(coreWordLower);
+                            var targetWordForCase = matchedCore ? coreWord : word;
+                            var adjusted = AdjustSyllableCase(customSyllables, targetWordForCase);
+
+                            if (matchedCore && (!string.IsNullOrEmpty(leadingPunct) || !string.IsNullOrEmpty(trailingPunct)))
+                            {
+                                var list = new List<string>(adjusted);
+                                if (list.Count > 0)
+                                {
+                                    list[0] = leadingPunct + list[0];
+                                    list[list.Count - 1] = list[list.Count - 1] + trailingPunct;
+                                }
+                                syllables = list.ToArray();
+                            }
+                            else
+                            {
+                                syllables = adjusted;
+                            }
                         }
                         else if (isJapaneseRomajiMode)
                         {
@@ -205,6 +241,7 @@ namespace Subtitle_draft_GMTPC.Services
         /// Parse quy tắc tách từ từ input string
         /// Format mới: (word:part1/part2), (word2:part1/part2) - 50 rules/dòng
         /// Format cũ vẫn hỗ trợ: word:part1/part2 (1 rule/dòng)
+        /// Bỏ qua comment // và #, hỗ trợ inline comments
         /// </summary>
         private static Dictionary<string, string[]> ParseSplitRules(string splitRules)
         {
@@ -218,6 +255,23 @@ namespace Subtitle_draft_GMTPC.Services
             {
                 var trimmed = line.Trim();
                 if (string.IsNullOrWhiteSpace(trimmed)) continue;
+
+                // Bỏ qua dòng comment
+                if (trimmed.StartsWith("//") || trimmed.StartsWith("#")) continue;
+
+                // Cắt bỏ inline comment nếu có
+                var commentIdx = trimmed.IndexOf("//");
+                if (commentIdx >= 0)
+                {
+                    trimmed = trimmed.Substring(0, commentIdx).Trim();
+                    if (string.IsNullOrWhiteSpace(trimmed)) continue;
+                }
+                var hashCommentIdx = trimmed.IndexOf('#');
+                if (hashCommentIdx >= 0)
+                {
+                    trimmed = trimmed.Substring(0, hashCommentIdx).Trim();
+                    if (string.IsNullOrWhiteSpace(trimmed)) continue;
+                }
 
                 // Tìm tất cả rules trong format: (word:part1/part2), (word2:part1/part2)
                 var matches = System.Text.RegularExpressions.Regex.Matches(trimmed, @"\(([^)]+)\)");
@@ -254,7 +308,10 @@ namespace Subtitle_draft_GMTPC.Services
 
             if (string.IsNullOrEmpty(originalWord) || string.IsNullOrEmpty(splitPart)) return;
 
-            var syllables = splitPart.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            var syllables = splitPart.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
+                                     .Select(s => s.Trim())
+                                     .Where(s => !string.IsNullOrEmpty(s))
+                                     .ToArray();
             if (syllables.Length < 1) return;
 
             result[originalWord.ToLowerInvariant()] = syllables;

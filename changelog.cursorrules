@@ -8,6 +8,22 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-12 10:36:00 PM Saturday]
+
+### Fixed - Khắc phục triệt để lỗi Custom Song List không apply trong Karaoke Japanese
+- **Nâng cấp toàn diện cơ chế FileSystemWatcher & Auto-reload cho Japanese và English Karaoke**:
+  - Bổ sung các cờ theo dõi quan trọng (`NotifyFilters.FileName`, `NotifyFilters.CreationTime`, `NotifyFilters.LastWrite`, `NotifyFilters.Size`) và đăng ký đầy đủ các sự kiện `Changed`, `Created`, `Renamed`, giúp nhận diện tức thì khi các text editor (như Notepad++, VS Code) thực hiện lưu file theo cơ chế atomic save/rename.
+  - Tích hợp bộ giải trừ tranh chấp file (`SafeReadAllTextWithRetry`) với `FileShare.ReadWrite` và retry tự động, xóa bỏ hoàn toàn ngoại lệ `IOException` (file lock) khi Notepad/Notepad++ vừa lưu file.
+  - Tích hợp Timer Debounce (250ms) chống reload trùng lặp khi editor phát nhiều sự kiện liên tiếp lúc ghi đĩa.
+  - Tự động kiểm tra timestamp file trên đĩa để reload ngay khi người dùng chuyển cửa sổ từ editor quay lại app (`MainWindow.Activated`), cũng như trước mỗi lần phân tích lyrics (`ProcessKaraokeJapInput`).
+- **Chuẩn hóa bộ xử lý quy tắc tách từ (`KaraokeVietnameseService.cs`)**:
+  - Bỏ qua các dòng chú thích bắt đầu bằng `//` hoặc `#` trong file rules, đồng thời cắt bỏ inline comments ở cuối dòng.
+  - Tự động trim khoảng trắng từng âm tiết (`syllable`), xử lý tốt cả định dạng có dấu ngoặc `(word:p1/p2)` lẫn không ngoặc `word:p1/p2` và có khoảng trắng tùy ý.
+  - Bổ sung cơ chế bóc tách dấu câu ở đầu (leading) và cuối (trailing) của từ khi tra cứu custom rules, đảm bảo các từ có kèm dấu câu như `"Kibou"`, `Kibou,`, `kibou.` đều khớp chính xác với quy tắc `kibou:ki/bo/u` trong Custom Song List.
+- **Đóng gói và quản lý file**:
+  - Tạo sẵn file mẫu `japanese custom song list rules.txt` trong thư mục `japanese word rules karaoke/` và `custom song list rules.txt` ở root project để luôn được tự động đóng gói vào portable executable.
+
+---
 ## [2026-09-11 01:25:00 PM Friday]
 
 ### Added - Thêm nút Export (Export to ASS và Export to SRT) vào tab Text to Subtitle
