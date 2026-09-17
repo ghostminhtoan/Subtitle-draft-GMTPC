@@ -8,6 +8,21 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-17 11:10:00 AM Thursday]
+
+### Added - Phân tách subtab Text to Subtitle và bổ sung subtab Adjust Duration
+- **Tổ chức lại Tab "✂️ Text to Subtitle" thành 2 subtab con**:
+  - Sub-tab 1: `✂️ Text to Subtitle` — Giữ nguyên toàn bộ giao diện và tính năng chia văn bản thành phụ đề ASS tự động hiện hữu.
+  - Sub-tab 2: `⏱️ Adjust Duration` — Tạo công cụ điều chỉnh phụ đề 2 panel được clone theo cấu trúc của Text to Subtitle:
+    - **Panel 1 (Subtitle Input)**: Nhận dữ liệu phụ đề đầu vào (định dạng ASS hoặc SRT), tự động phân tích cú pháp, trích xuất text sạch (loại bỏ tag style `{\...}`, chuẩn hóa ngắt dòng `\N`) và lấy mốc thời gian bắt đầu (`initialStartTime`).
+    - **Panel 2 (Settings + Output)**: Cho phép tinh chỉnh Punctuation (đếm toàn bộ ký tự / bỏ qua dấu câu), Max Chars, Max CPS, Gap (ms), Keep continuous sentence và Auto split sentence. Rebuild phụ đề ASS với timing chuẩn xác từ mốc bắt đầu.
+    - **Tiện ích đi kèm**: Thống kê số segment, max chars/segment, tổng ký tự, CPS trung bình, tổng thời lượng; Nút Copy đa năng (Copy Subtitle, Copy Sentence); Nút Export (Export to ASS, Export to SRT) và thông báo Toast.
+- **Kiến trúc mã nguồn và cấu hình**:
+  - Tạo file mã nguồn riêng `MainWindowTabAdjustDuration.cs` tuân thủ quy tắc giới hạn dòng mã (<500 dòng/region), tái sử dụng engine chia câu thông minh và từ điển viết tắt/mục lục từ partial class `MainWindow`.
+  - Tích hợp các trường textboxes `TxtAdjustDurationInput`, `TxtAdjustDurationOutput` vào hệ thống tìm kiếm phím tắt Ctrl+F / F3 trong `MainWindowSystemGlobalEvents.cs`.
+  - Đăng ký các khóa cấu hình `AdjustDurationMaxChars`, `AdjustDurationCps`, `AdjustDurationGap` vào `AppSettings.cs`.
+
+---
 ## [2026-09-12 10:36:00 PM Saturday]
 
 ### Fixed - Khắc phục triệt để lỗi Custom Song List không apply trong Karaoke Japanese

@@ -14,6 +14,14 @@ namespace Subtitle_draft_GMTPC
         static AppSettings()
         {
             RegisterTranslateTabSettings();
+            RegisterAdjustDurationSettings();
+        }
+
+        private static void RegisterAdjustDurationSettings()
+        {
+            RegisterStringSetting("AdjustDurationMaxChars", "500");
+            RegisterStringSetting("AdjustDurationCps", "17.0");
+            RegisterStringSetting("AdjustDurationGap", "200");
         }
 
         private static void RegisterTranslateTabSettings()

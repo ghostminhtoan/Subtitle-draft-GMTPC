@@ -73,9 +73,11 @@ namespace Subtitle_draft_GMTPC
         LoadSettings();
         InitializeEffectDebounce();
         InitializeTextToSubtitleDebounce();
+        InitializeAdjustDurationDebounce();
         LoadKaraokeEngSplitRules();
         LoadKaraokeJapSplitRules();
         LoadTextToSubSettings();
+        LoadAdjustDurationSettings();
 
         // Register global key events for search
         this.PreviewKeyDown += MainWindow_PreviewKeyDown;
@@ -655,10 +657,10 @@ namespace Subtitle_draft_GMTPC
                     }
                 }
             }
-            // Tab Text to Subtitle
-            else if (header.Contains("Text to Subtitle"))
+            // Tab Text to Subtitle / Adjust Duration
+            else if (header.Contains("Text to Subtitle") || header.Contains("Adjust Duration"))
             {
-                TextBox[] textboxes = new[] { TxtTextToSubInput, TxtTextToSubOutput };
+                TextBox[] textboxes = new[] { TxtTextToSubInput, TxtTextToSubOutput, TxtAdjustDurationInput, TxtAdjustDurationOutput };
                 foreach (var tb in textboxes)
                 {
                     if (tb != null)
@@ -731,8 +733,8 @@ namespace Subtitle_draft_GMTPC
             }
         }
 
-        // Tab level chính: Text to Subtitle
-        if (header.Contains("Text to Subtitle")) return _searchTextToSub;
+        // Tab level chính: Text to Subtitle / Adjust Duration
+        if (header.Contains("Text to Subtitle") || header.Contains("Adjust Duration")) return _searchTextToSub;
 
         return null;
     }
