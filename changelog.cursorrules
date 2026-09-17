@@ -8,6 +8,20 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-17 09:25:00 PM Thursday]
+
+### Added / Fixed - Bảo toàn Style & Actor và thêm checkbox "Keep content of input subtitle"
+- **Bảo toàn 100% Style và Actor (Name) từ input subtitle sang output subtitle**:
+  - Khắc phục triệt để lỗi mất Actor khiến các dòng output trở thành `Default,,0,0,0,,`.
+  - Khi chia nhỏ câu qua Auto split sentence hoặc Max chars, các câu con sinh ra tự động thừa hưởng Style và Actor của dòng phụ đề gốc tương ứng.
+- **Thêm checkbox "Keep content of input subtitle (Giữ nguyên từng dòng phụ đề - Chỉ chỉnh timing theo CPS)"**:
+  - Thêm checkbox `ChkAdjustDurationKeepContent` trong cụm Settings của subtab `Adjust Duration`.
+  - Khi bật, giữ nguyên 100% từng dòng phụ đề của input (1-1), không chia nhỏ hay gộp câu.
+  - Chỉ tính toán và điều chỉnh lại timing (StartTime, EndTime) dựa trên độ dài ký tự chia cho CPS và khoảng cách Gap (ms).
+- **Cấu hình hệ thống**:
+  - Tự động lưu và khôi phục trạng thái bật/tắt của checkbox `AdjustDurationKeepContent` qua `AppSettings`.
+
+---
 ## [2026-09-17 08:15:00 PM Thursday]
 
 ### Added - Bổ sung checkbox "Each line is one subtitle" trong tab Text to Subtitle

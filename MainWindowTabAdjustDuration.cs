@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -12,12 +13,24 @@ using Subtitle_draft_GMTPC.Services;
 
 namespace Subtitle_draft_GMTPC
 {
+    public class AdjustDurationSegmentItem
+    {
+        public string Text { get; set; } = "";
+        public string Layer { get; set; } = "0";
+        public string Style { get; set; } = "Default";
+        public string Actor { get; set; } = "";
+        public string MarginL { get; set; } = "0";
+        public string MarginR { get; set; } = "0";
+        public string MarginV { get; set; } = "0";
+        public string Effect { get; set; } = "";
+    }
+
     public partial class MainWindow : Window
     {
         #region "Adjust Duration - Fields"
 
         private bool _isAdjustDurationUpdating = false;
-        private List<string> _adjustDurationSegments = new List<string>();
+        private List<AdjustDurationSegmentItem> _adjustDurationSegments = new List<AdjustDurationSegmentItem>();
         private DispatcherTimer _adjustDurationDebounceTimer = new DispatcherTimer();
         private bool _adjustDurationPendingConvert = false;
         private TimeSpan _adjustDurationInitialStartTime = TimeSpan.Zero;
@@ -108,7 +121,7 @@ namespace Subtitle_draft_GMTPC
             if (_adjustDurationSegments == null || _adjustDurationSegments.Count == 0) return;
             try
             {
-                string textOnly = string.Join(Environment.NewLine, _adjustDurationSegments);
+                string textOnly = string.Join(Environment.NewLine, _adjustDurationSegments.Select(s => s.Text));
                 if (string.IsNullOrWhiteSpace(textOnly)) return;
 
                 Clipboard.SetText(textOnly);
@@ -176,6 +189,7 @@ namespace Subtitle_draft_GMTPC
                 bool keepContinuous = GetAdjustDurationKeepContinuous();
                 bool autoBreak = GetAdjustDurationAutoBreak();
                 bool eachLine = GetAdjustDurationEachLine();
+                bool keepContent = GetAdjustDurationKeepContent();
 
                 // Validate
                 if (maxChars < 50) maxChars = 50;
@@ -184,7 +198,7 @@ namespace Subtitle_draft_GMTPC
 
                 // Phát hiện định dạng subtitle đầu vào (ASS hoặc SRT hoặc Plain text)
                 var format = SubtitleParser.DetectFormat(inputContent);
-                var extractedLines = new List<string>();
+                var segments = new List<AdjustDurationSegmentItem>();
                 TimeSpan initialStartTime = TimeSpan.Zero;
 
                 if (format == SubtitleFormat.Ass)
@@ -193,12 +207,72 @@ namespace Subtitle_draft_GMTPC
                     if (assLines.Count > 0)
                     {
                         initialStartTime = assLines[0].StartTime;
+
                         foreach (var line in assLines)
                         {
-                            string txt = GetCleanSubtitleLineText(line);
-                            if (!string.IsNullOrWhiteSpace(txt))
+                            var assLine = line as AssSubtitleLine;
+                            string txt = (keepContent && assLine != null && !string.IsNullOrWhiteSpace(assLine.DialogText))
+                                ? assLine.DialogText.Trim()
+                                : GetCleanSubtitleLineText(line);
+
+                            if (string.IsNullOrWhiteSpace(txt)) continue;
+
+                            string layer = (assLine != null && !string.IsNullOrWhiteSpace(assLine.Layer)) ? assLine.Layer : "0";
+                            string style = (assLine != null && !string.IsNullOrWhiteSpace(assLine.Style)) ? assLine.Style : "Default";
+                            string actor = assLine != null ? (assLine.Name ?? "") : "";
+                            string ml = (assLine != null && !string.IsNullOrWhiteSpace(assLine.MarginL)) ? assLine.MarginL : "0";
+                            string mr = (assLine != null && !string.IsNullOrWhiteSpace(assLine.MarginR)) ? assLine.MarginR : "0";
+                            string mv = (assLine != null && !string.IsNullOrWhiteSpace(assLine.MarginV)) ? assLine.MarginV : "0";
+                            string effect = assLine != null ? (assLine.Effect ?? "") : "";
+
+                            // 1. Khi bật Keep Content: giữ nguyên 100% từng dòng phụ đề, chỉ chỉnh timing theo CPS
+                            if (keepContent)
                             {
-                                extractedLines.Add(txt);
+                                segments.Add(new AdjustDurationSegmentItem
+                                {
+                                    Text = txt,
+                                    Layer = layer,
+                                    Style = style,
+                                    Actor = actor,
+                                    MarginL = ml,
+                                    MarginR = mr,
+                                    MarginV = mv,
+                                    Effect = effect
+                                });
+                            }
+                            // 2. Khi bật Each Line: mỗi dòng là một phụ đề
+                            else if (eachLine)
+                            {
+                                segments.Add(new AdjustDurationSegmentItem
+                                {
+                                    Text = txt,
+                                    Layer = layer,
+                                    Style = style,
+                                    Actor = actor,
+                                    MarginL = ml,
+                                    MarginR = mr,
+                                    MarginV = mv,
+                                    Effect = effect
+                                });
+                            }
+                            // 3. Tách câu bình thường (Auto split, Max Chars, Keep Continuous) nhưng bảo lưu Style và Actor của dòng gốc
+                            else
+                            {
+                                var subSegs = SplitTextIntoSegments(txt, maxChars, ignorePunctuation, keepContinuous, autoBreak);
+                                foreach (var sub in subSegs)
+                                {
+                                    segments.Add(new AdjustDurationSegmentItem
+                                    {
+                                        Text = sub,
+                                        Layer = layer,
+                                        Style = style,
+                                        Actor = actor,
+                                        MarginL = ml,
+                                        MarginR = mr,
+                                        MarginV = mv,
+                                        Effect = effect
+                                    });
+                                }
                             }
                         }
                     }
@@ -209,57 +283,95 @@ namespace Subtitle_draft_GMTPC
                     if (srtLines.Count > 0)
                     {
                         initialStartTime = srtLines[0].StartTime;
+
                         foreach (var line in srtLines)
                         {
                             string txt = GetCleanSubtitleLineText(line);
-                            if (!string.IsNullOrWhiteSpace(txt))
+                            if (string.IsNullOrWhiteSpace(txt)) continue;
+
+                            if (keepContent || eachLine)
                             {
-                                extractedLines.Add(txt);
+                                segments.Add(new AdjustDurationSegmentItem
+                                {
+                                    Text = txt,
+                                    Layer = "0",
+                                    Style = "Default",
+                                    Actor = "",
+                                    MarginL = "0",
+                                    MarginR = "0",
+                                    MarginV = "0",
+                                    Effect = ""
+                                });
+                            }
+                            else
+                            {
+                                var subSegs = SplitTextIntoSegments(txt, maxChars, ignorePunctuation, keepContinuous, autoBreak);
+                                foreach (var sub in subSegs)
+                                {
+                                    segments.Add(new AdjustDurationSegmentItem
+                                    {
+                                        Text = sub,
+                                        Layer = "0",
+                                        Style = "Default",
+                                        Actor = "",
+                                        MarginL = "0",
+                                        MarginR = "0",
+                                        MarginV = "0",
+                                        Effect = ""
+                                    });
+                                }
                             }
                         }
                     }
                 }
-
-                _adjustDurationInitialStartTime = initialStartTime;
-
-                // Bước 1: Chia văn bản thành các segment
-                if (eachLine)
+                else
                 {
-                    if (extractedLines.Count > 0)
-                    {
-                        _adjustDurationSegments = new List<string>(extractedLines);
-                    }
-                    else
+                    // Plain text input
+                    initialStartTime = TimeSpan.Zero;
+                    if (keepContent || eachLine)
                     {
                         var rawLines = inputContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-                        var segments = new List<string>();
                         foreach (var rLine in rawLines)
                         {
                             var trimmed = rLine.Trim();
                             if (!string.IsNullOrWhiteSpace(trimmed))
                             {
-                                segments.Add(trimmed);
+                                segments.Add(new AdjustDurationSegmentItem
+                                {
+                                    Text = trimmed,
+                                    Layer = "0",
+                                    Style = "Default",
+                                    Actor = "",
+                                    MarginL = "0",
+                                    MarginR = "0",
+                                    MarginV = "0",
+                                    Effect = ""
+                                });
                             }
                         }
-                        _adjustDurationSegments = segments;
-                    }
-                }
-                else
-                {
-                    // Nếu không parse được line nào hoặc là text thường
-                    string fullText;
-                    if (extractedLines.Count > 0)
-                    {
-                        fullText = string.Join(" ", extractedLines);
                     }
                     else
                     {
-                        fullText = inputContent;
-                        initialStartTime = TimeSpan.Zero;
+                        var textSegs = SplitTextIntoSegments(inputContent, maxChars, ignorePunctuation, keepContinuous, autoBreak);
+                        foreach (var sub in textSegs)
+                        {
+                            segments.Add(new AdjustDurationSegmentItem
+                            {
+                                Text = sub,
+                                Layer = "0",
+                                Style = "Default",
+                                Actor = "",
+                                MarginL = "0",
+                                MarginR = "0",
+                                MarginV = "0",
+                                Effect = ""
+                            });
+                        }
                     }
-
-                    _adjustDurationSegments = SplitTextIntoSegments(fullText, maxChars, ignorePunctuation, keepContinuous, autoBreak);
                 }
+
+                _adjustDurationInitialStartTime = initialStartTime;
+                _adjustDurationSegments = segments;
 
                 // Bước 2: Tính toán time codes ASS bắt đầu từ initialStartTime
                 var assOutput = BuildAssOutputForAdjustDuration(_adjustDurationSegments, maxCps, ignorePunctuation, gapMs, initialStartTime);
@@ -312,16 +424,24 @@ namespace Subtitle_draft_GMTPC
             return Regex.Replace(raw, @"\s+", " ").Trim();
         }
 
-        private string BuildAssOutputForAdjustDuration(List<string> segments, double maxCps, bool ignorePunctuation, int gapMs, TimeSpan startOffset)
+        private int CountAdjustDurationCharacters(string text, bool ignorePunctuation)
+        {
+            if (string.IsNullOrEmpty(text)) return 0;
+            string clean = Regex.Replace(text, @"\{[^}]*\}", "");
+            clean = Regex.Replace(clean, @"\\[Nn]", " ");
+            return CountCharacters(clean, ignorePunctuation);
+        }
+
+        private string BuildAssOutputForAdjustDuration(List<AdjustDurationSegmentItem> segments, double maxCps, bool ignorePunctuation, int gapMs, TimeSpan startOffset)
         {
             if (segments == null || segments.Count == 0) return "";
 
             var sb = new StringBuilder();
             TimeSpan currentTime = startOffset;
 
-            foreach (var segment in segments)
+            foreach (var item in segments)
             {
-                int charCount = CountCharacters(segment, ignorePunctuation);
+                int charCount = CountAdjustDurationCharacters(item.Text, ignorePunctuation);
 
                 // Tính duration: charCount / CPS = seconds
                 double durationSeconds = charCount / maxCps;
@@ -334,7 +454,16 @@ namespace Subtitle_draft_GMTPC
                 string startStr = SubtitleLine.FormatAssTime(startTime);
                 string endStr = SubtitleLine.FormatAssTime(endTime);
 
-                sb.AppendFormat("Dialogue: 0,{0},{1},Default,,0,0,0,,{2}", startStr, endStr, segment);
+                string layer = string.IsNullOrWhiteSpace(item.Layer) ? "0" : item.Layer;
+                string style = string.IsNullOrWhiteSpace(item.Style) ? "Default" : item.Style;
+                string actor = item.Actor ?? "";
+                string ml = string.IsNullOrWhiteSpace(item.MarginL) ? "0" : item.MarginL;
+                string mr = string.IsNullOrWhiteSpace(item.MarginR) ? "0" : item.MarginR;
+                string mv = string.IsNullOrWhiteSpace(item.MarginV) ? "0" : item.MarginV;
+                string effect = item.Effect ?? "";
+
+                sb.AppendFormat("Dialogue: {0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
+                    layer, startStr, endStr, style, actor, ml, mr, mv, effect, item.Text);
                 sb.AppendLine();
 
                 // Tính start time cho dòng tiếp theo = end time + gap
@@ -344,7 +473,7 @@ namespace Subtitle_draft_GMTPC
             return sb.ToString().TrimEnd();
         }
 
-        private string BuildSrtOutputForAdjustDuration(List<string> segments, double maxCps, bool ignorePunctuation, int gapMs, TimeSpan startOffset)
+        private string BuildSrtOutputForAdjustDuration(List<AdjustDurationSegmentItem> segments, double maxCps, bool ignorePunctuation, int gapMs, TimeSpan startOffset)
         {
             if (segments == null || segments.Count == 0) return "";
 
@@ -352,18 +481,21 @@ namespace Subtitle_draft_GMTPC
             TimeSpan currentTime = startOffset;
             int index = 1;
 
-            foreach (var segment in segments)
+            foreach (var item in segments)
             {
-                int charCount = CountCharacters(segment, ignorePunctuation);
+                int charCount = CountAdjustDurationCharacters(item.Text, ignorePunctuation);
                 double durationSeconds = charCount / maxCps;
                 TimeSpan duration = TimeSpan.FromSeconds(durationSeconds);
 
                 TimeSpan startTime = currentTime;
                 TimeSpan endTime = startTime + duration;
 
+                string srtText = Regex.Replace(item.Text, @"\{[^}]*\}", "");
+                srtText = Regex.Replace(srtText, @"\\[Nn]", Environment.NewLine);
+
                 sb.AppendLine(index.ToString());
                 sb.AppendLine(string.Format("{0} --> {1}", SubtitleLine.FormatSrtTime(startTime), SubtitleLine.FormatSrtTime(endTime)));
-                sb.AppendLine(segment);
+                sb.AppendLine(srtText);
                 sb.AppendLine();
 
                 currentTime = endTime + TimeSpan.FromMilliseconds(gapMs);
@@ -373,7 +505,7 @@ namespace Subtitle_draft_GMTPC
             return sb.ToString().TrimEnd();
         }
 
-        private void UpdateAdjustDurationStats(List<string> segments, double maxCps, bool ignorePunctuation, int gapMs, TimeSpan startOffset)
+        private void UpdateAdjustDurationStats(List<AdjustDurationSegmentItem> segments, double maxCps, bool ignorePunctuation, int gapMs, TimeSpan startOffset)
         {
             if (segments == null || segments.Count == 0)
             {
@@ -385,9 +517,9 @@ namespace Subtitle_draft_GMTPC
             int maxSegmentChars = 0;
             double avgCps = 0;
 
-            foreach (var seg in segments)
+            foreach (var item in segments)
             {
-                int count = CountCharacters(seg, ignorePunctuation);
+                int count = CountAdjustDurationCharacters(item.Text, ignorePunctuation);
                 totalChars += count;
                 if (count > maxSegmentChars) maxSegmentChars = count;
             }
@@ -561,6 +693,12 @@ namespace Subtitle_draft_GMTPC
             return ChkAdjustDurationEachLine.IsChecked == true;
         }
 
+        private bool GetAdjustDurationKeepContent()
+        {
+            if (ChkAdjustDurationKeepContent == null) return false;
+            return ChkAdjustDurationKeepContent.IsChecked == true;
+        }
+
         private void SaveAdjustDurationSettings()
         {
             try
@@ -569,6 +707,7 @@ namespace Subtitle_draft_GMTPC
                 AppSettings.SetString("AdjustDurationCps", TxtAdjustDurationCps.Text?.Trim() ?? "17.0");
                 AppSettings.SetString("AdjustDurationGap", TxtAdjustDurationGap.Text?.Trim() ?? "200");
                 AppSettings.SetString("AdjustDurationEachLine", ChkAdjustDurationEachLine?.IsChecked == true ? "1" : "0");
+                AppSettings.SetString("AdjustDurationKeepContent", ChkAdjustDurationKeepContent?.IsChecked == true ? "1" : "0");
                 Properties.Settings.Default.Save();
             }
             catch { }
@@ -591,6 +730,12 @@ namespace Subtitle_draft_GMTPC
                 if (ChkAdjustDurationEachLine != null)
                 {
                     ChkAdjustDurationEachLine.IsChecked = eachLineStr == "1";
+                }
+
+                string keepContentStr = AppSettings.GetString("AdjustDurationKeepContent", "0");
+                if (ChkAdjustDurationKeepContent != null)
+                {
+                    ChkAdjustDurationKeepContent.IsChecked = keepContentStr == "1";
                 }
             }
             catch { }

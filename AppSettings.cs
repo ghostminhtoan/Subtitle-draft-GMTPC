@@ -23,6 +23,7 @@ namespace Subtitle_draft_GMTPC
             RegisterStringSetting("AdjustDurationCps", "17.0");
             RegisterStringSetting("AdjustDurationGap", "200");
             RegisterStringSetting("AdjustDurationEachLine", "0");
+            RegisterStringSetting("AdjustDurationKeepContent", "0");
             RegisterStringSetting("TextToSubEachLine", "0");
         }
 

@@ -2069,6 +2069,7 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
                                         <!-- Row 0: Punctuation -->
@@ -2150,6 +2151,13 @@
                                         <CheckBox x:Name="ChkAdjustDurationEachLine" Grid.Row="4"
                                                   Content="Each line is one subtitle (Mỗi dòng là một phụ đề - Tự xóa dòng trống)"
                                                   Foreground="#FFB74D" FontSize="12" VerticalAlignment="Center"
+                                                  Margin="0,2,0,2"
+                                                  Click="TxtAdjustDurationSetting_Changed"/>
+
+                                        <!-- Row 5: Checkbox 4 - Keep content of input subtitle -->
+                                        <CheckBox x:Name="ChkAdjustDurationKeepContent" Grid.Row="5"
+                                                  Content="Keep content of input subtitle (Giữ nguyên từng dòng phụ đề - Chỉ chỉnh timing theo CPS)"
+                                                  Foreground="#CE93D8" FontSize="12" VerticalAlignment="Center"
                                                   Margin="0,2,0,2"
                                                   Click="TxtAdjustDurationSetting_Changed"/>
                                     </Grid>
