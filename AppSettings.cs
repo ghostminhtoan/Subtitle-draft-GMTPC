@@ -22,6 +22,8 @@ namespace Subtitle_draft_GMTPC
             RegisterStringSetting("AdjustDurationMaxChars", "500");
             RegisterStringSetting("AdjustDurationCps", "17.0");
             RegisterStringSetting("AdjustDurationGap", "200");
+            RegisterStringSetting("AdjustDurationEachLine", "0");
+            RegisterStringSetting("TextToSubEachLine", "0");
         }
 
         private static void RegisterTranslateTabSettings()

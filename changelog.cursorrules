@@ -8,6 +8,16 @@ Tất cả thay đổi đáng chú ý của project sẽ được ghi lại tron
 - LUÔN chèn entry mới lên ĐẦU file (ngay sau phần header này)
 
 ---
+## [2026-09-17 08:15:00 PM Thursday]
+
+### Added - Bổ sung checkbox "Each line is one subtitle" trong tab Text to Subtitle
+- **Tính năng chuyển đổi từng dòng thành một phụ đề riêng biệt (Each line is one subtitle)**:
+  - Thêm Checkbox `Each line is one subtitle (Mỗi dòng là một phụ đề - Tự xóa dòng trống)` trong cụm Settings của cả hai subtab `Text to Subtitle` và `Adjust Duration`.
+  - Khi bật tùy chọn này, hệ thống sẽ phân tách văn bản đầu vào theo từng dòng, tự động loại bỏ các dòng trống (empty line) và khoảng trắng thừa. Mỗi dòng hợp lệ tương ứng với đúng một câu/phụ đề độc lập.
+  - Thời lượng hiển thị (duration) và timecode vẫn được tự động tính toán chính xác theo tốc độ CPS và khoảng cách Gap (ms) đã thiết lập.
+  - Tự động lưu và khôi phục trạng thái bật/tắt của checkbox qua `AppSettings`.
+
+---
 ## [2026-09-17 11:10:00 AM Thursday]
 
 ### Added - Phân tách subtab Text to Subtitle và bổ sung subtab Adjust Duration

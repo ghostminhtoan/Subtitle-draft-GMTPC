@@ -1861,6 +1861,7 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
                                         <!-- Row 0: Punctuation -->
@@ -1935,6 +1936,13 @@
                                         <CheckBox x:Name="ChkTextToSubAutoBreak" Grid.Row="3"
                                                   Content="Auto split sentence (Tự ngắt sau .!:? và ... + Chữ HOA)"
                                                   Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                                  Margin="0,2,0,2"
+                                                  Click="TxtTextToSubSetting_Changed"/>
+
+                                        <!-- Row 4: Checkbox 3 - Each line is one subtitle -->
+                                        <CheckBox x:Name="ChkTextToSubEachLine" Grid.Row="4"
+                                                  Content="Each line is one subtitle (Mỗi dòng là một phụ đề - Tự xóa dòng trống)"
+                                                  Foreground="#FFB74D" FontSize="12" VerticalAlignment="Center"
                                                   Margin="0,2,0,2"
                                                   Click="TxtTextToSubSetting_Changed"/>
                                     </Grid>
@@ -2060,6 +2068,7 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
                                         <!-- Row 0: Punctuation -->
@@ -2134,6 +2143,13 @@
                                         <CheckBox x:Name="ChkAdjustDurationAutoBreak" Grid.Row="3"
                                                   Content="Auto split sentence (Tự ngắt sau .!:? và ... + Chữ HOA)"
                                                   Foreground="#B0B0B0" FontSize="12" VerticalAlignment="Center"
+                                                  Margin="0,2,0,2"
+                                                  Click="TxtAdjustDurationSetting_Changed"/>
+
+                                        <!-- Row 4: Checkbox 3 - Each line is one subtitle -->
+                                        <CheckBox x:Name="ChkAdjustDurationEachLine" Grid.Row="4"
+                                                  Content="Each line is one subtitle (Mỗi dòng là một phụ đề - Tự xóa dòng trống)"
+                                                  Foreground="#FFB74D" FontSize="12" VerticalAlignment="Center"
                                                   Margin="0,2,0,2"
                                                   Click="TxtAdjustDurationSetting_Changed"/>
                                     </Grid>

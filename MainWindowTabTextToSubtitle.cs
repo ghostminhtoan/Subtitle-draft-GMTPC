@@ -195,6 +195,7 @@ namespace Subtitle_draft_GMTPC
                 int gapMs = GetTextToSubGap();
                 bool keepContinuous = GetTextToSubKeepContinuous();
                 bool autoBreak = GetTextToSubAutoBreak();
+                bool eachLine = GetTextToSubEachLine();
 
                 // Validate
                 if (maxChars < 50) maxChars = 50;
@@ -202,7 +203,25 @@ namespace Subtitle_draft_GMTPC
                 if (gapMs < 0) gapMs = 0;
 
                 // Bước 1: Chia văn bản thành các segment
-                _textToSubSegments = SplitTextIntoSegments(inputText, maxChars, ignorePunctuation, keepContinuous, autoBreak);
+                if (eachLine)
+                {
+                    // Tách theo từng dòng, tự động xóa empty line
+                    var rawLines = (TxtTextToSubInput.Text ?? "").Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                    var segments = new List<string>();
+                    foreach (var rLine in rawLines)
+                    {
+                        var trimmed = rLine.Trim();
+                        if (!string.IsNullOrWhiteSpace(trimmed))
+                        {
+                            segments.Add(trimmed);
+                        }
+                    }
+                    _textToSubSegments = segments;
+                }
+                else
+                {
+                    _textToSubSegments = SplitTextIntoSegments(inputText, maxChars, ignorePunctuation, keepContinuous, autoBreak);
+                }
 
                 // Bước 2: Tính toán time codes
                 var assOutput = BuildAssOutput(_textToSubSegments, maxCps, ignorePunctuation, gapMs);
@@ -237,6 +256,12 @@ namespace Subtitle_draft_GMTPC
         {
             if (ChkTextToSubAutoBreak == null) return false;
             return ChkTextToSubAutoBreak.IsChecked == true;
+        }
+
+        private bool GetTextToSubEachLine()
+        {
+            if (ChkTextToSubEachLine == null) return false;
+            return ChkTextToSubEachLine.IsChecked == true;
         }
 
         /// <summary>
@@ -1034,6 +1059,8 @@ namespace Subtitle_draft_GMTPC
                 if (int.TryParse(TxtTextToSubGap.Text?.Trim(), out gap) && gap >= 0)
                     Properties.Settings.Default.TextToSubGap = gap;
 
+                AppSettings.SetString("TextToSubEachLine", ChkTextToSubEachLine?.IsChecked == true ? "1" : "0");
+
                 Properties.Settings.Default.Save();
             }
             catch { }
@@ -1051,6 +1078,12 @@ namespace Subtitle_draft_GMTPC
 
                 int gap = Properties.Settings.Default.TextToSubGap;
                 if (gap >= 0) TxtTextToSubGap.Text = gap.ToString();
+
+                string eachLineStr = AppSettings.GetString("TextToSubEachLine", "0");
+                if (ChkTextToSubEachLine != null)
+                {
+                    ChkTextToSubEachLine.IsChecked = eachLineStr == "1";
+                }
             }
             catch { }
         }

@@ -175,6 +175,7 @@ namespace Subtitle_draft_GMTPC
                 int gapMs = GetAdjustDurationGap();
                 bool keepContinuous = GetAdjustDurationKeepContinuous();
                 bool autoBreak = GetAdjustDurationAutoBreak();
+                bool eachLine = GetAdjustDurationEachLine();
 
                 // Validate
                 if (maxChars < 50) maxChars = 50;
@@ -219,22 +220,46 @@ namespace Subtitle_draft_GMTPC
                     }
                 }
 
-                // Nếu không parse được line nào hoặc là text thường
-                string fullText;
-                if (extractedLines.Count > 0)
+                _adjustDurationInitialStartTime = initialStartTime;
+
+                // Bước 1: Chia văn bản thành các segment
+                if (eachLine)
                 {
-                    fullText = string.Join(" ", extractedLines);
+                    if (extractedLines.Count > 0)
+                    {
+                        _adjustDurationSegments = new List<string>(extractedLines);
+                    }
+                    else
+                    {
+                        var rawLines = inputContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                        var segments = new List<string>();
+                        foreach (var rLine in rawLines)
+                        {
+                            var trimmed = rLine.Trim();
+                            if (!string.IsNullOrWhiteSpace(trimmed))
+                            {
+                                segments.Add(trimmed);
+                            }
+                        }
+                        _adjustDurationSegments = segments;
+                    }
                 }
                 else
                 {
-                    fullText = inputContent;
-                    initialStartTime = TimeSpan.Zero;
+                    // Nếu không parse được line nào hoặc là text thường
+                    string fullText;
+                    if (extractedLines.Count > 0)
+                    {
+                        fullText = string.Join(" ", extractedLines);
+                    }
+                    else
+                    {
+                        fullText = inputContent;
+                        initialStartTime = TimeSpan.Zero;
+                    }
+
+                    _adjustDurationSegments = SplitTextIntoSegments(fullText, maxChars, ignorePunctuation, keepContinuous, autoBreak);
                 }
-
-                _adjustDurationInitialStartTime = initialStartTime;
-
-                // Bước 1: Chia văn bản thành các segment (dùng hàm SplitTextIntoSegments của MainWindow)
-                _adjustDurationSegments = SplitTextIntoSegments(fullText, maxChars, ignorePunctuation, keepContinuous, autoBreak);
 
                 // Bước 2: Tính toán time codes ASS bắt đầu từ initialStartTime
                 var assOutput = BuildAssOutputForAdjustDuration(_adjustDurationSegments, maxCps, ignorePunctuation, gapMs, initialStartTime);
@@ -530,6 +555,12 @@ namespace Subtitle_draft_GMTPC
             return ChkAdjustDurationAutoBreak.IsChecked == true;
         }
 
+        private bool GetAdjustDurationEachLine()
+        {
+            if (ChkAdjustDurationEachLine == null) return false;
+            return ChkAdjustDurationEachLine.IsChecked == true;
+        }
+
         private void SaveAdjustDurationSettings()
         {
             try
@@ -537,6 +568,7 @@ namespace Subtitle_draft_GMTPC
                 AppSettings.SetString("AdjustDurationMaxChars", TxtAdjustDurationMaxChars.Text?.Trim() ?? "500");
                 AppSettings.SetString("AdjustDurationCps", TxtAdjustDurationCps.Text?.Trim() ?? "17.0");
                 AppSettings.SetString("AdjustDurationGap", TxtAdjustDurationGap.Text?.Trim() ?? "200");
+                AppSettings.SetString("AdjustDurationEachLine", ChkAdjustDurationEachLine?.IsChecked == true ? "1" : "0");
                 Properties.Settings.Default.Save();
             }
             catch { }
@@ -554,6 +586,12 @@ namespace Subtitle_draft_GMTPC
 
                 string gap = AppSettings.GetString("AdjustDurationGap", "200");
                 if (!string.IsNullOrEmpty(gap)) TxtAdjustDurationGap.Text = gap;
+
+                string eachLineStr = AppSettings.GetString("AdjustDurationEachLine", "0");
+                if (ChkAdjustDurationEachLine != null)
+                {
+                    ChkAdjustDurationEachLine.IsChecked = eachLineStr == "1";
+                }
             }
             catch { }
         }
